@@ -88,38 +88,25 @@ export default function CheckoutPage() {
       return;
     }
 
-    const orderPayload = {
-      user_id: sellerId,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      city,
-      delivery_address: deliveryAddress,
-      subtotal,
-      delivery_fee: delivery,
-      total,
-      status: "New",
-      payment_status: "Pending",
-    };
+    const orderResult = await fetch("/api/checkout/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sellerId,
+        customerName,
+        customerPhone,
+        city,
+        deliveryAddress,
+        items: validatedItems.map((item) => ({
+          id: item.id,
+          qty: item.qty,
+        })),
+      }),
+    });
+    const orderData = await orderResult.json();
 
-    const { data: order, error: orderError } = await supabase.from("orders").insert(orderPayload).select("id").single();
-    if (orderError || !order) {
-      setMessage(orderError?.message ?? "Could not create order.");
-      setSaving(false);
-      return;
-    }
-
-    const orderItems = validatedItems.map((item) => ({
-      order_id: order.id,
-      product_id: item.id,
-      product_name: item.name,
-      quantity: item.qty,
-      unit_price: item.price,
-      line_total: item.price * item.qty,
-    }));
-
-    const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
-    if (itemsError) {
-      setMessage(formatCheckoutError(itemsError.message));
+    if (!orderResult.ok || !orderData.orderId) {
+      setMessage(formatCheckoutError(orderData.message ?? "Could not create order."));
       setSaving(false);
       return;
     }
@@ -131,14 +118,14 @@ export default function CheckoutPage() {
       .maybeSingle();
 
     savePendingWhatsAppOrder({
-      orderId: order.id,
+      orderId: orderData.orderId,
       sellerName: sellerProfile?.business_name ?? "the seller",
       sellerPhone: sellerProfile?.whatsapp_phone ?? "",
       customerName,
       customerPhone,
       city,
       deliveryAddress,
-      total,
+      total: Number(orderData.total ?? total),
       items: validatedItems,
     });
 
@@ -146,9 +133,9 @@ export default function CheckoutPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        orderId: order.id,
+        orderId: orderData.orderId,
         email: customerEmail,
-        amount: total,
+        amount: Number(orderData.total ?? total),
         customerName,
       }),
     });
