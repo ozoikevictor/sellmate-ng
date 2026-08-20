@@ -139,6 +139,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const { login, register, logout } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (mode === "login") {
@@ -213,7 +214,41 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               </>
             ) : null}
             <label className="grid gap-2 text-sm font-bold text-slate-700">Email<input name="email" type="email" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="ada@example.com" /></label>
-            <label className="grid gap-2 text-sm font-bold text-slate-700">Password<input name="password" type="password" required minLength={mode === "login" ? 1 : 8} autoComplete={mode === "login" ? "current-password" : "new-password"} className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder={mode === "login" ? "Your password" : "8+ characters, uppercase, lowercase, number"} /></label>
+            <label className="grid gap-2 text-sm font-bold text-slate-700">
+              Password
+              <span className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={mode === "login" ? 1 : 8}
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  className="w-full rounded-md border border-slate-300 px-3 py-3 pr-12 font-normal outline-none focus:border-emerald-600"
+                  placeholder={mode === "login" ? "Your password" : "8+ characters, uppercase, lowercase, number"}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden="true">
+                      <path d="M3 3l18 18" />
+                      <path d="M10.6 10.6A2 2 0 0 0 12 14a2 2 0 0 0 1.4-.6" />
+                      <path d="M9.9 4.2A10.5 10.5 0 0 1 12 4c5 0 8.6 4 10 8a13.6 13.6 0 0 1-2.4 4.2" />
+                      <path d="M6.4 6.4A13.5 13.5 0 0 0 2 12c1.4 4 5 8 10 8a10.5 10.5 0 0 0 4.4-.9" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden="true">
+                      <path d="M2 12s3.5-8 10-8 10 8 10 8-3.5 8-10 8-10-8-10-8Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </span>
+            </label>
           </div>
           {error ? <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p> : null}
           <button type="submit" disabled={loading} className="mt-6 w-full rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">

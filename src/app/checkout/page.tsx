@@ -82,6 +82,12 @@ export default function CheckoutPage() {
     const city = String(formData.get("city") ?? "").trim();
     const deliveryAddress = String(formData.get("delivery_address") ?? "").trim();
 
+    if (!isValidEmail(customerEmail)) {
+      setMessage("Email not correct. Please enter a valid email address for your payment receipt.");
+      setSaving(false);
+      return;
+    }
+
     const validatedItems = await syncCartWithProducts(items, setItems, setMessage);
     if (validatedItems.length === 0 || validatedItems.length !== items.length) {
       setSaving(false);
@@ -360,6 +366,10 @@ function formatCheckoutError(message: string) {
     return "One item in your cart is no longer available. Remove it from the cart, add the product again from the store, then place the order.";
   }
   return message;
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 }
 
 function savePendingWhatsAppOrder({
