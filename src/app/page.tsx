@@ -5,15 +5,54 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFooter, SectionTitle, StatCard } from "@/components/ui";
 import { readCart } from "@/lib/cart";
+import { supabase } from "@/lib/supabase";
+
+type SellerSummary = {
+  businessName: string;
+  storeSlug: string;
+  productCount: number;
+  lowStockCount: number;
+};
 
 export default function LandingPage() {
   const [cartCount, setCartCount] = useState(0);
+  const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
 
   useEffect(() => {
+    async function loadSellerSummary() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+
+      if (!userId) {
+        setSellerSummary(null);
+        return;
+      }
+
+      const { data: profileData } = await supabase
+        .from("seller_profiles")
+        .select("business_name,store_slug")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      const { data: productData } = await supabase
+        .from("products")
+        .select("id,stock,status")
+        .eq("user_id", userId)
+        .eq("status", "Live");
+
+      setSellerSummary({
+        businessName: profileData?.business_name || "Your store",
+        storeSlug: profileData?.store_slug || "ada-fashion",
+        productCount: productData?.length ?? 0,
+        lowStockCount: productData?.filter((product) => Number(product.stock) <= 3).length ?? 0,
+      });
+    }
+
     function syncCartCount() {
       setCartCount(readCart().reduce((sum, item) => sum + item.qty, 0));
     }
 
+    loadSellerSummary();
     syncCartCount();
     window.addEventListener("sellmate-cart-updated", syncCartCount);
     window.addEventListener("storage", syncCartCount);
@@ -25,28 +64,47 @@ export default function LandingPage() {
   }, []);
 
   const demoStoreHref = "/store/ada-fashion";
+  const storeHref = sellerSummary ? `/store/${sellerSummary.storeSlug}` : demoStoreHref;
+  const isLoggedInSeller = Boolean(sellerSummary);
 
   const publicMetrics = useMemo(() => {
+    if (sellerSummary) {
+      return [
+        { label: "Your store", value: sellerSummary.businessName, change: "Logged in", tone: "green" },
+        { label: "Live products", value: String(sellerSummary.productCount), change: "Available", tone: "blue" },
+        { label: "Items in your cart", value: String(cartCount), change: cartCount > 0 ? "Ready" : "Empty", tone: "slate" },
+        { label: "Low stock", value: String(sellerSummary.lowStockCount), change: sellerSummary.lowStockCount > 0 ? "Check stock" : "Healthy", tone: sellerSummary.lowStockCount > 0 ? "amber" : "green" },
+      ];
+    }
+
     return [
       { label: "Seller dashboard", value: "Ready", change: "Manage shop", tone: "blue" },
       { label: "Items in your cart", value: String(cartCount), change: cartCount > 0 ? "Ready to checkout" : "Start shopping", tone: "green" },
       { label: "Storefronts", value: "Public", change: "Share links", tone: "slate" },
       { label: "Payments", value: "Paystack", change: "Test mode", tone: "amber" },
     ];
-  }, [cartCount]);
+  }, [cartCount, sellerSummary]);
 
   return (
     <main className="bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_44%,#f8fafc_100%)] pt-20">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur">
         <nav className="mx-auto flex min-h-20 max-w-7xl flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0">
-          <Link href="/" className="flex items-center" aria-label="SellMate NG home">
+          <Link href={storeHref} className="flex items-center" aria-label="Open SellMate store">
             <Image src="/sellmate-logo.png" alt="SellMate logo" width={48} height={48} className="h-10 w-10 rounded-md bg-white object-contain ring-1 ring-slate-300 sm:h-12 sm:w-12" />
           </Link>
           <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:gap-4 sm:overflow-visible sm:pb-0">
-            <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
+            {isLoggedInSeller ? (
+              <Link href={storeHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">My store</Link>
+            ) : (
+              <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
+            )}
             <Link href="/cart" className="shrink-0 rounded-md bg-slate-200 px-3 py-2 text-xs font-black text-slate-800 ring-1 ring-slate-400 hover:bg-slate-100 sm:text-sm">Cart · {cartCount}</Link>
-            <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
-            <Link href="/register" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Start selling</Link>
+            {isLoggedInSeller ? null : (
+              <>
+                <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
+                <Link href="/register" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Start selling</Link>
+              </>
+            )}
           </div>
         </nav>
       </header>
@@ -55,14 +113,22 @@ export default function LandingPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">WhatsApp commerce for Nigerian sellers</p>
             <h1 className="mt-5 max-w-3xl text-4xl font-black capitalize leading-[1.02] text-slate-950 sm:text-5xl lg:text-6xl">
-              Create your online store and manage WhatsApp orders.
+              {isLoggedInSeller ? `${sellerSummary?.businessName} store control.` : "Create your online store and manage WhatsApp orders."}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              SellMate NG helps sellers create a public shop, add products, collect customer orders, receive Paystack payments, and manage everything from a private dashboard.
+              {isLoggedInSeller
+                ? "You are logged in. Open your store to see your public products, pictures, available stock, cart, and checkout flow."
+                : "SellMate NG helps sellers create a public shop, add products, collect customer orders, receive Paystack payments, and manage everything from a private dashboard."}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/register" className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white">Create seller account</Link>
-              <Link href="/login" className="rounded-md border border-slate-400 bg-slate-100 px-5 py-3 text-sm font-black text-slate-800">Seller login</Link>
+              {isLoggedInSeller ? (
+                <Link href={storeHref} className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white">Open my store</Link>
+              ) : (
+                <>
+                  <Link href="/register" className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white">Create seller account</Link>
+                  <Link href="/login" className="rounded-md border border-slate-400 bg-slate-100 px-5 py-3 text-sm font-black text-slate-800">Seller login</Link>
+                </>
+              )}
             </div>
           </div>
           <div className="rounded-lg border border-slate-400 bg-slate-700 p-3 shadow-xl">
@@ -80,7 +146,7 @@ export default function LandingPage() {
         </div>
       </section>
       <section className="mx-auto max-w-7xl px-5 py-12">
-        <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={demoStoreHref} className="text-sm font-bold text-emerald-700">View demo store</Link>} />
+        <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">{isLoggedInSeller ? "View my store" : "View demo store"}</Link>} />
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-black text-slate-950">1. Seller creates store</h2>
@@ -96,12 +162,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-          <PublicFooter />
+      <PublicFooter />
     </main>
   );
 }
-
-
-
-
-
