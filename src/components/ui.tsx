@@ -281,6 +281,7 @@ export function PublicFooter({
   storeHref?: string;
 }) {
   const footerName = sellerName || "SellMate NG";
+  const isSellerFooter = Boolean(sellerName);
   const [dashboardLoginOpen, setDashboardLoginOpen] = useState(false);
   const [dashboardLoginError, setDashboardLoginError] = useState("");
   const [dashboardLoginLoading, setDashboardLoginLoading] = useState(false);
@@ -309,11 +310,17 @@ export function PublicFooter({
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
         <div className="max-w-xl">
           <Link href="/" className="flex w-fit items-center gap-3 text-xl font-black text-slate-950">
-            <Image src="/sellmate-logo.png" alt="SellMate logo" width={52} height={52} className="h-12 w-12 rounded-md bg-white object-contain ring-1 ring-slate-300" />
-            <span>SellMate NG</span>
+            {isSellerFooter ? (
+              <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
+            ) : (
+              <Image src="/sellmate-logo.png" alt="SellMate logo" width={52} height={52} className="h-12 w-12 rounded-md bg-white object-contain ring-1 ring-slate-300" />
+            )}
+            <span>{footerName}</span>
           </Link>
           <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
-            WhatsApp commerce for Nigerian sellers: public storefronts, carts, orders, receipts, and seller dashboards.
+            {isSellerFooter
+              ? "Secure product browsing, cart checkout, payment, and WhatsApp order follow-up powered by SellMate NG."
+              : "WhatsApp commerce for Nigerian sellers: public storefronts, carts, orders, receipts, and seller dashboards."}
           </p>
         </div>
         <div>
