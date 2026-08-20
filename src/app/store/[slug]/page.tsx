@@ -130,6 +130,17 @@ export default function DynamicStorefrontPage() {
     return [product.name, product.category, product.sku, product.variant_options ?? ""].some((value) => value.toLowerCase().includes(query));
   });
 
+  if (loading && !profile) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] px-5">
+        <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
+          <p className="text-sm font-black text-slate-950">Loading store...</p>
+          <p className="mt-2 text-xs font-semibold text-slate-500">Opening the correct seller shop.</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] pt-28 sm:pt-20">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur">

@@ -57,6 +57,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
   const [storeSlug, setStoreSlug] = useState("store");
+  const [storeReady, setStoreReady] = useState(false);
   const links = [
     { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "dashboard" },
     { key: "account", label: "Account", href: "/dashboard/account", icon: "account" },
@@ -72,12 +73,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user?.id) {
+      setStoreReady(false);
       return;
     }
     const timer = window.setTimeout(async () => {
+      setStoreReady(false);
       const { data } = await supabase.from("seller_profiles").select("store_slug").eq("user_id", user.id).maybeSingle();
       if (data?.store_slug) {
         setStoreSlug(data.store_slug);
+        setStoreReady(true);
         return;
       }
 
@@ -94,14 +98,21 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         },
         { onConflict: "user_id" },
       );
+      setStoreReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, [user?.business, user?.id, user?.name]);
 
+  const storeHref = `/store/${storeSlug}`;
+
   return (
     <main className="min-h-screen bg-slate-50">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white p-6 lg:block">
-        <Link href={`/store/${storeSlug}`} className="text-xl font-black text-slate-950">SellMate NG</Link>
+        {storeReady ? (
+          <Link href={storeHref} className="text-xl font-black text-slate-950">SellMate NG</Link>
+        ) : (
+          <span className="text-xl font-black text-slate-950">SellMate NG</span>
+        )}
         <p className="mt-2 text-sm text-slate-500">{user?.business ?? "Ada Fashion"} command center</p>
         <nav className="mt-8 grid gap-1">
           {links.map((link) => {
@@ -120,19 +131,33 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <Link href={`/store/${storeSlug}`} className="mt-8 block rounded-md bg-slate-950 px-4 py-3 text-center text-sm font-bold text-white">View storefront</Link>
+        {storeReady ? (
+          <Link href={storeHref} className="mt-8 block rounded-md bg-slate-950 px-4 py-3 text-center text-sm font-bold text-white">View storefront</Link>
+        ) : (
+          <span className="mt-8 block rounded-md bg-slate-200 px-4 py-3 text-center text-sm font-bold text-slate-600">Loading store...</span>
+        )}
       </aside>
       <section className="lg:pl-64">
         <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-5 py-4 backdrop-blur">
           <div className="flex items-center justify-between">
-            <Link href={`/store/${storeSlug}`} className="font-black text-slate-950 lg:hidden">SellMate NG</Link>
+            {storeReady ? (
+              <Link href={storeHref} className="font-black text-slate-950 lg:hidden">SellMate NG</Link>
+            ) : (
+              <span className="font-black text-slate-950 lg:hidden">SellMate NG</span>
+            )}
             <p className="hidden text-sm font-semibold text-slate-700 lg:block">{user?.business ?? "Seller workspace"}</p>
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               <span className="hidden text-sm font-semibold text-slate-700 sm:inline">Logged in</span>
-              <Link href={`/store/${storeSlug}`} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm lg:hidden">
-                View store
-              </Link>
+              {storeReady ? (
+                <Link href={storeHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm lg:hidden">
+                  View store
+                </Link>
+              ) : (
+                <span className="rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-black text-slate-500 shadow-sm lg:hidden">
+                  Loading store...
+                </span>
+              )}
               <LogoutButton />
             </div>
           </div>

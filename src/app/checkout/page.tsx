@@ -159,6 +159,17 @@ export default function CheckoutPage() {
     window.location.href = paymentData.authorizationUrl;
   }
 
+  if (!mounted) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#e0f2fe_0,#eef5fb_34%,#f8fafc_68%)] px-5">
+        <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
+          <p className="text-sm font-black text-slate-950">Loading checkout...</p>
+          <p className="mt-2 text-xs font-semibold text-slate-500">Getting your cart and seller details first.</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e0f2fe_0,#eef5fb_34%,#f8fafc_68%)] pt-20">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-slate-200/95 shadow-sm backdrop-blur">
@@ -208,7 +219,6 @@ export default function CheckoutPage() {
         <aside className="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-black text-slate-950">Order summary</h2>
           <div className="mt-4 grid gap-3 text-sm text-slate-600">
-            {!mounted ? <p>Loading cart...</p> : null}
             {mounted && items.length === 0 ? <p>No item to checkout yet. Go back to the store and add products first.</p> : null}
             {items.map((item) => (
               <div key={item.id} className="flex justify-between gap-4">
