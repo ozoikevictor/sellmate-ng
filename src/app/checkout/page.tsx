@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PublicFooter, SectionTitle, SellerLogo } from "@/components/ui";
-import { CartItem, cartTotal, readCart, writeCart } from "@/lib/cart";
+import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -34,7 +34,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     const timer = window.setTimeout(async () => {
       setMounted(true);
-      const nextItems = await syncCartWithProducts(readCart(), setItems, setMessage);
+      const cartItems = readCart();
+      setStoreHref(cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref());
+      const nextItems = await syncCartWithProducts(cartItems, setItems, setMessage);
       await loadSellerDetails(nextItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -246,7 +248,9 @@ async function loadSellerDetails(
   setDelivery(Number(data?.delivery_fee ?? 0));
   setSellerName(data?.logo_text || data?.business_name || "Store");
   setSellerLogoUrl(data?.logo_url || "");
-  setStoreHref(`/store/${data?.store_slug || "ada-fashion"}`);
+  const nextStoreHref = `/store/${data?.store_slug || items[0]?.store_slug || "ada-fashion"}`;
+  setStoreHref(nextStoreHref);
+  writeCurrentStoreHref(nextStoreHref);
 }
 
 async function syncCartWithProducts(

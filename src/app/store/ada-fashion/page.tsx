@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PublicFooter, SectionTitle, SellerLogo } from "@/components/ui";
-import { addToCart, readCart } from "@/lib/cart";
+import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 
 type StoreProduct = {
@@ -57,6 +57,7 @@ export default function StorefrontPage() {
     }
 
     loadProducts();
+    writeCurrentStoreHref("/store/ada-fashion");
     const timer = window.setTimeout(() => {
       setCartCount(readCart().reduce((sum, item) => sum + item.qty, 0));
     }, 0);
@@ -67,6 +68,7 @@ export default function StorefrontPage() {
     const nextCart = addToCart({
       id: product.id,
       user_id: product.user_id,
+      store_slug: profile.store_slug,
       name: product.name,
       category: product.category,
       variant_options: product.variant_options,

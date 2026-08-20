@@ -1,6 +1,7 @@
 export type CartItem = {
   id: string;
   user_id: string;
+  store_slug?: string;
   name: string;
   category: string;
   variant_options?: string | null;
@@ -11,6 +12,23 @@ export type CartItem = {
 };
 
 const CART_KEY = "sellmate-ng-cart";
+const STORE_KEY = "sellmate-ng-current-store";
+
+export function readCurrentStoreHref() {
+  try {
+    return localStorage.getItem(STORE_KEY) || "/store/ada-fashion";
+  } catch {
+    return "/store/ada-fashion";
+  }
+}
+
+export function writeCurrentStoreHref(href: string) {
+  try {
+    localStorage.setItem(STORE_KEY, href);
+  } catch {
+    // Ignore storage failures so shopping can continue.
+  }
+}
 
 export function readCart(): CartItem[] {
   try {
