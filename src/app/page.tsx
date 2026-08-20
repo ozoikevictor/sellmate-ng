@@ -5,15 +5,38 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PublicFooter, SectionTitle, StatCard } from "@/components/ui";
 import { readCart } from "@/lib/cart";
+import { supabase } from "@/lib/supabase";
 
 export default function LandingPage() {
   const [cartCount, setCartCount] = useState(0);
+  const [sellerSlug, setSellerSlug] = useState("");
+  const [isSellerLoggedIn, setIsSellerLoggedIn] = useState(false);
 
   useEffect(() => {
+    async function loadSellerNav() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      setIsSellerLoggedIn(Boolean(userId));
+
+      if (!userId) {
+        setSellerSlug("");
+        return;
+      }
+
+      const { data } = await supabase
+        .from("seller_profiles")
+        .select("store_slug")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      setSellerSlug(data?.store_slug || "");
+    }
+
     function syncCartCount() {
       setCartCount(readCart().reduce((sum, item) => sum + item.qty, 0));
     }
 
+    loadSellerNav();
     syncCartCount();
     window.addEventListener("sellmate-cart-updated", syncCartCount);
     window.addEventListener("storage", syncCartCount);
@@ -25,6 +48,7 @@ export default function LandingPage() {
   }, []);
 
   const demoStoreHref = "/store/ada-fashion";
+  const sellerStoreHref = `/store/${sellerSlug || "ada-fashion"}`;
 
   const publicMetrics = useMemo(() => {
     return [
@@ -43,10 +67,21 @@ export default function LandingPage() {
             <Image src="/sellmate-logo.png" alt="SellMate logo" width={48} height={48} className="h-10 w-10 rounded-md bg-white object-contain ring-1 ring-slate-300 sm:h-12 sm:w-12" />
           </Link>
           <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:gap-4 sm:overflow-visible sm:pb-0">
-            <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
+            {isSellerLoggedIn ? (
+              <>
+                <Link href={sellerStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">My store</Link>
+                <Link href="/dashboard" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Dashboard</Link>
+              </>
+            ) : (
+              <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
+            )}
             <Link href="/cart" className="shrink-0 rounded-md bg-slate-200 px-3 py-2 text-xs font-black text-slate-800 ring-1 ring-slate-400 hover:bg-slate-100 sm:text-sm">Cart · {cartCount}</Link>
-            <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
-            <Link href="/register" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Start selling</Link>
+            {!isSellerLoggedIn ? (
+              <>
+                <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
+                <Link href="/register" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Start selling</Link>
+              </>
+            ) : null}
           </div>
         </nav>
       </header>
