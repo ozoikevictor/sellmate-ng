@@ -95,10 +95,10 @@ export default function StorefrontPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] pt-28 sm:pt-20">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] pt-24 sm:pt-16">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur">
-        <nav className="mx-auto grid min-h-20 max-w-7xl gap-3 px-4 py-3 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:px-5">
-          <Link href="/" className="flex min-w-0 items-center gap-3 text-lg font-black leading-tight text-slate-950">
+        <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:px-5">
+          <Link href="/" className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-slate-950">
             <SellerLogo name={brandName} logoUrl={logoUrl} size="sm" />
             <span className="truncate capitalize">{brandName}</span>
           </Link>
@@ -109,20 +109,20 @@ export default function StorefrontPage() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search products"
-                className="h-11 w-full rounded-md border border-slate-300 bg-slate-100 pl-9 pr-4 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:bg-white"
+                className="h-10 w-full rounded-md border border-slate-300 bg-slate-100 pl-9 pr-4 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:bg-white"
               />
             </label>
           </div>
           <div className="flex shrink-0 items-center justify-end gap-2">
             <Link href="/" className="hidden rounded-md px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-950 md:inline">SellMate NG</Link>
-            <Link href="/cart" className="relative rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4 sm:text-sm">
+            <Link href="/cart" className="relative rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4">
               Cart
               <span className="ml-2 rounded-full bg-white px-2 py-0.5 text-xs text-slate-950">{cartCount}</span>
             </Link>
           </div>
         </nav>
         {cartNotice ? (
-          <div className="absolute right-5 top-[4.9rem] w-[min(22rem,calc(100vw-2.5rem))] rounded-md border border-slate-400 bg-slate-200 p-4 shadow-xl">
+          <div className="absolute right-5 top-[4.2rem] w-[min(22rem,calc(100vw-2.5rem))] rounded-md border border-slate-400 bg-slate-200 p-4 shadow-xl">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Cart updated</p>
             <p className="mt-1 text-sm font-bold text-slate-950">{cartNotice}</p>
             <Link href="/cart" className="mt-3 inline-block rounded-md bg-slate-950 px-4 py-2 text-xs font-black text-white">View cart</Link>

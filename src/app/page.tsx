@@ -36,6 +36,7 @@ function makeStoreSlug(businessName: string, userId: string) {
 export default function LandingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
+  const [accountChecked, setAccountChecked] = useState(false);
 
   useEffect(() => {
     async function loadSellerSummary() {
@@ -44,6 +45,7 @@ export default function LandingPage() {
 
       if (!userId) {
         setSellerSummary(null);
+        setAccountChecked(true);
         return;
       }
 
@@ -67,6 +69,7 @@ export default function LandingPage() {
         lowStockCount: productData?.filter((product) => Number(product.stock) <= 3).length ?? 0,
         products: (productData ?? []).slice(0, 3),
       });
+      setAccountChecked(true);
     }
 
     function syncCartCount() {
@@ -105,6 +108,17 @@ export default function LandingPage() {
       { label: "Payments", value: "Paystack", change: "Test mode", tone: "amber" },
     ];
   }, [cartCount, sellerSummary]);
+
+  if (!accountChecked) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_right,#bbf7d0_0%,transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_46%,#f8fafc_100%)] px-5">
+        <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
+          <Image src="/sellmate-logo.png" alt="SellMate logo" width={64} height={64} className="mx-auto h-16 w-16 rounded-md bg-white object-contain ring-1 ring-slate-300" />
+          <p className="mt-4 text-sm font-black text-slate-950">Opening your SellMate page...</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#bbf7d0_0%,transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_46%,#f8fafc_100%)] pt-20">
