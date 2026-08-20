@@ -43,19 +43,11 @@ export default function StorefrontPage() {
     async function loadProducts() {
       setLoading(true);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const currentUser = sessionData.session?.user;
-      let profileQuery = supabase
+      const { data: profileData } = await supabase
         .from("seller_profiles")
-        .select("user_id,business_name,whatsapp_phone,city,store_slug,logo_url,logo_text");
-
-      if (currentUser?.id) {
-        profileQuery = profileQuery.eq("user_id", currentUser.id);
-      } else {
-        profileQuery = profileQuery.eq("store_slug", "ada-fashion");
-      }
-
-      const { data: profileData } = await profileQuery.maybeSingle();
+        .select("user_id,business_name,whatsapp_phone,city,store_slug,logo_url,logo_text")
+        .eq("store_slug", "ada-fashion")
+        .maybeSingle();
 
       if (profileData) {
         setProfile(profileData);
