@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
         <StatCard label="Average order" value={loading ? "..." : formatNaira(analytics.averageOrder)} change="Per checkout" tone="amber" />
         <StatCard label="Unpaid demo orders" value={loading ? "..." : String(analytics.unpaid)} change="Paystack next" tone="red" />
       </div>
-      <div className="mt-8 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="sellmate-card mt-8 rounded-lg p-6">
         <h2 className="text-lg font-black text-slate-950">Top products</h2>
         <div className="mt-6 grid gap-4">
           {loading ? <p className="text-sm font-semibold text-slate-500">Loading analytics...</p> : null}

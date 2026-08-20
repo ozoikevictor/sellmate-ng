@@ -10,9 +10,9 @@ import { supabase } from "@/lib/supabase";
 
 export function Badge({ children, tone = "slate" }: { children: React.ReactNode; tone?: string }) {
   const tones: Record<string, string> = {
-    green: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    amber: "bg-amber-50 text-amber-700 ring-amber-200",
-    blue: "bg-sky-50 text-sky-700 ring-sky-200",
+    green: "bg-emerald-50 text-emerald-800 ring-emerald-200",
+    amber: "bg-amber-50 text-amber-800 ring-amber-200",
+    blue: "bg-sky-50 text-sky-800 ring-sky-200",
     red: "bg-rose-50 text-rose-700 ring-rose-200",
     slate: "bg-slate-100 text-slate-700 ring-slate-200",
   };
@@ -23,7 +23,7 @@ export function SectionTitle({ eyebrow, title, action }: { eyebrow?: string; tit
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        {eyebrow ? <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{eyebrow}</p> : null}
+        {eyebrow ? <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{eyebrow}</p> : null}
         <h1 className="mt-2 text-3xl font-bold text-slate-950 sm:text-4xl">{title}</h1>
       </div>
       {action}
@@ -33,8 +33,8 @@ export function SectionTitle({ eyebrow, title, action }: { eyebrow?: string; tit
 
 export function StatCard({ label, value, change, tone }: { label: string; value: string; change: string; tone: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-500">{label}</p>
+    <div className="sellmate-card rounded-lg p-4">
+      <p className="text-sm font-semibold text-slate-500">{label}</p>
       <div className="mt-3 flex items-end justify-between gap-3">
         <p className="text-xl font-bold text-slate-950 sm:text-2xl">{value}</p>
         <Badge tone={tone}>{change}</Badge>
@@ -106,8 +106,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const storeHref = `/store/${storeSlug}`;
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white p-6 lg:block">
+    <main className="min-h-screen sellmate-page-bg">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white/95 p-6 shadow-[8px_0_30px_rgba(15,23,42,0.05)] lg:block">
         {storeReady ? (
           <Link href={storeHref} className="text-xl font-black text-slate-950">SellMate NG</Link>
         ) : (
@@ -132,13 +132,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         {storeReady ? (
-          <Link href={storeHref} className="mt-8 block rounded-md bg-slate-950 px-4 py-3 text-center text-sm font-bold text-white">View storefront</Link>
+          <Link href={storeHref} className="mt-8 block rounded-md bg-emerald-700 px-4 py-3 text-center text-sm font-bold text-white shadow-sm hover:bg-emerald-800">View storefront</Link>
         ) : (
           <span className="mt-8 block rounded-md bg-slate-200 px-4 py-3 text-center text-sm font-bold text-slate-600">Loading store...</span>
         )}
       </aside>
       <section className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-5 py-4 backdrop-blur">
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/92 px-5 py-4 shadow-sm backdrop-blur">
           <div className="flex items-center justify-between">
             {storeReady ? (
               <Link href={storeHref} className="font-black text-slate-950 lg:hidden">SellMate NG</Link>
@@ -312,7 +312,7 @@ export function PublicFooter({
   const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   return (
-    <footer className="border-t border-slate-300 bg-slate-200">
+    <footer className="border-t border-slate-300 bg-[#dfe8f2]">
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
         <div className="max-w-xl">
           <Link href="/" className="flex w-fit items-center gap-3 text-xl font-black text-slate-950">
@@ -356,7 +356,7 @@ export function PublicFooter({
 }
 export function DataTable({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div className="sellmate-card overflow-hidden rounded-lg">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="bg-slate-100 text-xs uppercase text-slate-500">
@@ -364,7 +364,7 @@ export function DataTable({ headers, rows }: { headers: string[]; rows: React.Re
           </thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map((row, index) => (
-              <tr key={index} className="text-slate-700">{row.map((cell, cellIndex) => <td key={cellIndex} className="px-4 py-4">{cell}</td>)}</tr>
+              <tr key={index} className="text-slate-700 hover:bg-emerald-50/50">{row.map((cell, cellIndex) => <td key={cellIndex} className="px-4 py-4">{cell}</td>)}</tr>
             ))}
           </tbody>
         </table>
@@ -375,7 +375,7 @@ export function DataTable({ headers, rows }: { headers: string[]; rows: React.Re
 
 export function ProductCard({ product }: { product: { name: string; price: number; category: string; stock: number; image_url?: string | null } }) {
   return (
-    <div className="rounded-lg border border-slate-300 bg-slate-100 p-4 shadow-sm">
+    <div className="sellmate-card rounded-lg p-4">
       <div
         className="aspect-[4/3] rounded-md bg-[linear-gradient(135deg,#334155,#94a3b8_55%,#475569)] bg-cover bg-center"
         style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}

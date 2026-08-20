@@ -138,13 +138,13 @@ export default function DashboardPage() {
                   ])
           }
         />
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="sellmate-card rounded-lg p-5">
           <h2 className="text-lg font-black text-slate-950">Restock focus</h2>
           <div className="mt-5 grid gap-4">
             {loading ? <p className="text-sm font-semibold text-slate-500">Loading stock...</p> : null}
             {!loading && summary.lowStock.length === 0 ? <p className="text-sm font-semibold text-slate-500">No low stock products.</p> : null}
             {summary.lowStock.map((product) => (
-              <div key={product.id} className="flex items-center justify-between rounded-md bg-slate-50 p-4">
+              <div key={product.id} className="flex items-center justify-between rounded-md bg-slate-50/80 p-4 ring-1 ring-slate-200">
                 <div>
                   <p className="font-bold text-slate-900">{product.name}</p>
                   <p className="text-sm text-slate-500">{product.sku}</p>

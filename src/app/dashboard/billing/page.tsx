@@ -206,7 +206,7 @@ export default function BillingPage() {
         {productPlans.map((plan) => {
           const active = selectedPlan === plan.name;
           return (
-            <article key={plan.name} className={`rounded-lg border bg-white p-5 shadow-sm ${active ? "border-slate-950 ring-2 ring-slate-950" : "border-slate-200"}`}>
+            <article key={plan.name} className={`sellmate-card rounded-lg p-5 ${active ? "border-slate-950 ring-2 ring-slate-950" : ""}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-black text-slate-950">{plan.name}</h2>
@@ -244,7 +244,7 @@ export default function BillingPage() {
         })}
       </div>
 
-      <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="sellmate-card mt-6 rounded-lg p-5">
         <h2 className="text-xl font-black text-slate-950">How you get paid as the app owner</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="rounded-lg bg-slate-50 p-4">

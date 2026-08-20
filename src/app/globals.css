@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f4f8fb;
+  --foreground: #08111f;
+  --brand-navy: #08111f;
+  --brand-ink: #10233f;
+  --brand-green: #008f61;
+  --brand-green-dark: #006b4a;
+  --brand-mint: #dffbf0;
+  --brand-sky: #dff3ff;
+  --brand-line: #c8d4e3;
+  --brand-card: #ffffff;
 }
 
 * {
@@ -11,11 +19,31 @@
 
 body {
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at top right, rgba(0, 143, 97, 0.12), transparent 32rem),
+    linear-gradient(180deg, #f8fbff 0%, #eef5f9 42%, #f7fbff 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 a {
   text-decoration: none;
+}
+
+.sellmate-page-bg {
+  background:
+    radial-gradient(circle at top right, rgba(0, 143, 97, 0.16), transparent 30rem),
+    radial-gradient(circle at 8% 22%, rgba(14, 165, 233, 0.13), transparent 24rem),
+    linear-gradient(180deg, #f8fbff 0%, #edf5f9 45%, #f7fbff 100%);
+}
+
+.sellmate-hero-bg {
+  background:
+    linear-gradient(135deg, rgba(223, 243, 255, 0.9) 0%, rgba(248, 251, 255, 0.96) 45%, rgba(223, 251, 240, 0.95) 100%);
+}
+
+.sellmate-card {
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
 }

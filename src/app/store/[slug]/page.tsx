@@ -132,8 +132,8 @@ export default function DynamicStorefrontPage() {
 
   if (loading && !profile) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] px-5">
-        <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
+      <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
+        <div className="sellmate-card rounded-lg p-6 text-center">
           <p className="text-sm font-black text-slate-950">Loading store...</p>
           <p className="mt-2 text-xs font-semibold text-slate-500">Opening the correct seller shop.</p>
         </div>
@@ -142,7 +142,7 @@ export default function DynamicStorefrontPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] sm:pt-20">
+    <main className="min-h-screen sellmate-page-bg sm:pt-20">
       <header className="relative z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur sm:fixed sm:inset-x-0 sm:top-0">
         <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-20 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-3 sm:px-5 sm:py-3">
           <Link href="/" className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-slate-950 sm:gap-3 sm:text-lg">
@@ -169,7 +169,7 @@ export default function DynamicStorefrontPage() {
           </div>
         </nav>
       </header>
-      <section className="border-b border-slate-300 bg-[linear-gradient(135deg,#e2e8f0_0%,#f8fafc_48%,#d1fae5_100%)]">
+      <section className="border-b border-slate-300 sellmate-hero-bg">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1fr_0.72fr] lg:items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{city} storefront</p>
@@ -181,7 +181,7 @@ export default function DynamicStorefrontPage() {
             </p>
             {profile?.whatsapp_phone ? <p className="mt-4 text-sm font-bold text-slate-700">WhatsApp: {profile.whatsapp_phone}</p> : null}
           </div>
-          <div className="rounded-lg border border-slate-300 bg-white/95 p-5 shadow-lg">
+          <div className="sellmate-card rounded-lg p-5">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-md bg-slate-100 p-4">
                 <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Products</p>
@@ -214,7 +214,7 @@ export default function DynamicStorefrontPage() {
           {filteredProducts.map((product) => {
             const rating = getProductRating(product);
             return (
-              <article key={product.id} className="group overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
+              <article key={product.id} className="group sellmate-card overflow-hidden rounded-lg transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
                 <div className="relative bg-slate-200 p-3">
                   <div
                     className="h-36 rounded-md bg-[linear-gradient(135deg,#334155,#94a3b8_55%,#475569)] bg-cover bg-center shadow-inner transition duration-300 group-hover:scale-[1.02] sm:h-52 lg:h-44 xl:h-52"
@@ -250,7 +250,7 @@ export default function DynamicStorefrontPage() {
         </div>
       </section>
       {cartNotice || cartCount > 0 ? (
-        <div className="fixed bottom-5 left-4 right-4 z-50 rounded-lg border border-slate-300 bg-white p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
+        <div className="fixed bottom-5 left-4 right-4 z-50 sellmate-card rounded-lg p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">

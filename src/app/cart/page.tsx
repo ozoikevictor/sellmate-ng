@@ -49,7 +49,7 @@ export default function CartPage() {
 
   if (!mounted) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#e0f2fe_0,#eef5fb_34%,#f8fafc_68%)] px-5">
+      <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
         <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
           <p className="text-sm font-black text-slate-950">Loading your cart...</p>
           <p className="mt-2 text-xs font-semibold text-slate-500">Getting the correct store before showing this page.</p>
@@ -59,8 +59,8 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e0f2fe_0,#eef5fb_34%,#f8fafc_68%)] pt-20">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-slate-200/95 shadow-sm backdrop-blur">
+    <main className="min-h-screen sellmate-page-bg pt-20">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur">
         <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5">
           <div className="flex min-w-0 items-center gap-3">
             <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} />
@@ -80,14 +80,14 @@ export default function CartPage() {
         <SectionTitle eyebrow="Shopping cart" title="Review your order" action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">Back to store</Link>} />
 
         {items.length === 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <div className="sellmate-card rounded-lg p-10 text-center">
             <p className="text-xl font-black text-slate-950">Nothing in cart yet.</p>
             <p className="mt-2 text-sm text-slate-500">Your cart is connected to this store. Add products before checkout.</p>
             <Link href={storeHref} className="mt-5 inline-block rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Shop products</Link>
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-            <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <section className="sellmate-card rounded-lg">
               <div className="border-b border-slate-100 p-5">
                 <p className="text-sm font-bold text-slate-500">{itemCount} item{itemCount === 1 ? "" : "s"} in cart</p>
               </div>
@@ -120,7 +120,7 @@ export default function CartPage() {
               </div>
             </section>
 
-            <aside className="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <aside className="sellmate-card h-fit rounded-lg p-5">
               <h2 className="text-xl font-black text-slate-950">Order summary</h2>
               <div className="mt-5 grid gap-3 text-sm text-slate-600">
                 <div className="flex justify-between"><span>Subtotal</span><strong className="text-slate-950">{formatNaira(subtotal)}</strong></div>

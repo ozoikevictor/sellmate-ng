@@ -223,7 +223,7 @@ export default function SettingsPage() {
   return (
     <>
       <SectionTitle eyebrow="Workspace" title="Settings" />
-      <form onSubmit={saveProfile} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <form onSubmit={saveProfile} className="sellmate-card rounded-lg p-5">
         <h2 className="mb-4 text-xl font-black text-slate-950">Store details</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <SettingsField label="Owner name" name="owner_name" value={profile.owner_name} onChange={updateProfile} placeholder="Ozoike Victor" />

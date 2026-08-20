@@ -111,7 +111,7 @@ export default function LandingPage() {
 
   if (!accountChecked) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_right,#bbf7d0_0%,transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_46%,#f8fafc_100%)] px-5">
+      <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
         <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
           <Image src="/sellmate-logo.png" alt="SellMate logo" width={64} height={64} className="mx-auto h-16 w-16 rounded-md bg-white object-contain ring-1 ring-slate-300" />
           <p className="mt-4 text-sm font-black text-slate-950">Opening your SellMate page...</p>
@@ -121,7 +121,7 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#bbf7d0_0%,transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_46%,#f8fafc_100%)] pt-28 sm:pt-20">
+    <main className="min-h-screen sellmate-page-bg pt-28 sm:pt-20">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-md backdrop-blur">
         <nav className="mx-auto flex min-h-16 max-w-7xl flex-col gap-2 px-4 py-2 sm:min-h-20 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-0">
           <Link href={storeHref} className="flex w-fit items-center gap-3 rounded-md px-1 py-1" aria-label="Open SellMate store">
@@ -144,7 +144,7 @@ export default function LandingPage() {
           </div>
         </nav>
       </header>
-      <section className="border-b border-slate-300 bg-[linear-gradient(135deg,#e2e8f0_0%,#f8fafc_46%,#dcfce7_100%)]">
+      <section className="border-b border-slate-300 sellmate-hero-bg">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[1fr_0.92fr] lg:items-center">
           <div>
             <p className="w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">WhatsApp commerce for Nigerian sellers</p>
@@ -167,7 +167,7 @@ export default function LandingPage() {
               )}
             </div>
           </div>
-          <div className="rounded-lg border border-slate-700 bg-slate-900 p-3 shadow-2xl">
+          <div className="rounded-lg border border-slate-700 bg-[#0b1728] p-3 shadow-2xl shadow-emerald-900/10">
             <div className="rounded-md bg-slate-100 p-4 shadow-inner">
               <div className="grid gap-3 sm:grid-cols-2">
                 {publicMetrics.map((metric) => <StatCard key={metric.label} {...metric} />)}

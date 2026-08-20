@@ -152,7 +152,7 @@ export default function CheckoutPage() {
 
   if (!mounted) {
     return (
-      <main className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,#e0f2fe_0,#eef5fb_34%,#f8fafc_68%)] px-5">
+      <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
         <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
           <p className="text-sm font-black text-slate-950">Loading checkout...</p>
           <p className="mt-2 text-xs font-semibold text-slate-500">Getting your cart and seller details first.</p>
@@ -162,8 +162,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#e0f2fe_0,#eef5fb_34%,#f8fafc_68%)] pt-20">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-slate-200/95 shadow-sm backdrop-blur">
+    <main className="min-h-screen sellmate-page-bg pt-20">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur">
         <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-5">
           <div className="flex min-w-0 items-center gap-3">
             <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} />
@@ -181,7 +181,7 @@ export default function CheckoutPage() {
       <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 lg:grid-cols-[1fr_380px]">
         <section>
           <SectionTitle eyebrow="Checkout" title="Delivery and payment" />
-          <form onSubmit={placeOrder} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <form onSubmit={placeOrder} className="sellmate-card rounded-lg p-5">
             {message ? <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</div> : null}
             <div className="grid gap-4 md:grid-cols-2">
               <CheckoutField label="Full name" name="customer_name" placeholder="Muna Okafor" />
@@ -207,7 +207,7 @@ export default function CheckoutPage() {
             <button disabled={!mounted || items.length === 0 || saving || !securityAccepted} className="mt-5 w-full rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">{saving ? "Opening payment..." : "Pay now"}</button>
           </form>
         </section>
-        <aside className="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <aside className="sellmate-card h-fit rounded-lg p-5">
           <h2 className="text-lg font-black text-slate-950">Order summary</h2>
           <div className="mt-4 grid gap-3 text-sm text-slate-600">
             {mounted && items.length === 0 ? <p>No item to checkout yet. Go back to the store and add products first.</p> : null}

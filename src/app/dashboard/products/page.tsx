@@ -196,7 +196,7 @@ export default function ProductsPage() {
     <>
       <SectionTitle eyebrow="Catalog" title="Products" />
 
-      <form onSubmit={saveProduct} className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <form onSubmit={saveProduct} className="sellmate-card mb-6 rounded-lg p-5">
         <div className={`mb-5 rounded-lg border p-4 text-sm font-semibold ${limitReached ? "border-amber-200 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span>
@@ -254,7 +254,7 @@ export default function ProductsPage() {
         {message ? <p className="mt-4 rounded-md bg-slate-100 p-3 text-sm font-semibold text-slate-700">{message}</p> : null}
       </form>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="sellmate-card overflow-hidden rounded-lg">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead className="bg-slate-100 text-xs uppercase text-slate-500">

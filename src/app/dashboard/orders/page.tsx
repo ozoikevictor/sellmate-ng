@@ -104,18 +104,18 @@ export default function OrdersPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <div className="sellmate-card rounded-lg p-8 text-center">
           <p className="font-bold text-slate-600">Loading orders...</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <div className="sellmate-card rounded-lg p-8 text-center">
           <p className="font-bold text-slate-700">No orders yet.</p>
           <p className="mt-2 text-sm text-slate-500">Orders will appear here after customers checkout from your store.</p>
         </div>
       ) : (
         <div className="grid gap-4">
           {orders.map((order) => (
-            <article key={order.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <article key={order.id} className="sellmate-card overflow-hidden rounded-lg">
               <div className="flex flex-col gap-4 border-b border-slate-100 bg-slate-50 p-5 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Order {order.id.slice(0, 8).toUpperCase()}</p>

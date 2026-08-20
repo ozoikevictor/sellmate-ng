@@ -91,7 +91,7 @@ export default function ReceiptsPage() {
 
 function ReceiptPreview({ order }: { order: ReceiptOrder }) {
   return (
-    <section className="mb-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="sellmate-card mb-6 rounded-lg p-6">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Latest receipt</p>
