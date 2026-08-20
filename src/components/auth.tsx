@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type DemoUser = {
@@ -59,15 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       return { ok: false, message: formatAuthError(error.message) };
     }
     return { ok: true };
-  };
+  }, []);
 
-  const register = async (newUser: Omit<DemoUser, "id"> & { password: string }) => {
+  const register = useCallback(async (newUser: Omit<DemoUser, "id"> & { password: string }) => {
     const { data, error } = await supabase.auth.signUp({
       email: newUser.email,
       password: newUser.password,
@@ -83,12 +83,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setUser(toDemoUser(data.user));
     return { ok: true };
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
-  };
+  }, []);
 
   return <AuthContext.Provider value={{ user, ready, login, register, logout }}>{children}</AuthContext.Provider>;
 }
@@ -126,9 +126,15 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
-  const { login, register } = useAuth();
+  const { login, register, logout } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (mode === "login") {
+      logout();
+    }
+  }, [logout, mode]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

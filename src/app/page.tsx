@@ -32,17 +32,11 @@ export default function LandingPage() {
 
   useEffect(() => {
     async function loadPublicStats() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const currentUser = sessionData.session?.user;
-      let profileQuery = supabase
+      const profileQuery = supabase
         .from("seller_profiles")
-        .select("user_id,business_name,city,store_slug");
-
-      if (currentUser?.id) {
-        profileQuery = profileQuery.eq("user_id", currentUser.id);
-      } else {
-        profileQuery = profileQuery.order("updated_at", { ascending: false }).limit(1);
-      }
+        .select("user_id,business_name,city,store_slug")
+        .order("updated_at", { ascending: false })
+        .limit(1);
 
       const { data: profileData } = await profileQuery.maybeSingle();
 
