@@ -130,6 +130,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               <span className="hidden text-sm font-semibold text-slate-700 sm:inline">Logged in</span>
+              <Link href={`/store/${storeSlug}`} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm lg:hidden">
+                View store
+              </Link>
               <LogoutButton />
             </div>
           </div>
