@@ -142,8 +142,8 @@ export default function DynamicStorefrontPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] pt-24 sm:pt-20">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_42%,#f8fafc_100%)] sm:pt-20">
+      <header className="relative z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur sm:fixed sm:inset-x-0 sm:top-0">
         <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-20 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-3 sm:px-5 sm:py-3">
           <Link href="/" className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-slate-950 sm:gap-3 sm:text-lg">
             <SellerLogo name={brandName} logoUrl={logoUrl} size="sm" />
