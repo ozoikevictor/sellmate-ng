@@ -199,7 +199,7 @@ export default function CheckoutPage() {
           <h2 className="text-lg font-black text-slate-950">Order summary</h2>
           <div className="mt-4 grid gap-3 text-sm text-slate-600">
             {!mounted ? <p>Loading cart...</p> : null}
-            {mounted && items.length === 0 ? <p>Your cart is empty.</p> : null}
+            {mounted && items.length === 0 ? <p>No item to checkout yet. Go back to the store and add products first.</p> : null}
             {items.map((item) => (
               <div key={item.id} className="flex justify-between gap-4">
                 <span>{item.name} x {item.qty}</span>

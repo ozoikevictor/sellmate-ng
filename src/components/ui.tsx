@@ -281,7 +281,6 @@ export function PublicFooter({
   storeHref?: string;
 }) {
   const footerName = sellerName || "SellMate NG";
-  const isSellerFooter = Boolean(sellerName);
   const [dashboardLoginOpen, setDashboardLoginOpen] = useState(false);
   const [dashboardLoginError, setDashboardLoginError] = useState("");
   const [dashboardLoginLoading, setDashboardLoginLoading] = useState(false);
@@ -310,17 +309,11 @@ export function PublicFooter({
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
         <div className="max-w-xl">
           <Link href="/" className="flex w-fit items-center gap-3 text-xl font-black text-slate-950">
-            {isSellerFooter ? (
-              <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
-            ) : (
-              <Image src="/sellmate-logo.png" alt="SellMate logo" width={52} height={52} className="h-12 w-12 rounded-md bg-white object-contain ring-1 ring-slate-300" />
-            )}
-            <span>{footerName}</span>
+            <Image src="/sellmate-logo.png" alt="SellMate logo" width={52} height={52} className="h-12 w-12 rounded-md bg-white object-contain ring-1 ring-slate-300" />
+            <span>SellMate NG</span>
           </Link>
           <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
-            {isSellerFooter
-              ? "Powered by SellMate NG for secure product browsing, cart checkout, payment, and WhatsApp order follow-up."
-              : "WhatsApp commerce for Nigerian sellers: public storefronts, carts, orders, receipts, and seller dashboards."}
+            WhatsApp commerce for Nigerian sellers: public storefronts, carts, orders, receipts, and seller dashboards.
           </p>
         </div>
         <div>
@@ -331,26 +324,14 @@ export function PublicFooter({
             <Link href="/checkout" className="hover:text-slate-950">Checkout</Link>
           </nav>
         </div>
-        {isSellerFooter ? (
-          <div>
-            <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Support</h2>
-            <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
-              <Link href="/checkout" className="hover:text-slate-950">Delivery details</Link>
-              <Link href="/cart" className="hover:text-slate-950">Order summary</Link>
-              <Link href="/" className="hover:text-slate-950">Powered by SellMate NG</Link>
-              <button type="button" onClick={() => setDashboardLoginOpen(true)} className="w-fit text-left font-black text-emerald-700 hover:text-emerald-900">Open dashboard</button>
-            </nav>
-          </div>
-        ) : (
-          <div>
-            <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Sellers</h2>
-            <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
-              <Link href="/login" className="hover:text-slate-950">Seller login</Link>
-              <Link href="/register" className="hover:text-slate-950">Start selling</Link>
-              <button type="button" onClick={() => setDashboardLoginOpen(true)} className="w-fit text-left font-black text-emerald-700 hover:text-emerald-900">Open dashboard</button>
-            </nav>
-          </div>
-        )}
+        <div>
+          <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Sellers</h2>
+          <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
+            <Link href="/login" className="hover:text-slate-950">Seller login</Link>
+            <Link href="/register" className="hover:text-slate-950">Start selling</Link>
+            <button type="button" onClick={() => setDashboardLoginOpen(true)} className="w-fit text-left font-black text-emerald-700 hover:text-emerald-900">Open dashboard</button>
+          </nav>
+        </div>
       </div>
       <div className="border-t border-slate-300">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-4 text-xs font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">

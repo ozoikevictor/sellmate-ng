@@ -60,8 +60,8 @@ export default function CartPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
-            <p className="text-xl font-black text-slate-950">Your cart is empty.</p>
-            <p className="mt-2 text-sm text-slate-500">Add products from the store before checkout.</p>
+            <p className="text-xl font-black text-slate-950">Nothing in cart yet.</p>
+            <p className="mt-2 text-sm text-slate-500">Your cart is connected to this store. Add products before checkout.</p>
             <Link href={storeHref} className="mt-5 inline-block rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Shop products</Link>
           </div>
         ) : (
