@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { clearCart } from "@/lib/cart";
+import { clearCart, readCurrentStoreHref } from "@/lib/cart";
 
 function PaymentCallbackContent() {
   const params = useSearchParams();
@@ -12,9 +12,12 @@ function PaymentCallbackContent() {
   const [status, setStatus] = useState<"checking" | "success" | "error">("checking");
   const [message, setMessage] = useState("Confirming your payment...");
   const [whatsappUrl, setWhatsappUrl] = useState("");
+  const [storeHref, setStoreHref] = useState("/store/ada-fashion");
 
   useEffect(() => {
     async function verifyPayment() {
+      setStoreHref(readCurrentStoreHref());
+
       if (!reference || !order) {
         setStatus("error");
         setMessage("Payment reference is missing. Please contact the seller.");
@@ -71,7 +74,7 @@ function PaymentCallbackContent() {
           </div>
         ) : null}
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/store/ada-fashion" className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Continue shopping</Link>
+          <Link href={storeHref} className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Continue shopping</Link>
           <Link href="/" className="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700">Home</Link>
         </div>
       </section>
