@@ -121,16 +121,16 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#bbf7d0_0%,transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_46%,#f8fafc_100%)] pt-20">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_right,#bbf7d0_0%,transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_46%,#f8fafc_100%)] pt-28 sm:pt-20">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-md backdrop-blur">
-        <nav className="mx-auto flex min-h-20 max-w-7xl flex-col gap-3 px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0">
+        <nav className="mx-auto flex min-h-16 max-w-7xl flex-col gap-2 px-4 py-2 sm:min-h-20 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-0">
           <Link href={storeHref} className="flex w-fit items-center gap-3 rounded-md px-1 py-1" aria-label="Open SellMate store">
-            <Image src="/sellmate-logo.png" alt="SellMate logo" width={48} height={48} className="h-11 w-11 rounded-md bg-white object-contain ring-1 ring-slate-300 sm:h-12 sm:w-12" />
+            <Image src="/sellmate-logo.png" alt="SellMate logo" width={48} height={48} className="h-10 w-10 rounded-md bg-white object-contain ring-1 ring-slate-300 sm:h-12 sm:w-12" />
             {isLoggedInSeller ? <span className="hidden text-sm font-black capitalize text-slate-950 sm:block">{sellerSummary?.businessName}</span> : null}
           </Link>
-          <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:gap-4 sm:overflow-visible sm:pb-0">
+          <div className="flex w-full items-center gap-2 overflow-x-auto pb-0.5 sm:w-auto sm:gap-4 sm:overflow-visible sm:pb-0">
             {isLoggedInSeller ? (
-              <Link href={storeHref} className="shrink-0 rounded-md bg-emerald-700 px-4 py-2.5 text-xs font-black text-white shadow-md ring-1 ring-emerald-600 transition hover:-translate-y-0.5 hover:bg-emerald-800 sm:px-5 sm:text-sm">My store</Link>
+              <Link href={storeHref} className="shrink-0 rounded-md bg-emerald-700 px-3 py-2 text-xs font-black text-white shadow-md ring-1 ring-emerald-600 transition hover:-translate-y-0.5 hover:bg-emerald-800 sm:px-5 sm:py-2.5 sm:text-sm">My store</Link>
             ) : (
               <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
             )}
