@@ -31,7 +31,9 @@ The main homepage belongs to the SellMate NG platform. The store, cart, checkout
 
 - `/` - SellMate NG homepage
 - `/register` - create seller account
-- `/login` - seller login
+- /login - seller login
+- /forgot-password - request a seller password reset link
+- /reset-password - set a new seller password from the email reset link
 - `/dashboard` - seller dashboard
 - `/dashboard/products` - add and manage products
 - `/dashboard/orders` - view customer orders
@@ -69,6 +71,25 @@ The app supports seller plans:
 - Business: unlimited package with monthly renewal
 
 When a seller reaches the product limit, the app can block new product creation until the seller upgrades.
+
+
+## Seller Account Security
+
+Seller accounts support stronger passwords, email confirmation, and password reset.
+
+In Supabase Authentication settings:
+
+1. Enable email confirmation if you want every new seller to confirm their email before login.
+2. Add these redirect URLs:
+
+```text
+http://localhost:3000/login
+http://localhost:3000/reset-password
+https://sellmate-ng.vercel.app/login
+https://sellmate-ng.vercel.app/reset-password
+```
+
+If you later use a custom domain, add the same /login and /reset-password URLs for that domain too.
 
 ## Environment Variables
 
@@ -146,3 +167,5 @@ Recommended deployment flow:
 4. Deploy.
 5. Test registration, login, product creation, storefront, cart, checkout, and Paystack test payment on phone.
 6. After testing, switch Paystack from test keys to live keys.
+
+
