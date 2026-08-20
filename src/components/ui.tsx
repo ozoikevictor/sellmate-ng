@@ -101,7 +101,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-slate-50">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white p-6 lg:block">
-        <Link href="/" className="text-xl font-black text-slate-950">SellMate NG</Link>
+        <Link href={`/store/${storeSlug}`} className="text-xl font-black text-slate-950">SellMate NG</Link>
         <p className="mt-2 text-sm text-slate-500">{user?.business ?? "Ada Fashion"} command center</p>
         <nav className="mt-8 grid gap-1">
           {links.map((link) => {
@@ -125,7 +125,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <section className="lg:pl-64">
         <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-5 py-4 backdrop-blur">
           <div className="flex items-center justify-between">
-            <Link href="/" className="font-black text-slate-950 lg:hidden">SellMate NG</Link>
+            <Link href={`/store/${storeSlug}`} className="font-black text-slate-950 lg:hidden">SellMate NG</Link>
             <p className="hidden text-sm font-semibold text-slate-700 lg:block">{user?.business ?? "Seller workspace"}</p>
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -370,4 +370,5 @@ export function ProductCard({ product }: { product: { name: string; price: numbe
     </div>
   );
 }
+
 
