@@ -307,6 +307,9 @@ export function PublicFooter({
 }) {
   const footerName = sellerName || "SellMate NG";
   const isSellerFooter = Boolean(sellerName);
+  const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
+  const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
+  const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   return (
     <footer className="border-t border-slate-300 bg-slate-200">
@@ -330,8 +333,8 @@ export function PublicFooter({
           <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Customers</h2>
           <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
             <Link href={storeHref} className="hover:text-slate-950">Shop products</Link>
-            <Link href="/cart" className="hover:text-slate-950">View cart</Link>
-            <Link href="/checkout" className="hover:text-slate-950">Checkout</Link>
+            <Link href={cartHref} className="hover:text-slate-950">View cart</Link>
+            <Link href={checkoutHref} className="hover:text-slate-950">Checkout</Link>
           </nav>
         </div>
         <div>

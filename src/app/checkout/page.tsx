@@ -40,14 +40,18 @@ export default function CheckoutPage() {
   const [storeHref, setStoreHref] = useState("/");
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
+  const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
+  const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
 
   useEffect(() => {
     const timer = window.setTimeout(async () => {
-      setMounted(true);
       const cartItems = readCart();
-      setStoreHref(cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref());
+      const storeSlugFromUrl = new URLSearchParams(window.location.search).get("store");
+      const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref();
+      setStoreHref(preferredStoreHref);
       const nextItems = await syncCartWithProducts(cartItems, setItems, setMessage);
-      await loadSellerDetails(nextItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref);
+      await loadSellerDetails(nextItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
+      setMounted(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -182,7 +186,7 @@ export default function CheckoutPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/cart" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Cart</Link>
+            <Link href={cartHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Cart</Link>
             <Link href={storeHref} className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Shop products</Link>
           </div>
         </nav>
@@ -249,9 +253,29 @@ async function loadSellerDetails(
   setSellerName: (name: string) => void,
   setSellerLogoUrl: (url: string) => void,
   setStoreHref: (href: string) => void,
+  preferredStoreHref: string,
 ) {
   const sellerId = items[0]?.user_id;
   if (!sellerId) {
+    const preferredSlug = preferredStoreHref.startsWith("/store/") ? preferredStoreHref.replace("/store/", "").split(/[?#]/)[0] : "";
+    if (preferredSlug) {
+      const { data } = await supabase
+        .from("seller_profiles")
+        .select("business_name,logo_url,logo_text,delivery_fee,store_slug")
+        .eq("store_slug", preferredSlug)
+        .maybeSingle();
+
+      if (data) {
+        const nextStoreHref = `/store/${data.store_slug || preferredSlug}`;
+        setDelivery(Number(data.delivery_fee ?? 0));
+        setSellerName(data.logo_text || data.business_name || "Store");
+        setSellerLogoUrl(data.logo_url || "");
+        setStoreHref(nextStoreHref);
+        writeCurrentStoreHref(nextStoreHref);
+        return;
+      }
+    }
+
     const { data: sessionData } = await supabase.auth.getSession();
     const loggedInSellerId = sessionData.session?.user.id;
     if (loggedInSellerId) {

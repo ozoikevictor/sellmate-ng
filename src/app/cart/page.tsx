@@ -27,14 +27,18 @@ export default function CartPage() {
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
+  const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
+  const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   useEffect(() => {
     const timer = window.setTimeout(async () => {
-      setMounted(true);
       const cartItems = readCart();
+      const storeSlugFromUrl = new URLSearchParams(window.location.search).get("store");
+      const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref();
       setItems(cartItems);
-      setStoreHref(cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref());
-      await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref);
+      setStoreHref(preferredStoreHref);
+      await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
+      setMounted(true);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -67,7 +71,7 @@ export default function CartPage() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link href={storeHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Shop products</Link>
-            <Link href="/checkout" className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4 sm:text-sm">Checkout</Link>
+            <Link href={checkoutHref} className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4 sm:text-sm">Checkout</Link>
           </div>
         </nav>
       </header>
@@ -126,7 +130,7 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>{formatNaira(total)}</span>
               </div>
-              <Link href="/checkout" className="mt-6 block rounded-md bg-slate-950 px-5 py-3 text-center text-sm font-black text-white hover:bg-slate-800">Continue to checkout</Link>
+              <Link href={checkoutHref} className="mt-6 block rounded-md bg-slate-950 px-5 py-3 text-center text-sm font-black text-white hover:bg-slate-800">Continue to checkout</Link>
               <p className="mt-3 text-xs leading-5 text-slate-500">Delivery fee is controlled by the seller from the dashboard settings. Payment is completed securely through Paystack.</p>
             </aside>
           </div>
@@ -143,9 +147,29 @@ async function loadSellerDetails(
   setSellerName: (name: string) => void,
   setSellerLogoUrl: (url: string) => void,
   setStoreHref: (href: string) => void,
+  preferredStoreHref: string,
 ) {
   const sellerId = items[0]?.user_id;
   if (!sellerId) {
+    const preferredSlug = preferredStoreHref.startsWith("/store/") ? preferredStoreHref.replace("/store/", "").split(/[?#]/)[0] : "";
+    if (preferredSlug) {
+      const { data } = await supabase
+        .from("seller_profiles")
+        .select("business_name,logo_url,logo_text,delivery_fee,store_slug")
+        .eq("store_slug", preferredSlug)
+        .maybeSingle();
+
+      if (data) {
+        const nextStoreHref = `/store/${data.store_slug || preferredSlug}`;
+        setDelivery(Number(data.delivery_fee ?? 0));
+        setSellerName(data.logo_text || data.business_name || "Store");
+        setSellerLogoUrl(data.logo_url || "");
+        setStoreHref(nextStoreHref);
+        writeCurrentStoreHref(nextStoreHref);
+        return;
+      }
+    }
+
     const { data: sessionData } = await supabase.auth.getSession();
     const loggedInSellerId = sessionData.session?.user.id;
     if (loggedInSellerId) {
