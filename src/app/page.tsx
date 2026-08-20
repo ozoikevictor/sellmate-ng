@@ -47,15 +47,14 @@ export default function LandingPage() {
         .select("id,name,category,price,stock,status,image_url")
         .eq("user_id", userId)
         .eq("status", "Live")
-        .order("created_at", { ascending: false })
-        .limit(3);
+        .order("created_at", { ascending: false });
 
       setSellerSummary({
         businessName: profileData?.business_name || "Your store",
         storeSlug: profileData?.store_slug || "ada-fashion",
         productCount: productData?.length ?? 0,
         lowStockCount: productData?.filter((product) => Number(product.stock) <= 3).length ?? 0,
-        products: productData ?? [],
+        products: (productData ?? []).slice(0, 3),
       });
     }
 
@@ -105,7 +104,7 @@ export default function LandingPage() {
           </Link>
           <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:gap-4 sm:overflow-visible sm:pb-0">
             {isLoggedInSeller ? (
-              <Link href={storeHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">My store</Link>
+              <Link href={storeHref} className="shrink-0 rounded-md bg-emerald-700 px-3 py-2 text-xs font-black text-white shadow-sm ring-1 ring-emerald-600 hover:bg-emerald-800 sm:px-4 sm:text-sm">My store</Link>
             ) : (
               <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
             )}
@@ -167,20 +166,28 @@ export default function LandingPage() {
             {sellerSummary?.products.length ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {sellerSummary.products.map((product) => (
-                  <article key={product.id} className="overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
-                    <div
-                      className="h-48 bg-slate-200 bg-cover bg-center"
-                      style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
-                    />
-                    <div className="p-4">
+                  <article key={product.id} className="group overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
+                    <div className="relative bg-slate-200 p-3">
+                      <div
+                        className="h-52 rounded-md bg-[linear-gradient(135deg,#334155,#94a3b8_55%,#475569)] bg-cover bg-center shadow-inner transition duration-300 group-hover:scale-[1.02]"
+                        style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
+                      />
+                      <span className="absolute right-6 top-6 rounded-full bg-white/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+                        {product.stock} left
+                      </span>
+                    </div>
+                    <div className="p-5">
                       <div className="flex items-center justify-between gap-3">
                         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{product.category}</span>
-                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">{product.stock} left</span>
+                        <span className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Live</span>
                       </div>
-                      <h2 className="mt-3 text-lg font-black text-slate-950">{product.name}</h2>
-                      <p className="mt-1 text-xl font-black text-emerald-700">
+                      <h2 className="mt-3 line-clamp-2 text-xl font-black leading-tight text-slate-950">{product.name}</h2>
+                      <p className="mt-2 text-2xl font-black text-emerald-700">
                         {new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(product.price)}
                       </p>
+                      <Link href={storeHref} className="mt-5 block rounded-md bg-slate-950 px-4 py-3 text-center text-sm font-black text-white transition hover:bg-emerald-700">
+                        View product
+                      </Link>
                     </div>
                   </article>
                 ))}
