@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { PublicFooter, SectionTitle, SellerLogo } from "@/components/ui";
 import { addToCart, readCart } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
-import { supabase } from "@/lib/supabase";
 
 type StoreProduct = {
   id: string;
@@ -30,8 +29,18 @@ type StoreProfile = {
   logo_text: string | null;
 };
 
+const demoProfile: StoreProfile = {
+  user_id: "demo-store",
+  business_name: "Demo Store",
+  whatsapp_phone: "",
+  city: "Sample",
+  store_slug: "ada-fashion",
+  logo_url: null,
+  logo_text: "Demo Store",
+};
+
 export default function StorefrontPage() {
-  const [profile, setProfile] = useState<StoreProfile | null>(null);
+  const [profile] = useState<StoreProfile>(demoProfile);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -40,36 +49,10 @@ export default function StorefrontPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    async function loadProducts() {
+    function loadProducts() {
       setLoading(true);
-
-      const { data: profileData } = await supabase
-        .from("seller_profiles")
-        .select("user_id,business_name,whatsapp_phone,city,store_slug,logo_url,logo_text")
-        .eq("store_slug", "ada-fashion")
-        .maybeSingle();
-
-      if (profileData) {
-        setProfile(profileData);
-      }
-
-      let query = supabase
-        .from("products")
-        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url")
-        .eq("status", "Live")
-        .order("created_at", { ascending: false });
-
-      if (profileData?.user_id) {
-        query = query.eq("user_id", profileData.user_id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        setMessage(error.message);
-      } else {
-        setProducts(data ?? []);
-      }
+      setProducts([]);
+      setMessage("");
       setLoading(false);
     }
 
@@ -96,10 +79,10 @@ export default function StorefrontPage() {
     window.setTimeout(() => setCartNotice(""), 2600);
   }
 
-  const businessName = profile?.business_name || "Store";
-  const brandName = profile?.logo_text || businessName;
-  const logoUrl = profile?.logo_url || "";
-  const city = profile?.city || "Nigeria";
+  const businessName = profile.business_name;
+  const brandName = profile.logo_text || businessName;
+  const logoUrl = profile.logo_url || "";
+  const city = profile.city;
   const filteredProducts = products.filter((product) => {
     const query = searchTerm.trim().toLowerCase();
     if (!query) {
@@ -154,7 +137,7 @@ export default function StorefrontPage() {
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Browse available goods, search what you need, add items to cart, and checkout securely with delivery details.
             </p>
-            {profile?.whatsapp_phone ? <p className="mt-4 text-sm font-bold text-slate-700">WhatsApp: {profile.whatsapp_phone}</p> : null}
+            <p className="mt-4 text-sm font-bold text-slate-700">This is a public sample store. Real seller products appear only on that seller&apos;s own store link.</p>
           </div>
           <div className="rounded-lg border border-slate-300 bg-white/95 p-5 shadow-lg">
             <div className="grid grid-cols-2 gap-3">
@@ -180,7 +163,7 @@ export default function StorefrontPage() {
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
         {loading ? <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">Loading products...</p> : null}
         {!loading && products.length === 0 ? (
-          <p className="rounded-md bg-amber-50 p-4 text-sm font-semibold text-amber-800">No live products yet. Add a product in the seller dashboard and set its status to Live.</p>
+          <p className="rounded-md bg-amber-50 p-4 text-sm font-semibold text-amber-800">No demo products are connected here. Sellers can log in, add products, then share their own store link.</p>
         ) : null}
         {!loading && products.length > 0 && filteredProducts.length === 0 ? (
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
