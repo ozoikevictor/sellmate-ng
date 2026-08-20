@@ -87,7 +87,7 @@ export default function AccountPage() {
   }, [loadAccount]);
 
   const businessName = profile?.business_name ?? user?.business ?? "Your business";
-  const storeSlug = profile?.store_slug ?? "ada-fashion";
+  const storeSlug = profile?.store_slug ?? (user?.id ? makeStoreSlug(user.business, user.id) : "store");
 
   return (
     <>

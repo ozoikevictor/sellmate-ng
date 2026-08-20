@@ -51,6 +51,16 @@ const nigerianBanks = [
   { name: "Wema Bank", code: "035" },
 ];
 
+function makeStoreSlug(businessName: string, userId: string) {
+  const baseSlug = businessName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `${baseSlug || "store"}-${userId.slice(0, 6)}`;
+}
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<SellerProfile>(emptyProfile);
@@ -59,7 +69,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [connectingPayout, setConnectingPayout] = useState(false);
   const [message, setMessage] = useState("");
-  const cleanStoreSlug = profile.store_slug.trim().toLowerCase().replace(/\s+/g, "-") || "ada-fashion";
+  const cleanStoreSlug = profile.store_slug.trim().toLowerCase().replace(/\s+/g, "-") || (user?.id ? makeStoreSlug(profile.business_name || user.business || "store", user.id) : "store");
   const storePath = `/store/${cleanStoreSlug}`;
   const storeUrl = siteOrigin ? `${siteOrigin}${storePath}` : storePath;
 
@@ -84,7 +94,7 @@ export default function SettingsPage() {
         business_name: data?.business_name || user.business || "",
         whatsapp_phone: data?.whatsapp_phone || "",
         city: data?.city || "Lagos",
-        store_slug: data?.store_slug || "ada-fashion",
+        store_slug: data?.store_slug || makeStoreSlug(data?.business_name || user.business || "store", userId),
         logo_url: data?.logo_url || "",
         logo_text: data?.logo_text || data?.business_name || user.business || "",
         delivery_fee: String(data?.delivery_fee ?? 3500),

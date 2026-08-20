@@ -12,7 +12,7 @@ function PaymentCallbackContent() {
   const [status, setStatus] = useState<"checking" | "success" | "error">("checking");
   const [message, setMessage] = useState("Confirming your payment...");
   const [whatsappUrl, setWhatsappUrl] = useState("");
-  const [storeHref, setStoreHref] = useState("/store/ada-fashion");
+  const [storeHref, setStoreHref] = useState("/");
 
   useEffect(() => {
     async function verifyPayment() {

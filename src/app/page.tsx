@@ -23,6 +23,16 @@ type SellerSummary = {
   }>;
 };
 
+function makeStoreSlug(businessName: string, userId: string) {
+  const baseSlug = businessName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `${baseSlug || "store"}-${userId.slice(0, 6)}`;
+}
+
 export default function LandingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
@@ -52,7 +62,7 @@ export default function LandingPage() {
 
       setSellerSummary({
         businessName: profileData?.business_name || "Your store",
-        storeSlug: profileData?.store_slug || "ada-fashion",
+        storeSlug: profileData?.store_slug || makeStoreSlug(profileData?.business_name || "Your store", userId),
         productCount: productData?.length ?? 0,
         lowStockCount: productData?.filter((product) => Number(product.stock) <= 3).length ?? 0,
         products: (productData ?? []).slice(0, 3),

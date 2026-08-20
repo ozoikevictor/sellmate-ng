@@ -56,7 +56,7 @@ function makeStoreSlug(businessName: string, userId: string) {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
-  const [storeSlug, setStoreSlug] = useState("ada-fashion");
+  const [storeSlug, setStoreSlug] = useState("store");
   const links = [
     { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "dashboard" },
     { key: "account", label: "Account", href: "/dashboard/account", icon: "account" },
@@ -274,7 +274,7 @@ export function SellerLogo({
 export function PublicFooter({
   sellerName,
   sellerLogoUrl,
-  storeHref = "/store/ada-fashion",
+  storeHref = "/",
 }: {
   sellerName?: string;
   sellerLogoUrl?: string | null;

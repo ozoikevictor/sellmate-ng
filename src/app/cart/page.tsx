@@ -7,13 +7,23 @@ import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, wri
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
+function makeStoreSlug(businessName: string, userId: string) {
+  const baseSlug = businessName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `${baseSlug || "store"}-${userId.slice(0, 6)}`;
+}
+
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
   const [delivery, setDelivery] = useState(0);
   const [sellerName, setSellerName] = useState("Store");
   const [sellerLogoUrl, setSellerLogoUrl] = useState("");
-  const [storeHref, setStoreHref] = useState("/store/ada-fashion");
+  const [storeHref, setStoreHref] = useState("/");
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
@@ -129,10 +139,30 @@ async function loadSellerDetails(
 ) {
   const sellerId = items[0]?.user_id;
   if (!sellerId) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const loggedInSellerId = sessionData.session?.user.id;
+    if (loggedInSellerId) {
+      const { data } = await supabase
+        .from("seller_profiles")
+        .select("business_name,logo_url,logo_text,delivery_fee,store_slug")
+        .eq("user_id", loggedInSellerId)
+        .maybeSingle();
+
+      const businessName = data?.business_name || "Your store";
+      const nextStoreHref = `/store/${data?.store_slug || makeStoreSlug(businessName, loggedInSellerId)}`;
+      setDelivery(Number(data?.delivery_fee ?? 0));
+      setSellerName(data?.logo_text || businessName);
+      setSellerLogoUrl(data?.logo_url || "");
+      setStoreHref(nextStoreHref);
+      writeCurrentStoreHref(nextStoreHref);
+      return;
+    }
+
+    const rememberedStoreHref = readCurrentStoreHref();
     setDelivery(0);
     setSellerName("Store");
     setSellerLogoUrl("");
-    setStoreHref("/store/ada-fashion");
+    setStoreHref(rememberedStoreHref);
     return;
   }
 
@@ -145,7 +175,7 @@ async function loadSellerDetails(
   setDelivery(Number(data?.delivery_fee ?? 0));
   setSellerName(data?.logo_text || data?.business_name || "Store");
   setSellerLogoUrl(data?.logo_url || "");
-  const nextStoreHref = `/store/${data?.store_slug || items[0]?.store_slug || "ada-fashion"}`;
+  const nextStoreHref = data?.store_slug || items[0]?.store_slug ? `/store/${data?.store_slug || items[0]?.store_slug}` : readCurrentStoreHref();
   setStoreHref(nextStoreHref);
   writeCurrentStoreHref(nextStoreHref);
 }

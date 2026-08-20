@@ -16,9 +16,9 @@ const STORE_KEY = "sellmate-ng-current-store";
 
 export function readCurrentStoreHref() {
   try {
-    return localStorage.getItem(STORE_KEY) || "/store/ada-fashion";
+    return localStorage.getItem(STORE_KEY) || "/";
   } catch {
-    return "/store/ada-fashion";
+    return "/";
   }
 }
 
