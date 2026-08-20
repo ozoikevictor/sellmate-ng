@@ -78,6 +78,13 @@ export default function LandingPage() {
   const storeHref = sellerSummary ? `/store/${sellerSummary.storeSlug}` : demoStoreHref;
   const isLoggedInSeller = Boolean(sellerSummary);
 
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setSellerSummary(null);
+    setCartCount(0);
+    window.location.href = "/login";
+  }
+
   const publicMetrics = useMemo(() => {
     if (sellerSummary) {
       return [
@@ -111,7 +118,15 @@ export default function LandingPage() {
               <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
             )}
             <Link href="/cart" className="shrink-0 rounded-md bg-slate-200 px-3 py-2 text-xs font-black text-slate-800 ring-1 ring-slate-400 hover:bg-slate-100 sm:text-sm">Cart · {cartCount}</Link>
-            {isLoggedInSeller ? null : (
+            {isLoggedInSeller ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="shrink-0 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-100 sm:px-4 sm:text-sm"
+              >
+                Logout
+              </button>
+            ) : (
               <>
                 <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
                 <Link href="/register" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Start selling</Link>
