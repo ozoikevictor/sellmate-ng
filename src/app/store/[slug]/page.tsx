@@ -168,13 +168,6 @@ export default function DynamicStorefrontPage() {
             </Link>
           </div>
         </nav>
-        {cartNotice ? (
-          <div className="absolute right-5 top-[4.2rem] w-[min(22rem,calc(100vw-2.5rem))] rounded-md border border-slate-400 bg-slate-200 p-4 shadow-xl sm:top-[4.9rem]">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Cart updated</p>
-            <p className="mt-1 text-sm font-bold text-slate-950">{cartNotice}</p>
-            <Link href="/cart" className="mt-3 inline-block rounded-md bg-slate-950 px-4 py-2 text-xs font-black text-white">View cart</Link>
-          </div>
-        ) : null}
       </header>
       <section className="border-b border-slate-300 bg-[linear-gradient(135deg,#e2e8f0_0%,#f8fafc_48%,#d1fae5_100%)]">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1fr_0.72fr] lg:items-center">
@@ -256,7 +249,24 @@ export default function DynamicStorefrontPage() {
           })}
         </div>
       </section>
-          <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={`/store/${slug}`} />
+      {cartNotice || cartCount > 0 ? (
+        <div className="fixed bottom-5 left-4 right-4 z-50 rounded-lg border border-slate-300 bg-white p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                {cartNotice ? "Cart updated" : "Shopping cart"}
+              </p>
+              <p className="mt-1 truncate text-sm font-black text-slate-950">
+                {cartNotice || `${cartCount} item${cartCount === 1 ? "" : "s"} in cart`}
+              </p>
+            </div>
+            <Link href="/cart" className="shrink-0 rounded-md bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700">
+              View cart
+            </Link>
+          </div>
+        </div>
+      ) : null}
+      <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={`/store/${slug}`} />
     </main>
   );
 }
