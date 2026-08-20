@@ -376,14 +376,16 @@ export function PublicFooter({
                 X
               </button>
             </div>
-            <form onSubmit={handleDashboardLogin} className="mt-5 grid gap-4">
+            <form onSubmit={handleDashboardLogin} autoComplete="off" className="mt-5 grid gap-4">
+              <input type="text" name="hidden-username" autoComplete="username" className="hidden" tabIndex={-1} aria-hidden="true" />
+              <input type="password" name="hidden-password" autoComplete="current-password" className="hidden" tabIndex={-1} aria-hidden="true" />
               <label className="grid gap-2 text-sm font-bold text-slate-700">
                 Email
-                <input name="email" type="email" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="seller@example.com" />
+                <input name="email" type="email" required autoComplete="off" data-lpignore="true" data-form-type="other" className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="seller@example.com" />
               </label>
               <label className="grid gap-2 text-sm font-bold text-slate-700">
                 Password
-                <input name="password" type="password" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="Your password" />
+                <input name="password" type="password" required autoComplete="new-password" data-lpignore="true" data-form-type="other" className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="Your password" />
               </label>
               {dashboardLoginError ? <p className="rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{dashboardLoginError}</p> : null}
               <button type="submit" disabled={dashboardLoginLoading} className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">
