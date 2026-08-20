@@ -28,6 +28,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<DashboardOrder[]>([]);
   const [recentOrders, setRecentOrders] = useState<DashboardOrder[]>([]);
   const [products, setProducts] = useState<DashboardProduct[]>([]);
+  const [greeting, setGreeting] = useState("Hello");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -78,6 +79,25 @@ export default function DashboardPage() {
     return () => window.clearTimeout(timer);
   }, [loadDashboard]);
 
+  useEffect(() => {
+    function updateGreeting() {
+      const hour = new Date().getHours();
+      if (hour < 12) {
+        setGreeting("Good morning");
+      } else if (hour < 17) {
+        setGreeting("Good afternoon");
+      } else if (hour < 21) {
+        setGreeting("Good evening");
+      } else {
+        setGreeting("Good night");
+      }
+    }
+
+    updateGreeting();
+    const interval = window.setInterval(updateGreeting, 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
   const summary = useMemo(() => {
     const revenue = orders.reduce((sum, order) => sum + order.total, 0);
     const lowStock = products.filter((product) => product.stock <= 5 || product.status === "Low stock" || product.status === "Sold out");
@@ -93,7 +113,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Seller dashboard" title={`Good morning, ${displayName}`} />
+      <SectionTitle eyebrow="Seller dashboard" title={`${greeting}, ${displayName}`} />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Revenue" value={loading ? "..." : formatNaira(summary.revenue)} change={`${summary.orderCount} orders`} tone="green" />

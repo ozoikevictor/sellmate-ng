@@ -30,6 +30,7 @@ export default function AccountPage() {
   const [productCount, setProductCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const [message, setMessage] = useState("");
+  const [siteOrigin, setSiteOrigin] = useState("");
 
   const loadAccount = useCallback(async () => {
     const userId = user?.id;
@@ -83,11 +84,14 @@ export default function AccountPage() {
     const timer = window.setTimeout(() => {
       loadAccount();
     }, 0);
+    setSiteOrigin(window.location.origin);
     return () => window.clearTimeout(timer);
   }, [loadAccount]);
 
   const businessName = profile?.business_name ?? user?.business ?? "Your business";
   const storeSlug = profile?.store_slug ?? (user?.id ? makeStoreSlug(user.business, user.id) : "store");
+  const storePath = `/store/${storeSlug}`;
+  const storeUrl = siteOrigin ? `${siteOrigin}${storePath}` : storePath;
 
   return (
     <>
@@ -111,9 +115,9 @@ export default function AccountPage() {
         </div>
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-950">Store link</h2>
-          <p className="mt-3 break-all rounded-md bg-slate-100 p-4 text-sm font-bold text-slate-700">/store/{storeSlug}</p>
+          <p className="mt-3 break-all rounded-md bg-slate-100 p-4 text-sm font-bold text-slate-700">{storeUrl}</p>
           <div className="mt-5 grid gap-3">
-            <Link href={`/store/${storeSlug}`} className="rounded-md bg-slate-950 px-5 py-3 text-center text-sm font-black text-white">Open my store</Link>
+            <Link href={storePath} className="rounded-md bg-slate-950 px-5 py-3 text-center text-sm font-black text-white">Open my store</Link>
             <Link href="/dashboard/settings" className="rounded-md border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-800">Edit account settings</Link>
             <Link href="/dashboard" className="rounded-md border border-slate-300 bg-slate-100 px-5 py-3 text-center text-sm font-black text-slate-800">Go to dashboard</Link>
           </div>

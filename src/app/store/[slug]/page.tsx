@@ -31,6 +31,19 @@ type StoreProduct = {
   image_url: string | null;
 };
 
+function getProductRating(product: StoreProduct) {
+  if (product.stock <= 3) {
+    return { stars: 5, label: "Selling fast" };
+  }
+  if (product.stock <= 10) {
+    return { stars: 4, label: "Popular pick" };
+  }
+  if (product.stock <= 25) {
+    return { stars: 3, label: "Customer favorite" };
+  }
+  return { stars: 2, label: "New in store" };
+}
+
 export default function DynamicStorefrontPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -194,33 +207,42 @@ export default function DynamicStorefrontPage() {
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
         ) : null}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {filteredProducts.map((product) => (
-            <article key={product.id} className="group overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
-              <div className="relative bg-slate-200 p-3">
-                <div
-                  className="h-36 rounded-md bg-[linear-gradient(135deg,#334155,#94a3b8_55%,#475569)] bg-cover bg-center shadow-inner transition duration-300 group-hover:scale-[1.02] sm:h-52 lg:h-44 xl:h-52"
-                  style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
-                />
-                <span className={`absolute right-5 top-5 rounded-full px-2 py-1 text-[10px] font-black shadow-sm sm:px-3 sm:text-xs ${product.stock <= 3 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}>
-                  {product.stock} left
-                </span>
-              </div>
-              <div className="p-3 sm:p-4">
-                <div className="grid gap-2">
-                  <div className="min-w-0">
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 sm:text-xs">{product.category}</span>
-                    <h3 className="mt-2 line-clamp-2 text-base font-black leading-tight text-slate-950 sm:text-lg">{product.name}</h3>
-                    <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400 sm:text-xs">{product.sku}</p>
-                    {product.variant_options ? <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-500">{product.variant_options}</p> : null}
-                  </div>
-                  <p className="text-base font-black text-emerald-700 sm:text-lg">{formatNaira(product.price)}</p>
+          {filteredProducts.map((product) => {
+            const rating = getProductRating(product);
+            return (
+              <article key={product.id} className="group overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl">
+                <div className="relative bg-slate-200 p-3">
+                  <div
+                    className="h-36 rounded-md bg-[linear-gradient(135deg,#334155,#94a3b8_55%,#475569)] bg-cover bg-center shadow-inner transition duration-300 group-hover:scale-[1.02] sm:h-52 lg:h-44 xl:h-52"
+                    style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
+                  />
+                  <span className={`absolute right-5 top-5 rounded-full px-2 py-1 text-[10px] font-black shadow-sm sm:px-3 sm:text-xs ${product.stock <= 3 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}>
+                    {product.stock} left
+                  </span>
                 </div>
-                <button onClick={() => handleAddToCart(product)} className="mt-4 w-full rounded-md bg-slate-950 px-3 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700 sm:text-sm">
-                  Add to cart
-                </button>
-              </div>
-            </article>
-          ))}
+                <div className="p-3 sm:p-4">
+                  <div className="grid gap-2">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 sm:text-xs">{product.category}</span>
+                        <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-700 ring-1 ring-amber-100">
+                          {"★".repeat(rating.stars)}{"☆".repeat(5 - rating.stars)}
+                        </span>
+                      </div>
+                      <h3 className="mt-2 line-clamp-2 text-base font-black leading-tight text-slate-950 sm:text-lg">{product.name}</h3>
+                      <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400 sm:text-xs">{product.sku}</p>
+                      <p className="mt-2 text-xs font-black text-emerald-700">{rating.label}</p>
+                      {product.variant_options ? <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-500">{product.variant_options}</p> : null}
+                    </div>
+                    <p className="text-base font-black text-emerald-700 sm:text-lg">{formatNaira(product.price)}</p>
+                  </div>
+                  <button onClick={() => handleAddToCart(product)} className="mt-4 w-full rounded-md bg-slate-950 px-3 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700 sm:text-sm">
+                    Add to cart
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
           <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={`/store/${slug}`} />
