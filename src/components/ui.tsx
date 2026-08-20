@@ -280,6 +280,29 @@ export function PublicFooter({
 }) {
   const footerName = sellerName || "SellMate NG";
   const isSellerFooter = Boolean(sellerName);
+  const [dashboardLoginOpen, setDashboardLoginOpen] = useState(false);
+  const [dashboardLoginError, setDashboardLoginError] = useState("");
+  const [dashboardLoginLoading, setDashboardLoginLoading] = useState(false);
+
+  async function handleDashboardLogin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setDashboardLoginError("");
+    setDashboardLoginLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setDashboardLoginError(error.message);
+      setDashboardLoginLoading(false);
+      return;
+    }
+
+    window.location.href = "/dashboard/account";
+  }
+
   return (
     <footer className="border-t border-slate-300 bg-slate-200">
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
@@ -313,6 +336,7 @@ export function PublicFooter({
               <Link href="/checkout" className="hover:text-slate-950">Delivery details</Link>
               <Link href="/cart" className="hover:text-slate-950">Order summary</Link>
               <Link href="/" className="hover:text-slate-950">Powered by SellMate NG</Link>
+              <button type="button" onClick={() => setDashboardLoginOpen(true)} className="w-fit text-left font-black text-emerald-700 hover:text-emerald-900">Open dashboard</button>
             </nav>
           </div>
         ) : (
@@ -321,6 +345,7 @@ export function PublicFooter({
             <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
               <Link href="/login" className="hover:text-slate-950">Seller login</Link>
               <Link href="/register" className="hover:text-slate-950">Start selling</Link>
+              <button type="button" onClick={() => setDashboardLoginOpen(true)} className="w-fit text-left font-black text-emerald-700 hover:text-emerald-900">Open dashboard</button>
             </nav>
           </div>
         )}
@@ -331,6 +356,46 @@ export function PublicFooter({
           <p>Built for Nigerian sellers.</p>
         </div>
       </div>
+      {dashboardLoginOpen ? (
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/60 px-5 py-8 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Seller access</p>
+                <h2 className="mt-2 text-2xl font-black text-slate-950">Open dashboard</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Enter your seller email and password before entering the dashboard.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDashboardLoginOpen(false);
+                  setDashboardLoginError("");
+                }}
+                className="rounded-md border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100"
+              >
+                X
+              </button>
+            </div>
+            <form onSubmit={handleDashboardLogin} className="mt-5 grid gap-4">
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Email
+                <input name="email" type="email" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="seller@example.com" />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Password
+                <input name="password" type="password" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="Your password" />
+              </label>
+              {dashboardLoginError ? <p className="rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{dashboardLoginError}</p> : null}
+              <button type="submit" disabled={dashboardLoginLoading} className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">
+                {dashboardLoginLoading ? "Checking..." : "Enter dashboard"}
+              </button>
+              <Link href="/register" className="text-center text-sm font-bold text-emerald-700 hover:text-emerald-900">
+                Create seller account
+              </Link>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </footer>
   );
 }
