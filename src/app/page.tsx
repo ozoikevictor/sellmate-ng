@@ -224,7 +224,7 @@ export default function LandingPage() {
           </>
         )}
       </section>
-      <PublicFooter />
+      <PublicFooter storeHref={storeHref} />
     </main>
   );
 }

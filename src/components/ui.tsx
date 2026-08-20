@@ -274,9 +274,11 @@ export function SellerLogo({
 export function PublicFooter({
   sellerName,
   sellerLogoUrl,
+  storeHref = "/store/ada-fashion",
 }: {
   sellerName?: string;
   sellerLogoUrl?: string | null;
+  storeHref?: string;
 }) {
   const footerName = sellerName || "SellMate NG";
   const isSellerFooter = Boolean(sellerName);
@@ -324,7 +326,7 @@ export function PublicFooter({
         <div>
           <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Customers</h2>
           <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
-            <Link href="/store/ada-fashion" className="hover:text-slate-950">Shop products</Link>
+            <Link href={storeHref} className="hover:text-slate-950">Shop products</Link>
             <Link href="/cart" className="hover:text-slate-950">View cart</Link>
             <Link href="/checkout" className="hover:text-slate-950">Checkout</Link>
           </nav>

@@ -221,7 +221,7 @@ export default function DynamicStorefrontPage() {
           ))}
         </div>
       </section>
-          <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} />
+          <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={`/store/${slug}`} />
     </main>
   );
 }

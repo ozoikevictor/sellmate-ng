@@ -198,7 +198,7 @@ export default function StorefrontPage() {
           ))}
         </div>
       </section>
-          <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} />
+          <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref="/store/ada-fashion" />
     </main>
   );
 }

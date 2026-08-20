@@ -13,6 +13,7 @@ export default function CartPage() {
   const [delivery, setDelivery] = useState(0);
   const [sellerName, setSellerName] = useState("Store");
   const [sellerLogoUrl, setSellerLogoUrl] = useState("");
+  const [storeHref, setStoreHref] = useState("/store/ada-fashion");
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
@@ -22,7 +23,7 @@ export default function CartPage() {
       setMounted(true);
       const cartItems = readCart();
       setItems(cartItems);
-      await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl);
+      await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -43,14 +44,14 @@ export default function CartPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/store/ada-fashion" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Shop products</Link>
+            <Link href={storeHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Shop products</Link>
             <Link href="/checkout" className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4 sm:text-sm">Checkout</Link>
           </div>
         </nav>
       </header>
 
       <div className="mx-auto max-w-7xl px-5 py-10">
-        <SectionTitle eyebrow="Shopping cart" title="Review your order" action={<Link href="/store/ada-fashion" className="text-sm font-bold text-emerald-700">Back to store</Link>} />
+        <SectionTitle eyebrow="Shopping cart" title="Review your order" action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">Back to store</Link>} />
 
         {!mounted ? (
           <div className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
@@ -60,7 +61,7 @@ export default function CartPage() {
           <div className="rounded-lg border border-slate-200 bg-white p-10 text-center shadow-sm">
             <p className="text-xl font-black text-slate-950">Your cart is empty.</p>
             <p className="mt-2 text-sm text-slate-500">Add products from the store before checkout.</p>
-            <Link href="/store/ada-fashion" className="mt-5 inline-block rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Shop products</Link>
+            <Link href={storeHref} className="mt-5 inline-block rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Shop products</Link>
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -113,7 +114,7 @@ export default function CartPage() {
           </div>
         )}
       </div>
-          <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} />
+          <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} />
     </main>
   );
 }
@@ -123,22 +124,25 @@ async function loadSellerDetails(
   setDelivery: (fee: number) => void,
   setSellerName: (name: string) => void,
   setSellerLogoUrl: (url: string) => void,
+  setStoreHref: (href: string) => void,
 ) {
   const sellerId = items[0]?.user_id;
   if (!sellerId) {
     setDelivery(0);
     setSellerName("Store");
     setSellerLogoUrl("");
+    setStoreHref("/store/ada-fashion");
     return;
   }
 
   const { data } = await supabase
     .from("seller_profiles")
-    .select("business_name,logo_url,logo_text,delivery_fee")
+    .select("business_name,logo_url,logo_text,delivery_fee,store_slug")
     .eq("user_id", sellerId)
     .maybeSingle();
 
   setDelivery(Number(data?.delivery_fee ?? 0));
   setSellerName(data?.logo_text || data?.business_name || "Store");
   setSellerLogoUrl(data?.logo_url || "");
+  setStoreHref(`/store/${data?.store_slug || "ada-fashion"}`);
 }

@@ -27,6 +27,7 @@ export default function CheckoutPage() {
   const [delivery, setDelivery] = useState(0);
   const [sellerName, setSellerName] = useState("Store");
   const [sellerLogoUrl, setSellerLogoUrl] = useState("");
+  const [storeHref, setStoreHref] = useState("/store/ada-fashion");
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
 
@@ -34,7 +35,7 @@ export default function CheckoutPage() {
     const timer = window.setTimeout(async () => {
       setMounted(true);
       const nextItems = await syncCartWithProducts(readCart(), setItems, setMessage);
-      await loadSellerDetails(nextItems, setDelivery, setSellerName, setSellerLogoUrl);
+      await loadSellerDetails(nextItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -159,7 +160,7 @@ export default function CheckoutPage() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/cart" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Cart</Link>
-            <Link href="/store/ada-fashion" className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Shop products</Link>
+            <Link href={storeHref} className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Shop products</Link>
           </div>
         </nav>
       </header>
@@ -212,10 +213,10 @@ export default function CheckoutPage() {
             <span>Total</span>
             <span>{formatNaira(total)}</span>
           </div>
-          <Link href="/store/ada-fashion" className="mt-5 block text-center text-sm font-bold text-emerald-700">Back to store</Link>
+          <Link href={storeHref} className="mt-5 block text-center text-sm font-bold text-emerald-700">Back to store</Link>
         </aside>
       </div>
-          <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} />
+          <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} />
     </main>
   );
 }
@@ -225,24 +226,27 @@ async function loadSellerDetails(
   setDelivery: (fee: number) => void,
   setSellerName: (name: string) => void,
   setSellerLogoUrl: (url: string) => void,
+  setStoreHref: (href: string) => void,
 ) {
   const sellerId = items[0]?.user_id;
   if (!sellerId) {
     setDelivery(0);
     setSellerName("Store");
     setSellerLogoUrl("");
+    setStoreHref("/store/ada-fashion");
     return;
   }
 
   const { data } = await supabase
     .from("seller_profiles")
-    .select("business_name,logo_url,logo_text,delivery_fee")
+    .select("business_name,logo_url,logo_text,delivery_fee,store_slug")
     .eq("user_id", sellerId)
     .maybeSingle();
 
   setDelivery(Number(data?.delivery_fee ?? 0));
   setSellerName(data?.logo_text || data?.business_name || "Store");
   setSellerLogoUrl(data?.logo_url || "");
+  setStoreHref(`/store/${data?.store_slug || "ada-fashion"}`);
 }
 
 async function syncCartWithProducts(
