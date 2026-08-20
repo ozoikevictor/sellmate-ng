@@ -3,66 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ProductCard, PublicFooter, SectionTitle, StatCard } from "@/components/ui";
+import { PublicFooter, SectionTitle, StatCard } from "@/components/ui";
 import { readCart } from "@/lib/cart";
-import { supabase } from "@/lib/supabase";
-
-type LandingProduct = {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: string;
-  image_url: string | null;
-};
-
-type LandingProfile = {
-  user_id: string;
-  business_name: string;
-  city: string;
-  store_slug: string;
-};
 
 export default function LandingPage() {
-  const [profile, setProfile] = useState<LandingProfile | null>(null);
-  const [products, setProducts] = useState<LandingProduct[]>([]);
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
-    async function loadPublicStats() {
-      const profileQuery = supabase
-        .from("seller_profiles")
-        .select("user_id,business_name,city,store_slug")
-        .order("updated_at", { ascending: false })
-        .limit(1);
-
-      const { data: profileData } = await profileQuery.maybeSingle();
-
-      if (profileData) {
-        setProfile(profileData);
-      }
-
-      let query = supabase
-        .from("products")
-        .select("id,name,sku,category,price,stock,status,image_url")
-        .eq("status", "Live")
-        .order("created_at", { ascending: false });
-
-      if (profileData?.user_id) {
-        query = query.eq("user_id", profileData.user_id);
-      }
-
-      const { data } = await query;
-      setProducts(data ?? []);
-    }
-
     function syncCartCount() {
       setCartCount(readCart().reduce((sum, item) => sum + item.qty, 0));
     }
 
-    loadPublicStats();
     syncCartCount();
     window.addEventListener("sellmate-cart-updated", syncCartCount);
     window.addEventListener("storage", syncCartCount);
@@ -73,19 +24,16 @@ export default function LandingPage() {
     };
   }, []);
 
-  const businessName = profile?.business_name || "your store";
-  const storeHref = `/store/${profile?.store_slug || "ada-fashion"}`;
-  const city = profile?.city || "Nigeria";
+  const demoStoreHref = "/store/ada-fashion";
 
   const publicMetrics = useMemo(() => {
-    const lowStockCount = products.filter((product) => product.stock > 0 && product.stock <= 5).length;
     return [
-      { label: "Live products", value: String(products.length), change: "Public shop", tone: "blue" },
+      { label: "Seller dashboard", value: "Ready", change: "Manage shop", tone: "blue" },
       { label: "Items in your cart", value: String(cartCount), change: cartCount > 0 ? "Ready to checkout" : "Start shopping", tone: "green" },
-      { label: "Low stock items", value: String(lowStockCount), change: lowStockCount > 0 ? "Selling fast" : "In stock", tone: lowStockCount > 0 ? "amber" : "slate" },
-      { label: "Customer checkout", value: "Open", change: "No seller login", tone: "green" },
+      { label: "Storefronts", value: "Public", change: "Share links", tone: "slate" },
+      { label: "Payments", value: "Paystack", change: "Test mode", tone: "amber" },
     ];
-  }, [cartCount, products]);
+  }, [cartCount]);
 
   return (
     <main className="bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_44%,#f8fafc_100%)] pt-20">
@@ -95,7 +43,7 @@ export default function LandingPage() {
             <Image src="/sellmate-logo.png" alt="SellMate logo" width={48} height={48} className="h-10 w-10 rounded-md bg-white object-contain ring-1 ring-slate-300 sm:h-12 sm:w-12" />
           </Link>
           <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:gap-4 sm:overflow-visible sm:pb-0">
-            <Link href={storeHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Shop products</Link>
+            <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
             <Link href="/cart" className="shrink-0 rounded-md bg-slate-200 px-3 py-2 text-xs font-black text-slate-800 ring-1 ring-slate-400 hover:bg-slate-100 sm:text-sm">Cart · {cartCount}</Link>
             <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
             <Link href="/register" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Start selling</Link>
@@ -107,14 +55,14 @@ export default function LandingPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">WhatsApp commerce for Nigerian sellers</p>
             <h1 className="mt-5 max-w-3xl text-4xl font-black capitalize leading-[1.02] text-slate-950 sm:text-5xl lg:text-6xl">
-              {businessName} storefront for WhatsApp orders.
+              Create your online store and manage WhatsApp orders.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              Customers open {businessName} to browse goods and checkout. Business owners log in to manage products, orders, inventory, receipts, and customers.
+              SellMate NG helps sellers create a public shop, add products, collect customer orders, receive Paystack payments, and manage everything from a private dashboard.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/register" className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white">Create seller account</Link>
-              <Link href={storeHref} className="rounded-md border border-slate-400 bg-slate-100 px-5 py-3 text-sm font-black text-slate-800">Shop products</Link>
+              <Link href="/login" className="rounded-md border border-slate-400 bg-slate-100 px-5 py-3 text-sm font-black text-slate-800">Seller login</Link>
             </div>
           </div>
           <div className="rounded-lg border border-slate-400 bg-slate-700 p-3 shadow-xl">
@@ -132,9 +80,20 @@ export default function LandingPage() {
         </div>
       </section>
       <section className="mx-auto max-w-7xl px-5 py-12">
-        <SectionTitle eyebrow={`${city} storefront preview`} title={`${businessName} products`} action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">Open public store</Link>} />
+        <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={demoStoreHref} className="text-sm font-bold text-emerald-700">View demo store</Link>} />
         <div className="grid gap-4 md:grid-cols-3">
-          {products.slice(0, 3).map((product) => <ProductCard key={product.id} product={product} />)}
+          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-black text-slate-950">1. Seller creates store</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">The seller registers, adds business details, delivery fee, logo, products, prices, stock, and WhatsApp number.</p>
+          </div>
+          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-black text-slate-950">2. Customer shops</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Customers open the seller store link, search products, add items to cart, and enter delivery details.</p>
+          </div>
+          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-black text-slate-950">3. Payment and receipt</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Customers pay through Paystack, then send a neat receipt-style WhatsApp message to the seller.</p>
+          </div>
         </div>
       </section>
           <PublicFooter />
