@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { SectionTitle, SellerLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { supabase } from "@/lib/supabase";
@@ -53,10 +54,14 @@ const nigerianBanks = [
 export default function SettingsPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<SellerProfile>(emptyProfile);
+  const [siteOrigin, setSiteOrigin] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [connectingPayout, setConnectingPayout] = useState(false);
   const [message, setMessage] = useState("");
+  const cleanStoreSlug = profile.store_slug.trim().toLowerCase().replace(/\s+/g, "-") || "ada-fashion";
+  const storePath = `/store/${cleanStoreSlug}`;
+  const storeUrl = siteOrigin ? `${siteOrigin}${storePath}` : storePath;
 
   const loadProfile = useCallback(async () => {
     const userId = user?.id;
@@ -97,6 +102,7 @@ export default function SettingsPage() {
     const timer = window.setTimeout(() => {
       loadProfile();
     }, 0);
+    setSiteOrigin(window.location.origin);
     return () => window.clearTimeout(timer);
   }, [loadProfile]);
 
@@ -217,9 +223,28 @@ export default function SettingsPage() {
           <SettingsField label="Delivery fee" name="delivery_fee" value={profile.delivery_fee} onChange={updateProfile} placeholder="3500" type="number" />
           <SettingsField label="Store slug" name="store_slug" value={profile.store_slug} onChange={updateProfile} placeholder="victor-fashions" />
           <SettingsField label="Logo text" name="logo_text" value={profile.logo_text} onChange={updateProfile} placeholder="Victor Fashions" />
-          <div className="rounded-lg bg-slate-50 p-4">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm text-slate-500">Store URL</p>
-            <p className="mt-2 break-all text-lg font-black text-slate-950">/store/{profile.store_slug || "ada-fashion"}</p>
+            <p className="mt-2 break-all text-lg font-black text-slate-950">{storeUrl}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href={storePath}
+                target="_blank"
+                className="rounded-md bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-slate-800"
+              >
+                Open store
+              </Link>
+              <button
+                type="button"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(storeUrl);
+                  setMessage("Store link copied.");
+                }}
+                className="rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm hover:bg-slate-100"
+              >
+                Copy link
+              </button>
+            </div>
           </div>
         </div>
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
