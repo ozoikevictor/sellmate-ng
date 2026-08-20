@@ -135,7 +135,7 @@ export default function DynamicStorefrontPage() {
             </label>
           </div>
           <div className="flex shrink-0 items-center justify-end gap-2">
-            <Link href="/" className="hidden rounded-md px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-950 md:inline">SellMate NG</Link>
+            <Link href="/" className="rounded-md px-2 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-950 sm:px-3 sm:text-sm">SellMate NG</Link>
             <Link href="/cart" className="relative rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4 sm:text-sm">
               Cart
               <span className="ml-2 rounded-full bg-white px-2 py-0.5 text-xs text-slate-950">{cartCount}</span>

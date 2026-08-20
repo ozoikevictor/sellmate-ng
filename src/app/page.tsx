@@ -12,6 +12,14 @@ type SellerSummary = {
   storeSlug: string;
   productCount: number;
   lowStockCount: number;
+  products: Array<{
+    id: string;
+    name: string;
+    category: string;
+    price: number;
+    stock: number;
+    image_url: string | null;
+  }>;
 };
 
 export default function LandingPage() {
@@ -36,15 +44,18 @@ export default function LandingPage() {
 
       const { data: productData } = await supabase
         .from("products")
-        .select("id,stock,status")
+        .select("id,name,category,price,stock,status,image_url")
         .eq("user_id", userId)
-        .eq("status", "Live");
+        .eq("status", "Live")
+        .order("created_at", { ascending: false })
+        .limit(3);
 
       setSellerSummary({
         businessName: profileData?.business_name || "Your store",
         storeSlug: profileData?.store_slug || "ada-fashion",
         productCount: productData?.length ?? 0,
         lowStockCount: productData?.filter((product) => Number(product.stock) <= 3).length ?? 0,
+        products: productData ?? [],
       });
     }
 
@@ -146,21 +157,60 @@ export default function LandingPage() {
         </div>
       </section>
       <section className="mx-auto max-w-7xl px-5 py-12">
-        <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">{isLoggedInSeller ? "View my store" : "View demo store"}</Link>} />
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-black text-slate-950">1. Seller creates store</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">The seller registers, adds business details, delivery fee, logo, products, prices, stock, and WhatsApp number.</p>
-          </div>
-          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-black text-slate-950">2. Customer shops</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Customers open the seller store link, search products, add items to cart, and enter delivery details.</p>
-          </div>
-          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-black text-slate-950">3. Payment and receipt</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Customers pay through Paystack, then send a neat receipt-style WhatsApp message to the seller.</p>
-          </div>
-        </div>
+        {isLoggedInSeller ? (
+          <>
+            <SectionTitle
+              eyebrow="Your products"
+              title="Products available in your store"
+              action={<Link href={storeHref} className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white shadow-sm hover:bg-emerald-700">View my store</Link>}
+            />
+            {sellerSummary?.products.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {sellerSummary.products.map((product) => (
+                  <article key={product.id} className="overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                    <div
+                      className="h-48 bg-slate-200 bg-cover bg-center"
+                      style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
+                    />
+                    <div className="p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{product.category}</span>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">{product.stock} left</span>
+                      </div>
+                      <h2 className="mt-3 text-lg font-black text-slate-950">{product.name}</h2>
+                      <p className="mt-1 text-xl font-black text-emerald-700">
+                        {new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(product.price)}
+                      </p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
+                <h2 className="text-lg font-black text-slate-950">No live products yet</h2>
+                <p className="mt-2 text-sm leading-6 text-amber-800">Add products in your dashboard and set them to Live so they can appear here.</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">View demo store</Link>} />
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+                <h2 className="text-lg font-black text-slate-950">1. Seller creates store</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">The seller registers, adds business details, delivery fee, logo, products, prices, stock, and WhatsApp number.</p>
+              </div>
+              <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+                <h2 className="text-lg font-black text-slate-950">2. Customer shops</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Customers open the seller store link, search products, add items to cart, and enter delivery details.</p>
+              </div>
+              <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+                <h2 className="text-lg font-black text-slate-950">3. Payment and receipt</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Customers pay through Paystack, then send a neat receipt-style WhatsApp message to the seller.</p>
+              </div>
+            </div>
+          </>
+        )}
       </section>
       <PublicFooter />
     </main>
