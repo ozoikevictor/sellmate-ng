@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/server-security";
 
 type OrderItem = {
   product_id: string;
@@ -28,6 +29,11 @@ function getSupabaseAdmin() {
 }
 
 export async function GET(request: Request) {
+  const limited = rateLimit(request, "paystack-verify", 20);
+  if (limited) {
+    return limited;
+  }
+
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
   if (!secretKey) {
     return NextResponse.json({ message: "Paystack secret key is missing." }, { status: 400 });

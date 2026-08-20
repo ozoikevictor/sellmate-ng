@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/server-security";
 
 type CheckoutItem = {
   id: string;
@@ -25,6 +26,11 @@ function getSupabaseAdmin() {
 }
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, "checkout-orders", 8);
+  if (limited) {
+    return limited;
+  }
+
   let body: {
     sellerId?: string;
     customerName?: string;

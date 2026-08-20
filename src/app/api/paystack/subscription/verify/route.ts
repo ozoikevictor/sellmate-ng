@@ -1,8 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { productPlans } from "@/lib/plans";
+import { rateLimit } from "@/lib/server-security";
 
 export async function GET(request: Request) {
+  const limited = rateLimit(request, "paystack-subscription-verify", 12);
+  if (limited) {
+    return limited;
+  }
+
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

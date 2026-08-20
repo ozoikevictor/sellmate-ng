@@ -41,6 +41,16 @@ function formatAuthError(message: string) {
   return message;
 }
 
+function validatePassword(password: string) {
+  if (password.length < 8) {
+    return "Use at least 8 characters for your password.";
+  }
+  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+    return "Use uppercase, lowercase, and a number in your password.";
+  }
+  return "";
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<DemoUser | null>(null);
   const [ready, setReady] = useState(false);
@@ -147,6 +157,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     const business = String(formData.get("business") ?? "My Store");
 
     if (mode === "register") {
+      const passwordMessage = validatePassword(password);
+      if (passwordMessage) {
+        setError(passwordMessage);
+        setLoading(false);
+        return;
+      }
+
       const result = await register({ name, business, email, password });
       if (result.ok) {
         window.location.href = "/dashboard/account";
@@ -196,7 +213,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               </>
             ) : null}
             <label className="grid gap-2 text-sm font-bold text-slate-700">Email<input name="email" type="email" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="ada@example.com" /></label>
-            <label className="grid gap-2 text-sm font-bold text-slate-700">Password<input name="password" type="password" required minLength={4} className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="At least 4 characters" /></label>
+            <label className="grid gap-2 text-sm font-bold text-slate-700">Password<input name="password" type="password" required minLength={mode === "login" ? 1 : 8} autoComplete={mode === "login" ? "current-password" : "new-password"} className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder={mode === "login" ? "Your password" : "8+ characters, uppercase, lowercase, number"} /></label>
           </div>
           {error ? <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p> : null}
           <button type="submit" disabled={loading} className="mt-6 w-full rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">

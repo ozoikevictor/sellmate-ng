@@ -153,12 +153,21 @@ export default function BillingPage() {
     setPayingPlan(planName);
     setMessage("Opening Paystack checkout...");
 
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      setMessage("Please log in again before starting billing payment.");
+      setPayingPlan("");
+      return;
+    }
+
     const response = await fetch("/api/paystack/subscription", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify({
-        sellerId: user.id,
-        email: user.email,
         planName: plan.name,
         amount: plan.price,
       }),

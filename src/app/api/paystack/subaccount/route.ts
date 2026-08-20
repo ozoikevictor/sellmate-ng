@@ -1,7 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/server-security";
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, "paystack-subaccount", 6);
+  if (limited) {
+    return limited;
+  }
+
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

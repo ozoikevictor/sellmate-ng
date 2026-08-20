@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
+import { rateLimit, requireSeller } from "@/lib/server-security";
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, "paystack-subscription", 6);
+  if (limited) {
+    return limited;
+  }
+
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
   if (!secretKey) {
     return NextResponse.json(
@@ -9,10 +15,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const { sellerId, email, planName, amount } = await request.json();
+  const { error, user } = await requireSeller(request);
+  if (error || !user) {
+    return error;
+  }
+
+  const { planName, amount } = await request.json();
   const safeAmount = Number(amount);
-  if (!sellerId || !email || !planName || !safeAmount || safeAmount <= 0) {
-    return NextResponse.json({ message: "Missing seller, email, plan, or amount for subscription payment." }, { status: 400 });
+  if (!user.email || !planName || !safeAmount || safeAmount <= 0) {
+    return NextResponse.json({ message: "Missing email, plan, or amount for subscription payment." }, { status: 400 });
   }
 
   const origin = new URL(request.url).origin;
@@ -25,11 +36,11 @@ export async function POST(request: Request) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      email,
+      email: user.email,
       amount: Math.round(safeAmount * 100),
       callback_url: callbackUrl.toString(),
       metadata: {
-        seller_id: sellerId,
+        seller_id: user.id,
         plan: planName,
         payment_type: "seller_subscription",
       },
