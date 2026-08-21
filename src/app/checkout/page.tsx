@@ -45,8 +45,9 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const timer = window.setTimeout(async () => {
-      const cartItems = readCart();
+      const allCartItems = readCart();
       const storeSlugFromUrl = new URLSearchParams(window.location.search).get("store");
+      const cartItems = storeSlugFromUrl ? allCartItems.filter((item) => item.store_slug === storeSlugFromUrl) : allCartItems;
       const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref();
       setStoreHref(preferredStoreHref);
       const nextItems = await syncCartWithProducts(cartItems, setItems, setMessage);
@@ -251,6 +252,14 @@ async function loadSellerDetails(
   const sellerId = items[0]?.user_id;
   if (!sellerId) {
     const preferredSlug = preferredStoreHref.startsWith("/store/") ? preferredStoreHref.replace("/store/", "").split(/[?#]/)[0] : "";
+    if (preferredSlug === "ada-fashion") {
+      setDelivery(0);
+      setSellerName("Demo Store");
+      setSellerLogoUrl("");
+      setStoreHref("/store/ada-fashion");
+      writeCurrentStoreHref("/store/ada-fashion");
+      return;
+    }
     if (preferredSlug) {
       const { data } = await supabase
         .from("seller_profiles")
@@ -441,5 +450,7 @@ function CheckoutField({ label, name, placeholder, type = "text" }: { label: str
     </label>
   );
 }
+
+
 
 

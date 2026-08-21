@@ -115,7 +115,7 @@ export default function StorefrontPage() {
           </div>
           <div className="flex shrink-0 items-center justify-end gap-2">
             <Link href="/" className="hidden rounded-md px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-950 md:inline">SellMate NG</Link>
-            <Link href="/cart" className="relative rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4">
+            <Link href="/cart?store=ada-fashion" className="relative rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:px-4">
               Cart
               <span className="ml-2 rounded-full bg-white px-2 py-0.5 text-xs text-slate-950">{cartCount}</span>
             </Link>
@@ -145,7 +145,7 @@ export default function StorefrontPage() {
                 <p className="mt-2 text-3xl font-black text-slate-950">{cartCount}</p>
               </div>
             </div>
-            <Link href="/cart" className="mt-4 block rounded-md bg-slate-950 px-4 py-3 text-center text-sm font-black text-white hover:bg-emerald-700">Open cart</Link>
+            <Link href="/cart?store=ada-fashion" className="mt-4 block rounded-md bg-slate-950 px-4 py-3 text-center text-sm font-black text-white hover:bg-emerald-700">Open cart</Link>
           </div>
         </div>
       </section>
@@ -153,7 +153,7 @@ export default function StorefrontPage() {
         <SectionTitle
           eyebrow="Shop"
           title="Latest products"
-          action={<Link href="/cart" className="rounded-md border border-slate-400 bg-slate-200 px-4 py-2 text-sm font-black text-slate-800 shadow-sm hover:bg-white">Cart · {cartCount}</Link>}
+          action={<Link href="/cart?store=ada-fashion" className="rounded-md border border-slate-400 bg-slate-200 px-4 py-2 text-sm font-black text-slate-800 shadow-sm hover:bg-white">Cart · {cartCount}</Link>}
         />
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
         {loading ? <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">Loading products...</p> : null}
@@ -204,7 +204,7 @@ export default function StorefrontPage() {
                 {cartNotice || `${cartCount} item${cartCount === 1 ? "" : "s"} in cart`}
               </p>
             </div>
-            <Link href="/cart" className="shrink-0 rounded-md bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700">
+            <Link href="/cart?store=ada-fashion" className="shrink-0 rounded-md bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700">
               View cart
             </Link>
           </div>
@@ -214,5 +214,6 @@ export default function StorefrontPage() {
     </main>
   );
 }
+
 
 

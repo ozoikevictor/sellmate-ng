@@ -45,7 +45,7 @@ export function writeCart(items: CartItem[]) {
 }
 
 export function addToCart(item: Omit<CartItem, "qty">) {
-  const current = readCart();
+  const current = readCart().filter((cartItem) => !item.store_slug || !cartItem.store_slug || cartItem.store_slug === item.store_slug);
   const existing = current.find((cartItem) => cartItem.id === item.id);
   const next = existing
     ? current.map((cartItem) => (cartItem.id === item.id ? { ...cartItem, qty: cartItem.qty + 1 } : cartItem))
@@ -69,3 +69,4 @@ export function clearCart() {
 export function cartTotal(items: CartItem[]) {
   return items.reduce((sum, item) => sum + item.price * item.qty, 0);
 }
+
