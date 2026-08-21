@@ -98,12 +98,13 @@ Create `.env.local` for local development. Do not commit this file.
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SITE_URL=https://sellmate-ng.vercel.app
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=
 PAYSTACK_SECRET_KEY=
 ```
 
-On deployment, add these same environment variables in the hosting dashboard.
+On deployment, add these same environment variables in the hosting dashboard. `NEXT_PUBLIC_SITE_URL` should be your live website URL so email confirmation and password reset links do not point to localhost.
 
 ## Supabase SQL Updates
 
@@ -167,5 +168,6 @@ Recommended deployment flow:
 4. Deploy.
 5. Test registration, login, product creation, storefront, cart, checkout, and Paystack test payment on phone.
 6. After testing, switch Paystack from test keys to live keys.
+
 
 

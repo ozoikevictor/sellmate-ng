@@ -60,6 +60,10 @@ function validatePassword(password: string) {
 }
 
 function getRedirectUrl(path: string) {
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (configuredSiteUrl) {
+    return `${configuredSiteUrl}${path}`;
+  }
   if (typeof window === "undefined") {
     return undefined;
   }
@@ -474,3 +478,4 @@ export function LogoutButton() {
     </button>
   );
 }
+
