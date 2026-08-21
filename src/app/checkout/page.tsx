@@ -180,7 +180,7 @@ export default function CheckoutPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href={cartHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Cart</Link>
+            <Link href={cartHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Edit cart</Link>
             <Link href={storeHref} className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Shop products</Link>
           </div>
         </nav>
@@ -450,6 +450,7 @@ function CheckoutField({ label, name, placeholder, type = "text" }: { label: str
     </label>
   );
 }
+
 
 
 
