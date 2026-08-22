@@ -68,6 +68,11 @@ a {
   animation: landing-fade-up 760ms ease both, landing-float 6s ease-in-out 900ms infinite;
 }
 
+.landing-pulse-dot {
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.42);
+  animation: landing-pulse-dot 1.8s ease-out infinite;
+}
+
 @keyframes landing-fade-up {
   from {
     opacity: 0;
@@ -91,9 +96,24 @@ a {
   }
 }
 
+@keyframes landing-pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.42);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .landing-fade-up,
-  .landing-float {
+  .landing-float,
+  .landing-pulse-dot {
     animation: none;
   }
 }

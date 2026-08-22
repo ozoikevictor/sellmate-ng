@@ -37,6 +37,7 @@ export default function LandingPage() {
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
   const [accountChecked, setAccountChecked] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     async function loadSellerSummary() {
@@ -87,6 +88,14 @@ export default function LandingPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveStep((step) => (step + 1) % 3);
+    }, 3200);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
   const demoStoreHref = "/store/ada-fashion";
   const storeHref = sellerSummary ? `/store/${sellerSummary.storeSlug}` : demoStoreHref;
   const isLoggedInSeller = Boolean(sellerSummary);
@@ -108,6 +117,33 @@ export default function LandingPage() {
       { label: "Payments", value: "Paystack", change: "Test mode", tone: "amber" },
     ];
   }, [cartCount, sellerSummary]);
+
+  const liveActivities = [
+    "New product added to public shop",
+    "Customer cart updated",
+    "Receipt ready for WhatsApp follow-up",
+  ];
+
+  const howItWorks = [
+    {
+      title: "Seller creates store",
+      text: "Register, add business details, logo, delivery fee, WhatsApp number, and product photos.",
+      badge: "Store setup",
+      stat: "10 min",
+    },
+    {
+      title: "Customer shops",
+      text: "Visitors search the store, compare products, add items to cart, and review their order.",
+      badge: "Public store",
+      stat: "Live cart",
+    },
+    {
+      title: "Payment and receipt",
+      text: "Checkout collects delivery details, Paystack handles payment, and WhatsApp gets the receipt.",
+      badge: "Checkout",
+      stat: "Paid order",
+    },
+  ];
 
   if (!accountChecked) {
     return (
@@ -146,6 +182,15 @@ export default function LandingPage() {
                 </>
               )}
             </div>
+            <div className="landing-fade-up landing-delay-3 mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
+              {liveActivities.map((activity, index) => (
+                <div key={activity} className={`rounded-xl border bg-white/80 p-3 shadow-sm transition duration-300 ${activeStep === index ? "border-emerald-300 ring-4 ring-emerald-100" : "border-slate-200"}`}>
+                  <span className={`mb-2 block h-2 w-2 rounded-full ${activeStep === index ? "landing-pulse-dot bg-emerald-500" : "bg-slate-300"}`} />
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">Live flow</p>
+                  <p className="mt-1 text-sm font-bold leading-5 text-slate-800">{activity}</p>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="landing-float rounded-lg border border-slate-700 bg-[#0b1728] p-3 shadow-2xl shadow-emerald-900/10">
             <div className="rounded-md bg-slate-100 p-4 shadow-inner">
@@ -156,6 +201,14 @@ export default function LandingPage() {
                 <p className="text-sm font-black text-emerald-800">Customer shopping flow</p>
                 <p className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Browse - Cart - Checkout</p>
                 <p className="mt-2 text-sm text-slate-600">Public visitors see products and their own cart only. Seller revenue stays inside the dashboard.</p>
+                <div className="mt-4 space-y-2">
+                  {["Store link opened", "Item added to cart", "Payment receipt sent"].map((item, index) => (
+                    <div key={item} className={`flex items-center justify-between rounded-md border bg-white/80 px-3 py-2 text-xs font-black text-slate-700 transition ${activeStep === index ? "border-emerald-300 shadow-sm" : "border-slate-200"}`}>
+                      <span>{item}</span>
+                      <span className={activeStep === index ? "text-emerald-700" : "text-slate-400"}>{activeStep === index ? "Active" : "Ready"}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -210,20 +263,29 @@ export default function LandingPage() {
           </>
         ) : (
           <>
-            <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">View demo store</Link>} />
+            <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50">View demo store</Link>} />
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="landing-fade-up rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
-                <h2 className="text-lg font-black text-slate-950">1. Seller creates store</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">The seller registers, adds business details, delivery fee, logo, products, prices, stock, and WhatsApp number.</p>
-              </div>
-              <div className="landing-fade-up landing-delay-1 rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
-                <h2 className="text-lg font-black text-slate-950">2. Customer shops</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">Customers open the seller store link, search products, add items to cart, and enter delivery details.</p>
-              </div>
-              <div className="landing-fade-up landing-delay-2 rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
-                <h2 className="text-lg font-black text-slate-950">3. Payment and receipt</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">Customers pay through Paystack, then send a neat receipt-style WhatsApp message to the seller.</p>
-              </div>
+              {howItWorks.map((step, index) => (
+                <button
+                  key={step.title}
+                  type="button"
+                  onClick={() => setActiveStep(index)}
+                  className={`landing-fade-up ${index === 1 ? "landing-delay-1" : index === 2 ? "landing-delay-2" : ""} group rounded-2xl border bg-white p-5 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${activeStep === index ? "border-emerald-300 ring-4 ring-emerald-100" : "border-slate-300"}`}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-950 text-lg font-black text-white shadow-lg shadow-slate-900/15 transition group-hover:bg-emerald-700">
+                      {index + 1}
+                    </div>
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">{step.badge}</span>
+                  </div>
+                  <h2 className="mt-5 text-xl font-black text-slate-950">{step.title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{step.text}</p>
+                  <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+                    <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Step {index + 1}</span>
+                    <span className="text-sm font-black text-slate-950">{step.stat}</span>
+                  </div>
+                </button>
+              ))}
             </div>
           </>
         )}
