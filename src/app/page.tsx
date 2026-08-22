@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { PlatformHeader, PublicFooter, SectionTitle, StatCard } from "@/components/ui";
+import { PlatformHeader, PublicFooter, SectionTitle, StatCard, VendoraqLogo } from "@/components/ui";
 import { readCart } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -113,7 +112,7 @@ export default function LandingPage() {
     return (
       <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
         <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
-          <Image src="/sellmate-logo.png" alt="SellMate logo" width={64} height={64} className="mx-auto h-16 w-16 rounded-md bg-white object-contain ring-1 ring-slate-300" />
+          <div className="flex justify-center"><VendoraqLogo /></div>
           <p className="mt-4 text-sm font-black text-slate-950">Opening your VENDORAQ page...</p>
         </div>
       </main>
@@ -231,5 +230,4 @@ export default function LandingPage() {
     </main>
   );
 }
-
 

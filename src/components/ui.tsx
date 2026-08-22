@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -44,6 +43,34 @@ export function StatCard({ label, value, change, tone }: { label: string; value:
   );
 }
 
+export function VendoraqLogo({ compact = false, tone = "dark" }: { compact?: boolean; tone?: "dark" | "light" }) {
+  const textColor = tone === "light" ? "text-white" : "text-[#0F172A]";
+  const mutedColor = tone === "light" ? "text-slate-300" : "text-slate-500";
+
+  return (
+    <span className="flex items-center gap-2.5" aria-label="VENDORAQ">
+      <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#0F172A] shadow-[0_10px_24px_rgba(22,163,74,0.24)] ring-1 ring-[#16A34A]/30 sm:h-12 sm:w-12">
+        <span className="absolute -left-2 top-4 h-1 w-5 rounded-full bg-[#16A34A]" />
+        <span className="absolute -left-3 top-6 h-1 w-7 rounded-full bg-[#16A34A]/70" />
+        <span className="absolute -left-1 top-8 h-1 w-4 rounded-full bg-[#16A34A]/50" />
+        <svg viewBox="0 0 48 48" className="h-8 w-8 text-white" aria-hidden="true">
+          <path d="M15 18h24l-3 13H18l-3-13Z" fill="currentColor" opacity="0.95" />
+          <path d="M18 18c0-6 4-10 10-10s10 4 10 10" fill="none" stroke="#16A34A" strokeWidth="4" strokeLinecap="round" />
+          <path d="M13 18h5l3 17h15" fill="none" stroke="#16A34A" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M24 16l7 8 9-14" fill="none" stroke="#22C55E" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="23" cy="39" r="3.2" fill="#16A34A" />
+          <circle cx="36" cy="39" r="3.2" fill="#16A34A" />
+        </svg>
+      </span>
+      <span className="leading-none">
+        <span className={`block font-black tracking-tight ${textColor} ${compact ? "text-xl" : "text-2xl sm:text-3xl"}`}>
+          VENDOR<span className="text-[#16A34A]">AQ</span>
+        </span>
+        {!compact ? <span className={`mt-1 hidden text-[10px] font-black uppercase tracking-[0.32em] sm:block ${mutedColor}`}>Sell. Connect. Grow.</span> : null}
+      </span>
+    </span>
+  );
+}
 function makeStoreSlug(businessName: string, userId: string) {
   const baseSlug = businessName
     .toLowerCase()
@@ -359,12 +386,8 @@ export function PlatformHeader({ cartCount, storeHref = "/store/ada-fashion", is
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
       <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:min-h-20 sm:px-5">
-        <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="VENDORAQ home">
-          <Image src="/sellmate-logo.png" alt="VENDORAQ logo" width={48} height={48} className="h-11 w-11 rounded-lg bg-white object-contain ring-1 ring-[#E5E7EB]" />
-          <div className="leading-tight">
-            <p className="text-sm font-black tracking-tight text-[#0F172A] sm:text-lg">VENDORAQ</p>
-            <p className="hidden text-[11px] font-bold uppercase tracking-[0.18em] text-[#16A34A] sm:block">Sell. Connect. Grow.</p>
-          </div>
+        <Link href="/" className="flex shrink-0 items-center" aria-label="VENDORAQ home">
+          <VendoraqLogo compact />
         </Link>
         <div className="hidden items-center gap-1 rounded-full bg-[#F3F4F6] p-1 lg:flex">
           {navLinks.map((link) => (
@@ -546,9 +569,9 @@ export function PublicFooter({
             {isSellerFooter ? (
               <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
             ) : (
-              <Image src="/sellmate-logo.png" alt="VENDORAQ logo" width={56} height={56} className="h-12 w-12 rounded-lg bg-white object-contain ring-1 ring-white/15" />
+              <VendoraqLogo tone="light" />
             )}
-            <span>{isSellerFooter ? footerName : "VENDORAQ"}</span>
+            {isSellerFooter ? <span>{footerName}</span> : null}
           </Link>
           <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-[#16A34A]">
             {isSellerFooter ? "Powered by VENDORAQ" : "Sell. Connect. Grow."}
