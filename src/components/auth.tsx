@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { VendoraqLogo } from "@/components/ui";
 
 type DemoUser = {
   id: string;
@@ -346,7 +347,7 @@ function PasswordField({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
+    <label className="grid gap-2 text-sm font-black text-[#0F172A]">
       {label}
       <span className="relative">
         <input
@@ -355,13 +356,13 @@ function PasswordField({
           required
           minLength={minLength}
           autoComplete={autoComplete}
-          className="w-full rounded-md border border-slate-300 px-3 py-3 pr-12 font-normal outline-none focus:border-emerald-600"
+          className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 pr-14 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10"
           placeholder={placeholder}
         />
         <button
           type="button"
           onClick={() => setShowPassword((visible) => !visible)}
-          className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+          className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-xl text-slate-500 transition hover:bg-white hover:text-[#0F172A]"
           aria-label={showPassword ? "Hide password" : "Show password"}
           title={showPassword ? "Hide password" : "Show password"}
         >
@@ -386,17 +387,13 @@ function PasswordField({
 
 function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="grid min-h-screen bg-slate-50 lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="hidden bg-[linear-gradient(135deg,#064e3b,#0f172a_52%,#be123c)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
-        <Link href="/" className="text-2xl font-black">VENDORAQ</Link>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-100">Seller access</p>
-          <h1 className="mt-4 max-w-xl text-5xl font-black leading-tight">Seller dashboard access for your WhatsApp store.</h1>
-          <p className="mt-5 max-w-lg text-lg leading-8 text-slate-100">Customers shop from the public store. Sellers log in here to manage products, orders, inventory, receipts, and customers.</p>
-        </div>
-        <p className="text-sm text-slate-200">Secure seller account access for VENDORAQ.</p>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#ecfdf5_0,#f8fafc_34%,#eef2f7_100%)] px-5 py-8">
+      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col items-center justify-center">
+        <Link href="/" className="mb-8 rounded-2xl bg-white/80 px-5 py-3 shadow-sm ring-1 ring-slate-200 backdrop-blur">
+          <VendoraqLogo />
+        </Link>
+        {children}
       </section>
-      <section className="flex items-center justify-center px-5 py-10">{children}</section>
     </main>
   );
 }
@@ -509,20 +506,23 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   return (
     <AuthShell>
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">VENDORAQ</Link>
-        <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{mode === "login" ? "Seller login" : "Create seller account"}</p>
-        <h2 className="mt-2 text-3xl font-black text-slate-950">
-          {mode === "login" ? (pendingEmail ? "Enter your email code" : "Login to your seller dashboard") : "Start your seller account"}
+      <form onSubmit={handleSubmit} className="w-full max-w-xl rounded-[1.35rem] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.10)] sm:p-10">
+        <div className="text-center">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#16A34A]">{mode === "login" ? "Seller login" : "Create seller account"}</p>
+          <h2 className="mt-4 text-4xl font-black leading-tight text-[#0F172A] sm:text-5xl">
+            {mode === "login" ? (pendingEmail ? "Enter your email code" : "Sign in") : "Start your seller account"}
         </h2>
-        {mode === "login" ? (
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            {pendingEmail ? `We sent a one-time login code to ${pendingEmail}. Enter it here to open your dashboard.` : "This login is for business owners. Customers can shop without logging in."}
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
+            {mode === "login"
+              ? pendingEmail
+                ? `We sent a one-time login code to ${pendingEmail}. Enter it here to open your dashboard.`
+                : "Sign in to your VENDORAQ seller dashboard."
+              : "Create your VENDORAQ seller account and start setting up your store."}
           </p>
-        ) : null}
-        <div className="mt-6 grid gap-4">
+        </div>
+        <div className="mt-8 grid gap-5">
           {mode === "login" && pendingEmail ? (
-            <label className="grid gap-2 text-sm font-bold text-slate-700">
+            <label className="grid gap-2 text-sm font-black text-[#0F172A]">
               Email login code
               <input
                 name="login_code"
@@ -532,7 +532,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 maxLength={8}
                 autoComplete="off"
                 required
-                className="rounded-md border border-slate-300 px-3 py-3 text-center text-2xl font-black tracking-[0.24em] outline-none focus:border-emerald-600"
+                className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 text-center text-2xl font-black tracking-[0.24em] text-[#0F172A] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:text-3xl"
                 placeholder="12345678"
                 onInput={(event) => {
                   event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "").slice(0, 8);
@@ -543,11 +543,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             <>
           {mode === "register" ? (
             <>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">Your name<input name="name" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="Ada Okafor" /></label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">Business name<input name="business" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="Victor Stores, Beauty Hub, Builders Mart" /></label>
+              <label className="grid gap-2 text-sm font-black text-[#0F172A]">Your name<input name="name" required className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder="Ada Okafor" /></label>
+              <label className="grid gap-2 text-sm font-black text-[#0F172A]">Business name<input name="business" required className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder="Victor Stores, Beauty Hub, Builders Mart" /></label>
             </>
           ) : null}
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Email<input name="email" type="email" required autoComplete="username" className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder={mode === "register" ? "seller@gmail.com" : "seller@example.com"} /></label>
+          <label className="grid gap-2 text-sm font-black text-[#0F172A]">Email<input name="email" type="email" required autoComplete="username" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder={mode === "register" ? "seller@gmail.com" : "seller@example.com"} /></label>
           <PasswordField
             name="password"
             label="Password"
@@ -559,7 +559,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           )}
         </div>
         {mode === "login" && !pendingEmail ? (
-          <button type="button" onClick={() => router.push("/forgot-password")} className="mt-3 text-sm font-bold text-emerald-700 hover:text-emerald-900">
+          <button type="button" onClick={() => router.push("/forgot-password")} className="mt-4 text-sm font-black text-[#16A34A] hover:text-[#15803D]">
             Forgot password?
           </button>
         ) : null}
@@ -598,12 +598,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             </button>
           </div>
         ) : null}
-        {error ? <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p> : null}
-        {notice ? <p className="mt-4 rounded-md bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{notice}</p> : null}
-        <button type="submit" disabled={loading} className="mt-6 w-full rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">
-          {loading ? "Please wait..." : mode === "login" ? (pendingEmail ? "Verify code and open dashboard" : "Continue securely") : "Create seller account"}
+        {error ? <p className="mt-5 rounded-2xl bg-rose-50 p-4 text-sm font-bold text-rose-700">{error}</p> : null}
+        {notice ? <p className="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-800">{notice}</p> : null}
+        <button type="submit" disabled={loading} className="mt-7 w-full rounded-2xl bg-[#16A34A] px-5 py-4 text-base font-black text-white shadow-[0_14px_30px_rgba(22,163,74,0.22)] transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none">
+          {loading ? "Please wait..." : mode === "login" ? (pendingEmail ? "Verify code and open dashboard" : "Sign in") : "Create seller account"}
         </button>
-        <div className="mt-5 text-center text-sm text-slate-600">
+        <div className="mt-6 text-center text-sm text-slate-600">
           <span>{mode === "login" ? "Need a seller account? " : "Already registered? "}</span>
           <button
             type="button"
