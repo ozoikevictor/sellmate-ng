@@ -172,15 +172,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
-          <div className="mt-4 shrink-0 rounded-2xl bg-[#0F172A] p-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.22)]">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Public store</p>
-            <p className="mt-2 text-sm font-semibold text-slate-300">Open your storefront to see what customers see.</p>
-            {storeReady ? (
-              <Link href={storeHref} className="mt-4 block rounded-xl bg-[#16A34A] px-4 py-3 text-center text-sm font-black text-white shadow-sm hover:bg-[#15803D]">View storefront</Link>
-            ) : (
-              <span className="mt-4 block rounded-xl bg-white/10 px-4 py-3 text-center text-sm font-black text-slate-300">Loading store...</span>
-            )}
-          </div>
         </div>
       </aside>
       <section className="lg:pl-72">
@@ -200,11 +191,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 Logged in
               </span>
               {storeReady ? (
-                <Link href={storeHref} className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm transition hover:border-[#16A34A] hover:text-[#16A34A] lg:hidden">
+                <Link href={storeHref} className="rounded-full bg-[#16A34A] px-4 py-2.5 text-xs font-black text-white shadow-[0_10px_24px_rgba(22,163,74,0.22)] transition hover:bg-[#15803D]">
                   View store
                 </Link>
               ) : (
-                <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-black text-slate-500 shadow-sm lg:hidden">
+                <span className="rounded-full border border-slate-200 bg-slate-100 px-4 py-2.5 text-xs font-black text-slate-500 shadow-sm">
                   Loading store...
                 </span>
               )}
