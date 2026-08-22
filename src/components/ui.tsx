@@ -735,45 +735,67 @@ function FooterInfoModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/70 px-4 py-8 backdrop-blur-sm">
-      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white text-[#0F172A] shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-[#F3F4F6] p-5 sm:p-6">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#16A34A]">{details.eyebrow}</p>
-            <h2 className="mt-2 text-2xl font-black text-[#0F172A] sm:text-3xl">{details.title}</h2>
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-[#0F172A]/80 px-4 py-6 backdrop-blur-md">
+      <div className="max-h-[92vh] w-full max-w-3xl overflow-hidden rounded-[1.35rem] border border-white/20 bg-white text-[#0F172A] shadow-[0_30px_90px_rgba(15,23,42,0.35)]">
+        <div className="relative overflow-hidden bg-[#0F172A] px-5 py-5 text-white sm:px-7">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_top_right,rgba(22,163,74,0.38),transparent_58%)]" />
+          <div className="relative flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-[#16A34A]/40 bg-[#16A34A]/15 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-200">
+                  {details.eyebrow}
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-black text-slate-200">
+                  VENDORAQ support
+                </span>
+              </div>
+              <h2 className="mt-4 text-2xl font-black leading-tight text-white sm:text-4xl">{details.title}</h2>
+              <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-300 sm:text-base">{details.body}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/10 text-lg font-black text-white shadow-sm transition hover:border-[#16A34A] hover:bg-[#16A34A]"
+              aria-label="Close popup"
+            >
+              X
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-lg font-black text-slate-700 shadow-sm transition hover:border-[#16A34A] hover:text-[#16A34A]"
-            aria-label="Close popup"
-          >
-            X
-          </button>
         </div>
-        <div className="p-5 sm:p-6">
-          <p className="text-sm font-semibold leading-7 text-slate-600 sm:text-base">{details.body}</p>
-          <div className="mt-5 grid gap-3">
+
+        <div className="max-h-[62vh] overflow-y-auto bg-gradient-to-br from-white via-white to-emerald-50/50 p-5 sm:p-7">
+          <div className="grid gap-3 sm:grid-cols-2">
             {details.points.map((point) => (
-              <div key={point} className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#16A34A]" />
+              <div key={point} className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#DCFCE7] text-sm font-black text-[#166534]">
+                  ✓
+                </span>
                 <p className="text-sm font-bold leading-6 text-slate-700">{point}</p>
               </div>
             ))}
           </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            {details.actionLabel && details.actionHref ? (
-              <Link href={details.actionHref} onClick={onClose} className="rounded-full bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">
-                {details.actionLabel}
-              </Link>
-            ) : null}
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:border-[#16A34A] hover:bg-emerald-50"
-            >
-              Close
-            </button>
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-[#F8FAFC] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">What happens next</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                Use the correct store, cart, checkout, or seller account path so customers and sellers stay in the right place.
+              </p>
+            </div>
+            <div className="mt-4 flex shrink-0 flex-wrap gap-3 sm:mt-0">
+              {details.actionLabel && details.actionHref ? (
+                <Link href={details.actionHref} onClick={onClose} className="rounded-full bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">
+                  {details.actionLabel}
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:border-[#16A34A] hover:bg-emerald-50"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>
