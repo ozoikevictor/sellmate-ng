@@ -137,7 +137,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       const sessionUser = data.session?.user ?? null;
       if (!isPasswordResetPage() && sessionUser?.id && !hasVerifiedLoginCode(String(sessionUser.id))) {
-        supabase.auth.signOut();
         setUser(null);
       } else {
         setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(sessionUser));
@@ -148,7 +147,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const sessionUser = session?.user ?? null;
       if (!isPasswordResetPage() && sessionUser?.id && !hasVerifiedLoginCode(String(sessionUser.id))) {
-        supabase.auth.signOut();
         setUser(null);
       } else {
         setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(sessionUser));
