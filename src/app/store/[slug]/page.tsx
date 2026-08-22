@@ -306,9 +306,7 @@ export default function DynamicStorefrontPage() {
                     {product.variant_options || `SKU: ${product.sku}`}
                   </p>
                   <p className="mt-2 text-xs font-black text-[#166534]">{rating.label}</p>
-                  <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">
-                    {formatNaira(product.price)} <span className="text-xs font-bold text-[#6B7280]">/ kg</span>
-                  </p>
+                  <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">{formatNaira(product.price)}</p>
                   <button onClick={() => handleAddToCart(product)} className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">
                     <IconGlyph name="cart" className="h-4 w-4" />
                     Add to Cart
