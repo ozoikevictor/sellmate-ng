@@ -27,6 +27,7 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const loginVerifiedKey = "vendoraq-login-code-verified-user";
+const pendingLoginEmailKey = "vendoraq-pending-login-email";
 
 function toDemoUser(sessionUser: { id?: string; email?: string; user_metadata?: Record<string, unknown> } | null): DemoUser | null {
   if (!sessionUser?.email) {
@@ -77,6 +78,25 @@ function clearLoginCodeVerified() {
   }
 }
 
+function savePendingLoginEmail(email: string) {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(pendingLoginEmailKey, email.trim().toLowerCase());
+  }
+}
+
+function getPendingLoginEmail() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return window.sessionStorage.getItem(pendingLoginEmailKey) ?? "";
+}
+
+function clearPendingLoginEmail() {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.removeItem(pendingLoginEmailKey);
+  }
+}
+
 function hasVerifiedLoginCode(userId: string) {
   if (typeof window === "undefined") {
     return false;
@@ -120,12 +140,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       return { ok: false, message: formatAuthError(error.message) };
     }
+    savePendingLoginEmail(normalizedEmail);
     await supabase.auth.signOut();
     setUser(null);
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: normalizedEmail,
       options: {
+        emailRedirectTo: getRedirectUrl(`/login?code_email=${encodeURIComponent(normalizedEmail)}`),
         shouldCreateUser: false,
       },
     });
@@ -148,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.user?.id) {
       markLoginCodeVerified(data.user.id);
     }
+    clearPendingLoginEmail();
     setUser(toDemoUser(data.user));
     return { ok: true };
   }, []);
@@ -200,6 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { ok: false, message: formatAuthError(error.message) };
     }
     clearLoginCodeVerified();
+    clearPendingLoginEmail();
     await supabase.auth.signOut();
     setUser(null);
     return { ok: true, message: "Password updated. You can now log in with your new password." };
@@ -207,6 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     clearLoginCodeVerified();
+    clearPendingLoginEmail();
     await supabase.auth.signOut();
     setUser(null);
   }, []);
@@ -337,7 +362,14 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   useEffect(() => {
     if (mode === "login") {
+      const savedPendingEmail = getPendingLoginEmail();
+      if (savedPendingEmail) {
+        setPendingEmail(savedPendingEmail);
+      }
       logout();
+      if (savedPendingEmail) {
+        savePendingLoginEmail(savedPendingEmail);
+      }
       if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
         if (params.get("confirmed") === "1") {
@@ -345,6 +377,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         }
         if (params.get("code_required") === "1") {
           setNotice("For security, enter your password and email code before opening the dashboard.");
+        }
+        const codeEmail = params.get("code_email");
+        if (codeEmail) {
+          const normalizedCodeEmail = codeEmail.trim().toLowerCase();
+          savePendingLoginEmail(normalizedCodeEmail);
+          setPendingEmail(normalizedCodeEmail);
+          setNotice(`Enter the login code sent to ${normalizedCodeEmail}.`);
         }
       }
     }
@@ -473,6 +512,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             type="button"
             onClick={() => {
               setPendingEmail("");
+              clearPendingLoginEmail();
               setError("");
               setNotice("");
             }}
