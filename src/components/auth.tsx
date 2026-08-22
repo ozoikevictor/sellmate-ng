@@ -136,12 +136,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const sessionUser = data.session?.user ?? null;
-      setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(sessionUser));
+      if (!isPasswordResetPage() && sessionUser?.id && !hasVerifiedLoginCode(String(sessionUser.id))) {
+        supabase.auth.signOut();
+        setUser(null);
+      } else {
+        setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(sessionUser));
+      }
       setReady(true);
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(session?.user ?? null));
+      const sessionUser = session?.user ?? null;
+      if (!isPasswordResetPage() && sessionUser?.id && !hasVerifiedLoginCode(String(sessionUser.id))) {
+        supabase.auth.signOut();
+        setUser(null);
+      } else {
+        setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(sessionUser));
+      }
       setReady(true);
     });
 

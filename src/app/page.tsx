@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PlatformHeader, PublicFooter, SectionTitle, StatCard, VendoraqLogo } from "@/components/ui";
+import { useAuth } from "@/components/auth";
 import { readCart } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -33,6 +34,7 @@ function makeStoreSlug(businessName: string, userId: string) {
 }
 
 export default function LandingPage() {
+  const { ready, user } = useAuth();
   const [cartCount, setCartCount] = useState(0);
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
   const [accountChecked, setAccountChecked] = useState(false);
@@ -41,10 +43,10 @@ export default function LandingPage() {
 
   useEffect(() => {
     async function loadSellerSummary() {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData.session?.user.id;
-
-      if (!userId) {
+      if (!ready) {
+        return;
+      }
+      if (!user?.id) {
         setSellerSummary(null);
         setAccountChecked(true);
         return;
@@ -53,19 +55,19 @@ export default function LandingPage() {
       const { data: profileData } = await supabase
         .from("seller_profiles")
         .select("business_name,store_slug")
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       const { data: productData } = await supabase
         .from("products")
         .select("id,name,category,price,stock,status,image_url")
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .eq("status", "Live")
         .order("created_at", { ascending: false });
 
       setSellerSummary({
         businessName: profileData?.business_name || "Your store",
-        storeSlug: profileData?.store_slug || makeStoreSlug(profileData?.business_name || "Your store", userId),
+        storeSlug: profileData?.store_slug || makeStoreSlug(profileData?.business_name || "Your store", user.id),
         productCount: productData?.length ?? 0,
         lowStockCount: productData?.filter((product) => Number(product.stock) <= 3).length ?? 0,
         products: (productData ?? []).slice(0, 3),
@@ -77,6 +79,7 @@ export default function LandingPage() {
       setCartCount(readCart().reduce((sum, item) => sum + item.qty, 0));
     }
 
+    setAccountChecked(false);
     loadSellerSummary();
     syncCartCount();
     window.addEventListener("sellmate-cart-updated", syncCartCount);
@@ -86,7 +89,7 @@ export default function LandingPage() {
       window.removeEventListener("sellmate-cart-updated", syncCartCount);
       window.removeEventListener("storage", syncCartCount);
     };
-  }, []);
+  }, [ready, user]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
