@@ -54,6 +54,7 @@ export default function DynamicStorefrontPage() {
   const [message, setMessage] = useState("");
   const [cartNotice, setCartNotice] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
     async function loadStore() {
@@ -122,9 +123,22 @@ export default function DynamicStorefrontPage() {
   const logoUrl = profile?.logo_url || "";
   const city = profile?.city || "Nigeria";
   const categories = Array.from(new Set(products.map((product) => product.category).filter(Boolean))).slice(0, 8);
-  const featuredProduct = products[0];
+  const heroProducts = products.length > 0 ? products.slice(0, 6) : [];
+  const featuredProduct = heroProducts[heroIndex % Math.max(heroProducts.length, 1)];
   const lowStockCount = products.filter((product) => product.stock <= 5).length;
   const storeCartHref = `/cart?store=${encodeURIComponent(slug)}`;
+
+  useEffect(() => {
+    if (products.length <= 1) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setHeroIndex((current) => (current + 1) % Math.min(products.length, 6));
+    }, 5500);
+
+    return () => window.clearInterval(timer);
+  }, [products.length]);
 
   const filteredProducts = products.filter((product) => {
     const query = searchTerm.trim().toLowerCase();
@@ -200,15 +214,38 @@ export default function DynamicStorefrontPage() {
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-100 sm:text-lg">
                   Search products, compare stock, add to cart, pay securely, then send your receipt to the seller on WhatsApp.
                 </p>
+                {featuredProduct ? (
+                  <div className="mt-4 flex w-fit flex-wrap items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-black ring-1 ring-white/20">
+                    <span className="text-orange-200">Now showing</span>
+                    <span className="max-w-[220px] truncate text-white">{featuredProduct.name}</span>
+                    <span className="text-emerald-200">{formatNaira(featuredProduct.price)}</span>
+                  </div>
+                ) : null}
                 <div className="mt-5 flex flex-wrap gap-3">
                   <a href="#products" className="rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-orange-600">Shop now</a>
                   <Link href={storeCartHref} className="rounded-md bg-white px-5 py-3 text-sm font-black text-slate-950 shadow-sm hover:bg-slate-100">View cart</Link>
                 </div>
               </div>
               <div className="rounded-lg bg-white/10 p-3 ring-1 ring-white/20">
-                <div className="aspect-square rounded-md bg-white/10 bg-cover bg-center" style={featuredProduct?.image_url ? { backgroundImage: `url(${featuredProduct.image_url})` } : undefined} />
-                <p className="mt-3 truncate text-sm font-black">{featuredProduct?.name || "Fresh products"}</p>
-                <p className="text-xs font-semibold text-emerald-100">{featuredProduct ? formatNaira(featuredProduct.price) : "Ready for customers"}</p>
+                <div className="relative overflow-hidden rounded-md">
+                  <div className="aspect-square rounded-md bg-white/10 bg-cover bg-center transition-all duration-700" style={featuredProduct?.image_url ? { backgroundImage: `url(${featuredProduct.image_url})` } : undefined} />
+                  <div className="absolute inset-x-3 bottom-3 rounded-md bg-slate-950/75 p-3 text-white backdrop-blur">
+                    <p className="truncate text-sm font-black">{featuredProduct?.name || "Fresh products"}</p>
+                    <p className="text-xs font-semibold text-emerald-100">{featuredProduct ? formatNaira(featuredProduct.price) : "Ready for customers"}</p>
+                  </div>
+                </div>
+                {heroProducts.length > 1 ? (
+                  <div className="mt-3 flex justify-center gap-2">
+                    {heroProducts.map((product, index) => (
+                      <button
+                        key={product.id}
+                        onClick={() => setHeroIndex(index)}
+                        className={`h-2 rounded-full transition-all ${index === heroIndex % heroProducts.length ? "w-7 bg-orange-400" : "w-2 bg-white/40 hover:bg-white/70"}`}
+                        aria-label={`Show ${product.name}`}
+                      />
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -305,6 +342,8 @@ export default function DynamicStorefrontPage() {
     </main>
   );
 }
+
+
 
 
 
