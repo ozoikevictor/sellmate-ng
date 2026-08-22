@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CartIconLink, HeaderIconButton, IconGlyph, PublicFooter, SectionTitle, SellerLogo } from "@/components/ui";
+import { CartIconLink, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 
@@ -96,30 +96,16 @@ export default function StorefrontPage() {
 
   return (
     <main className="min-h-screen sellmate-page-bg sm:pt-20">
-      <header className="relative z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur sm:fixed sm:inset-x-0 sm:top-0">
-        <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-20 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-3 sm:px-5 sm:py-3">
-          <Link href="/" className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-slate-950">
-            <SellerLogo name={brandName} logoUrl={logoUrl} size="sm" />
-            <span className="truncate capitalize">{brandName}</span>
-          </Link>
-          <div className="order-3 sm:order-none">
-            <label className="relative block">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
-              <input
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search products"
-                className="h-10 w-full rounded-md border border-slate-300 bg-slate-100 pl-9 pr-4 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:bg-white sm:h-11"
-              />
-            </label>
-          </div>
-          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-            <HeaderIconButton href="#products" icon="heart" label="View saved products" />
-            <CartIconLink href="/cart?store=ada-fashion" count={cartCount} />
-            <HeaderIconButton href="/login" icon="user" label="Seller login" />
-          </div>
-        </nav>
-      </header>
+      <StoreHeader
+        sellerName={brandName}
+        sellerLogoUrl={logoUrl}
+        storeHref="/store/ada-fashion"
+        cartHref="/cart?store=ada-fashion"
+        cartCount={cartCount}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        whatsappPhone={profile.whatsapp_phone}
+      />
       <section className="border-b border-slate-300 sellmate-hero-bg">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1fr_0.72fr] lg:items-center">
           <div>
@@ -212,6 +198,8 @@ export default function StorefrontPage() {
     </main>
   );
 }
+
+
 
 
 

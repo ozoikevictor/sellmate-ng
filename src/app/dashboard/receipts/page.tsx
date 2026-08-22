@@ -100,7 +100,7 @@ function ReceiptPreview({ order }: { order: ReceiptOrder }) {
         </div>
         <div className="text-left sm:text-right">
           <p className="font-black text-slate-950">Ada Fashion</p>
-          <p className="text-sm text-slate-500">SellMate NG receipt</p>
+          <p className="text-sm text-slate-500">VENDORAQ receipt</p>
         </div>
       </div>
       <div className="grid gap-5 py-5 md:grid-cols-2">
@@ -146,3 +146,4 @@ function ReceiptPreview({ order }: { order: ReceiptOrder }) {
     </section>
   );
 }
+

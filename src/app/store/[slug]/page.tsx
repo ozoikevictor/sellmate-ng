@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CartIconLink, HeaderIconButton, IconGlyph, PublicFooter, SectionTitle, SellerLogo } from "@/components/ui";
+import { CartIconLink, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -162,36 +162,16 @@ export default function DynamicStorefrontPage() {
 
   return (
     <main className="min-h-screen bg-[#f2f6fb] sm:pt-[116px]">
-      <header className="relative z-50 border-b border-slate-200 bg-white shadow-sm sm:fixed sm:inset-x-0 sm:top-0">
-        <div className="hidden border-b border-slate-100 bg-slate-950 text-white sm:block">
-          <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-5 text-xs font-bold">
-            <span>Secure shopping powered by SellMate NG</span>
-            <span>{profile?.whatsapp_phone ? `WhatsApp order support: ${profile.whatsapp_phone}` : "Fast checkout · Paystack payment · Seller delivery"}</span>
-          </div>
-        </div>
-        <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-[76px] sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3">
-          <Link href="/" className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-slate-950 sm:gap-3 sm:text-lg">
-            <SellerLogo name={brandName} logoUrl={logoUrl} size="sm" />
-            <span className="truncate capitalize">{brandName}</span>
-          </Link>
-          <div className="order-3 sm:order-none">
-            <label className="relative block">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
-              <input
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search products"
-                className="h-10 w-full rounded-md border border-slate-300 bg-slate-100 pl-9 pr-4 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:bg-white sm:h-11"
-              />
-            </label>
-          </div>
-          <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-            <HeaderIconButton href="#products" icon="heart" label="View saved products" />
-            <CartIconLink href={storeCartHref} count={cartCount} />
-            <HeaderIconButton href="/login" icon="user" label="Seller login" />
-          </div>
-        </nav>
-      </header>
+      <StoreHeader
+        sellerName={brandName}
+        sellerLogoUrl={logoUrl}
+        storeHref={`/store/${slug}`}
+        cartHref={storeCartHref}
+        cartCount={cartCount}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        whatsappPhone={profile?.whatsapp_phone}
+      />
       <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#fff7ed_0%,#eff6ff_48%,#dcfce7_100%)]">
         <div className="mx-auto grid max-w-7xl gap-5 px-5 py-6 lg:grid-cols-[220px_1fr_320px] lg:py-8">
           <aside className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:block">
@@ -340,6 +320,8 @@ export default function DynamicStorefrontPage() {
     </main>
   );
 }
+
+
 
 
 

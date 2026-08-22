@@ -244,13 +244,13 @@ function AuthShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="grid min-h-screen bg-slate-50 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="hidden bg-[linear-gradient(135deg,#064e3b,#0f172a_52%,#be123c)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
-        <Link href="/" className="text-2xl font-black">SellMate NG</Link>
+        <Link href="/" className="text-2xl font-black">VENDORAQ</Link>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-100">Seller access</p>
           <h1 className="mt-4 max-w-xl text-5xl font-black leading-tight">Seller dashboard access for your WhatsApp store.</h1>
           <p className="mt-5 max-w-lg text-lg leading-8 text-slate-100">Customers shop from the public store. Sellers log in here to manage products, orders, inventory, receipts, and customers.</p>
         </div>
-        <p className="text-sm text-slate-200">Secure seller account access for SellMate NG.</p>
+        <p className="text-sm text-slate-200">Secure seller account access for VENDORAQ.</p>
       </section>
       <section className="flex items-center justify-center px-5 py-10">{children}</section>
     </main>
@@ -322,7 +322,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   return (
     <AuthShell>
       <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">SellMate NG</Link>
+        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">VENDORAQ</Link>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{mode === "login" ? "Seller login" : "Create seller account"}</p>
         <h2 className="mt-2 text-3xl font-black text-slate-950">{mode === "login" ? "Login to your seller dashboard" : "Start your seller account"}</h2>
         {mode === "login" ? (
@@ -396,7 +396,7 @@ export function ForgotPasswordForm() {
   return (
     <AuthShell>
       <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">SellMate NG</Link>
+        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">VENDORAQ</Link>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Account recovery</p>
         <h2 className="mt-2 text-3xl font-black text-slate-950">Reset your password</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">Enter your seller email. We will send a secure reset link if the account exists.</p>
@@ -443,7 +443,7 @@ export function ResetPasswordForm() {
   return (
     <AuthShell>
       <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">SellMate NG</Link>
+        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">VENDORAQ</Link>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">New password</p>
         <h2 className="mt-2 text-3xl font-black text-slate-950">Create a new password</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">Use a strong password with uppercase, lowercase, and a number.</p>
@@ -478,4 +478,5 @@ export function LogoutButton() {
     </button>
   );
 }
+
 

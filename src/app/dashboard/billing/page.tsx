@@ -258,7 +258,7 @@ export default function BillingPage() {
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="rounded-lg bg-slate-50 p-4">
             <p className="font-black text-slate-950">Seller subscription</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">The seller pays SellMate NG monthly to use the dashboard, storefront, orders, inventory, and analytics.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">The seller pays VENDORAQ monthly to use the dashboard, storefront, orders, inventory, and analytics.</p>
           </div>
           <div className="rounded-lg bg-slate-50 p-4">
             <p className="font-black text-slate-950">Customer checkout</p>
@@ -269,3 +269,4 @@ export default function BillingPage() {
     </>
   );
 }
+

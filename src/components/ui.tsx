@@ -335,7 +335,7 @@ export function CartIconLink({ href, count, label = "View shopping cart" }: { hr
   );
 }
 
-export function HeaderIconButton({ href, icon, label }: { href: string; icon: "search" | "heart" | "user" | "home"; label: string }) {
+export function HeaderIconButton({ href, icon, label }: { href: string; icon: "search" | "heart" | "user" | "home" | "menu"; label: string }) {
   return (
     <Link
       href={href}
@@ -347,6 +347,142 @@ export function HeaderIconButton({ href, icon, label }: { href: string; icon: "s
     </Link>
   );
 }
+export function PlatformHeader({ cartCount, storeHref = "/store/ada-fashion", isLoggedInSeller = false }: { cartCount: number; storeHref?: string; isLoggedInSeller?: boolean }) {
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: storeHref, label: "Explore" },
+    { href: "#how-it-works", label: "How It Works" },
+    { href: "/register", label: "For Sellers" },
+    { href: "#help", label: "Help" },
+  ];
+
+  return (
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+      <nav className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:min-h-20 sm:px-5">
+        <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="VENDORAQ home">
+          <Image src="/sellmate-logo.png" alt="VENDORAQ logo" width={48} height={48} className="h-11 w-11 rounded-lg bg-white object-contain ring-1 ring-slate-200" />
+          <div className="hidden leading-tight sm:block">
+            <p className="text-lg font-black tracking-tight text-slate-950">VENDORAQ</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">Sell. Connect. Grow.</p>
+          </div>
+        </Link>
+        <div className="hidden items-center gap-1 rounded-full bg-slate-100 p-1 lg:flex">
+          {navLinks.map((link) => (
+            <Link key={link.href + link.label} href={link.href} className="rounded-full px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white hover:text-slate-950 hover:shadow-sm">
+              {link.label}
+            </Link>
+          ))}
+        </div>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <CartIconLink href="/cart" count={cartCount} />
+          {isLoggedInSeller ? (
+            <Link href={storeHref} className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:text-sm">My store</Link>
+          ) : (
+            <>
+              <Link href="/login" className="hidden rounded-full px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-100 sm:inline-flex">Login</Link>
+              <Link href="/register" className="rounded-full bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:text-sm">Start Selling</Link>
+            </>
+          )}
+        </div>
+      </nav>
+    </header>
+  );
+}
+
+export function StoreHeader({
+  sellerName,
+  sellerLogoUrl,
+  storeHref,
+  cartHref,
+  cartCount,
+  searchTerm,
+  onSearchChange,
+  whatsappPhone,
+}: {
+  sellerName: string;
+  sellerLogoUrl?: string | null;
+  storeHref: string;
+  cartHref: string;
+  cartCount: number;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  whatsappPhone?: string | null;
+}) {
+  return (
+    <header className="relative z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur sm:fixed sm:inset-x-0 sm:top-0">
+      <div className="hidden border-b border-slate-100 bg-slate-950 text-white sm:block">
+        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-5 text-xs font-bold">
+          <span>Secure shopping powered by VENDORAQ</span>
+          <span>{whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Search products, add to cart, checkout securely"}</span>
+        </div>
+      </div>
+      <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-[76px] sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3">
+        <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-slate-950 sm:gap-3 sm:text-lg">
+          <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
+          <span className="truncate capitalize">{sellerName}</span>
+        </Link>
+        <div className="order-3 sm:order-none">
+          <label className="relative block">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
+            <input
+              value={searchTerm}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Search products"
+              className="h-10 w-full rounded-full border border-slate-300 bg-slate-100 pl-9 pr-4 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:bg-white sm:h-11"
+            />
+          </label>
+        </div>
+        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
+          <HeaderIconButton href={storeHref} icon="home" label="Store home" />
+          <HeaderIconButton href="#products" icon="menu" label="Categories" />
+          <HeaderIconButton href="#products" icon="heart" label="Wishlist" />
+          <CartIconLink href={cartHref} count={cartCount} />
+          <HeaderIconButton href="/login" icon="user" label="Seller account" />
+        </div>
+      </nav>
+    </header>
+  );
+}
+
+export function CheckoutHeader({
+  sellerName,
+  sellerLogoUrl,
+  storeHref,
+  cartHref,
+  cartCount,
+  mode,
+}: {
+  sellerName: string;
+  sellerLogoUrl?: string | null;
+  storeHref: string;
+  cartHref?: string;
+  cartCount?: number;
+  mode: "cart" | "checkout";
+}) {
+  const isCheckout = mode === "checkout";
+
+  return (
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+      <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+        <Link href={storeHref} className="flex min-w-0 items-center gap-3">
+          <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} />
+          <div className="min-w-0">
+            <p className="truncate text-base font-black capitalize leading-tight text-slate-950 sm:text-2xl">{sellerName}</p>
+            <p className="hidden items-center gap-1 text-xs font-semibold text-slate-500 sm:flex">
+              <IconGlyph name="lock" className="h-3.5 w-3.5" />
+              {isCheckout ? "Secure checkout" : "Secure shopping cart"}
+            </p>
+          </div>
+        </Link>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          {isCheckout && cartHref ? <CartIconLink href={cartHref} count={cartCount ?? 0} label="Edit cart" /> : null}
+          <Link href={storeHref} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-emerald-700 sm:text-sm">Shop products</Link>
+        </div>
+      </nav>
+    </header>
+  );
+}
+
 export function PublicFooter({
   sellerName,
   sellerLogoUrl,
@@ -363,43 +499,62 @@ export function PublicFooter({
   const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   return (
-    <footer className="border-t border-slate-300 bg-[#dfe8f2]">
-      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
+    <footer id="help" className="border-t border-slate-200 bg-slate-100">
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr]">
         <div className="max-w-xl">
-          <Link href="/" className="flex w-fit items-center gap-3 text-xl font-black text-slate-950">
+          <Link href={isSellerFooter ? storeHref : "/"} className="flex w-fit items-center gap-3 text-xl font-black text-slate-950">
             {isSellerFooter ? (
               <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
             ) : (
-              <Image src="/sellmate-logo.png" alt="VENDORAQ logo" width={52} height={52} className="h-12 w-12 rounded-md bg-white object-contain ring-1 ring-slate-300" />
+              <Image src="/sellmate-logo.png" alt="VENDORAQ logo" width={52} height={52} className="h-12 w-12 rounded-lg bg-white object-contain ring-1 ring-slate-300" />
             )}
             <span>{footerName}</span>
           </Link>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
+          <p className="mt-2 text-sm font-black uppercase tracking-[0.16em] text-emerald-700">
+            {isSellerFooter ? "Powered by VENDORAQ" : "Sell. Connect. Grow."}
+          </p>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
             {isSellerFooter
-              ? "Secure product browsing, cart checkout, payment, and WhatsApp order follow-up powered by VENDORAQ."
-              : "VENDORAQ helps businesses create online stores, sell products, manage orders, and grow from one clean dashboard."}
+              ? "Browse products, review cart, checkout securely, and follow up with the seller after payment."
+              : "VENDORAQ helps Nigerian businesses create online stores, manage orders, accept payments, and grow from one clean dashboard."}
           </p>
         </div>
         <div>
           <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Customers</h2>
           <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
-            <Link href={storeHref} className="hover:text-slate-950">Shop products</Link>
-            <Link href={cartHref} className="hover:text-slate-950">View cart</Link>
-            <Link href={checkoutHref} className="hover:text-slate-950">Checkout</Link>
+            <Link href={storeHref} className="hover:text-emerald-700">Shop products</Link>
+            <Link href={cartHref} className="hover:text-emerald-700">View cart</Link>
+            <Link href={checkoutHref} className="hover:text-emerald-700">Checkout</Link>
           </nav>
         </div>
         <div>
-          <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Sellers</h2>
+          <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">{isSellerFooter ? "Support" : "Company"}</h2>
           <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
-            <Link href="/login" className="hover:text-slate-950">Seller login</Link>
-            <Link href="/register" className="hover:text-slate-950">Start selling</Link>
+            <Link href={isSellerFooter ? storeHref : "#how-it-works"} className="hover:text-emerald-700">About</Link>
+            <Link href="#help" className="hover:text-emerald-700">Help</Link>
+            <Link href="/login" className="hover:text-emerald-700">Contact</Link>
           </nav>
         </div>
+        <div>
+          <h2 className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Legal</h2>
+          <nav className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
+            <Link href="/login" className="hover:text-emerald-700">Privacy</Link>
+            <Link href="/login" className="hover:text-emerald-700">Terms</Link>
+            {!isSellerFooter ? <Link href="/register" className="hover:text-emerald-700">Start selling</Link> : null}
+          </nav>
+          {!isSellerFooter ? (
+            <div className="mt-5 flex gap-2">
+              {['f', 'x', 'in'].map((item) => (
+                <span key={item} className="grid h-9 w-9 place-items-center rounded-full bg-white text-xs font-black text-slate-700 ring-1 ring-slate-300">{item}</span>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
-      <div className="border-t border-slate-300">
+      <div className="border-t border-slate-200">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-4 text-xs font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>Copyright 2026 VENDORAQ.</p>
-          <p>Built for Nigerian sellers.</p>
+          <p>© 2026 {isSellerFooter ? footerName : "VENDORAQ"}.</p>
+          <p>{isSellerFooter ? "Powered by VENDORAQ" : "Built for Nigerian sellers."}</p>
         </div>
       </div>
     </footer>
@@ -441,6 +596,8 @@ export function ProductCard({ product }: { product: { name: string; price: numbe
     </div>
   );
 }
+
+
 
 
 

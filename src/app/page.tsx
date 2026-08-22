@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { CartIconLink, PublicFooter, SectionTitle, StatCard } from "@/components/ui";
+import { PlatformHeader, PublicFooter, SectionTitle, StatCard } from "@/components/ui";
 import { readCart } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -114,7 +114,7 @@ export default function LandingPage() {
       <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
         <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
           <Image src="/sellmate-logo.png" alt="SellMate logo" width={64} height={64} className="mx-auto h-16 w-16 rounded-md bg-white object-contain ring-1 ring-slate-300" />
-          <p className="mt-4 text-sm font-black text-slate-950">Opening your SellMate page...</p>
+          <p className="mt-4 text-sm font-black text-slate-950">Opening your VENDORAQ page...</p>
         </div>
       </main>
     );
@@ -122,28 +122,7 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen sellmate-page-bg pt-28 sm:pt-20">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-md backdrop-blur">
-        <nav className="mx-auto flex min-h-16 max-w-7xl flex-col gap-2 px-4 py-2 sm:min-h-20 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-0">
-          <Link href={storeHref} className="flex w-fit items-center gap-3 rounded-md px-1 py-1" aria-label="Open SellMate store">
-            <Image src="/sellmate-logo.png" alt="SellMate logo" width={48} height={48} className="h-10 w-10 rounded-md bg-white object-contain ring-1 ring-slate-300 sm:h-12 sm:w-12" />
-            {isLoggedInSeller ? <span className="hidden text-sm font-black capitalize text-slate-950 sm:block">{sellerSummary?.businessName}</span> : null}
-          </Link>
-          <div className="flex w-full items-center gap-2 overflow-x-auto pb-0.5 sm:w-auto sm:gap-4 sm:overflow-visible sm:pb-0">
-            {isLoggedInSeller ? (
-              <Link href={storeHref} className="shrink-0 rounded-md bg-emerald-700 px-3 py-2 text-xs font-black text-white shadow-md ring-1 ring-emerald-600 transition hover:-translate-y-0.5 hover:bg-emerald-800 sm:px-5 sm:py-2.5 sm:text-sm">My store</Link>
-            ) : (
-              <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
-            )}
-            <CartIconLink href="/cart" count={cartCount} />
-            {isLoggedInSeller ? null : (
-              <>
-                <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
-                <Link href="/register" className="shrink-0 rounded-md bg-slate-950 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Start selling</Link>
-              </>
-            )}
-          </div>
-        </nav>
-      </header>
+      <PlatformHeader cartCount={cartCount} storeHref={storeHref} isLoggedInSeller={isLoggedInSeller} />
       <section className="border-b border-slate-300 sellmate-hero-bg">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[1fr_0.92fr] lg:items-center">
           <div>
@@ -154,7 +133,7 @@ export default function LandingPage() {
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
               {isLoggedInSeller
                 ? "You are logged in. Open your store to see your public products, pictures, available stock, cart, and checkout flow."
-                : "SellMate NG helps sellers create a public shop, add products, collect customer orders, receive Paystack payments, and manage everything from a private dashboard."}
+                : "VENDORAQ helps sellers create a public shop, add products, collect customer orders, receive Paystack payments, and manage everything from a private dashboard."}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               {isLoggedInSeller ? (
@@ -181,7 +160,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-      <section className="mx-auto max-w-7xl px-5 py-14">
+      <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-14">
         {isLoggedInSeller ? (
           <>
             <SectionTitle
@@ -252,4 +231,5 @@ export default function LandingPage() {
     </main>
   );
 }
+
 

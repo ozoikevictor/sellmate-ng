@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PublicFooter, SellerLogo } from "@/components/ui";
+import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -40,6 +40,7 @@ export default function CheckoutPage() {
   const [storeHref, setStoreHref] = useState("/");
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
+  const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
 
@@ -170,21 +171,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-[#f2f6fb] pt-[72px]">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-        <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link href={storeHref} className="flex min-w-0 items-center gap-3">
-            <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} />
-            <div className="min-w-0">
-              <p className="truncate text-base font-black capitalize leading-tight text-slate-950 sm:text-2xl">{sellerName}</p>
-              <p className="hidden text-xs font-semibold text-slate-500 sm:block">Secure Paystack checkout</p>
-            </div>
-          </Link>
-          <div className="flex shrink-0 items-center gap-2">
-            <Link href={cartHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:border-orange-300 hover:bg-orange-50 sm:px-4 sm:text-sm">Edit cart</Link>
-            <Link href={storeHref} className="rounded-md bg-orange-500 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-orange-600 sm:px-5 sm:text-sm">Shop</Link>
-          </div>
-        </nav>
-      </header>
+      <CheckoutHeader sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} cartHref={cartHref} cartCount={itemCount} mode="checkout" />
 
       <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#f8fafc_0%,#e7f8ef_55%,#fff4df_100%)]">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_420px] lg:items-center">
@@ -491,3 +478,5 @@ function CheckoutField({ label, name, placeholder, type = "text", wide = false }
     </label>
   );
 }
+
+
