@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.trim().toLowerCase(),
       token: code.trim(),
-      type: "email",
+      type: "magiclink",
     });
     if (error) {
       return { ok: false, message: formatAuthError(error.message) };
