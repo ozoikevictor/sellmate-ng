@@ -135,8 +135,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <main className="min-h-screen bg-[#F6F8FB]">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-slate-200/80 bg-white p-5 shadow-[18px_0_60px_rgba(15,23,42,0.06)] lg:block">
-        <div className="flex h-full flex-col">
+      <aside className="fixed inset-y-0 left-0 hidden w-72 overflow-hidden border-r border-slate-200/80 bg-white p-5 shadow-[18px_0_60px_rgba(15,23,42,0.06)] lg:block">
+        <div className="flex h-full min-h-0 flex-col">
           <Link href="/dashboard" className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
             <VendoraqLogo compact />
           </Link>
@@ -153,26 +153,26 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <span className="text-[#16A34A]">Live</span>
             </div>
           </div>
-        <nav className="mt-6 grid gap-1.5">
-          {links.map((link) => {
-            const active = link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href);
-            return (
-            <Link
-              key={link.key}
-              href={link.href}
-              className={`flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-black transition ${
-                active ? "bg-[#0F172A] text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]" : "text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0F172A]"
-              }`}
-            >
-              <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "bg-white/10 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
-                <MenuIcon name={link.icon} />
-              </span>
-              <span>{link.label}</span>
-            </Link>
-            );
-          })}
-        </nav>
-          <div className="mt-auto rounded-2xl bg-[#0F172A] p-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.22)]">
+          <nav className="mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
+            {links.map((link) => {
+              const active = link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.key}
+                  href={link.href}
+                  className={`flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-black transition ${
+                    active ? "bg-[#0F172A] text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]" : "text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0F172A]"
+                  }`}
+                >
+                  <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "bg-white/10 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
+                    <MenuIcon name={link.icon} />
+                  </span>
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="mt-4 shrink-0 rounded-2xl bg-[#0F172A] p-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.22)]">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Public store</p>
             <p className="mt-2 text-sm font-semibold text-slate-300">Open your storefront to see what customers see.</p>
             {storeReady ? (
