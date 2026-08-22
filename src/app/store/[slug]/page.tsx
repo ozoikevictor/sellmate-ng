@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CartIconLink, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
+import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -55,6 +55,7 @@ export default function DynamicStorefrontPage() {
   const [cartNotice, setCartNotice] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [heroIndex, setHeroIndex] = useState(0);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   useEffect(() => {
     async function loadStore() {
@@ -116,6 +117,12 @@ export default function DynamicStorefrontPage() {
     setCartCount(nextCart.filter((item) => item.store_slug === (profile?.store_slug || slug)).reduce((sum, item) => sum + item.qty, 0));
     setCartNotice(`${product.name} added to cart`);
     window.setTimeout(() => setCartNotice(""), 2600);
+  }
+
+  function toggleFavorite(productId: string) {
+    setFavoriteIds((current) =>
+      current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId],
+    );
   }
 
   const businessName = profile?.business_name || "Store";
@@ -265,35 +272,46 @@ export default function DynamicStorefrontPage() {
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {filteredProducts.map((product) => {
             const rating = getProductRating(product);
+            const isFavorite = favoriteIds.includes(product.id);
             return (
-              <article key={product.id} className="group overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-orange-300 hover:shadow-xl">
-                <div className="relative bg-slate-100 p-2">
+              <article key={product.id} className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+                <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
                   <div
-                    className="h-32 rounded-md bg-[linear-gradient(135deg,#f8fafc,#cbd5e1)] bg-cover bg-center shadow-inner transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
+                    className="h-36 bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
                     style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
                   />
-                  <span className={`absolute right-5 top-5 rounded-full px-2 py-1 text-[10px] font-black shadow-sm sm:px-3 sm:text-xs ${product.stock <= 3 ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"}`}>
-                    {product.stock} left
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(product.id)}
+                    aria-label={isFavorite ? "Remove from favourites" : "Add to favourites"}
+                    className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-lg bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] transition hover:bg-white ${isFavorite ? "text-rose-600" : "text-slate-600 hover:text-rose-600"}`}
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
+                    </svg>
+                  </button>
+                  <span className="absolute bottom-3 left-3 rounded-full bg-[#DCFCE7] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#166534] sm:text-xs">
+                    {product.category}
                   </span>
                 </div>
-                <div className="p-3 sm:p-4">
-                  <div className="grid gap-2">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600 sm:text-xs">{product.category}</span>
-                        <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-700 ring-1 ring-amber-100">
-                          {"★".repeat(rating.stars)}{"☆".repeat(5 - rating.stars)}
-                        </span>
-                      </div>
-                      <h3 className="mt-2 line-clamp-2 text-base font-black leading-tight text-slate-950 sm:text-lg">{product.name}</h3>
-                      <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400 sm:text-xs">{product.sku}</p>
-                      <p className="mt-2 text-xs font-black text-emerald-700">{rating.label}</p>
-                      {product.variant_options ? <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-500">{product.variant_options}</p> : null}
-                    </div>
-                    <div className="flex items-end justify-between gap-2"><p className="text-lg font-black text-orange-600 sm:text-xl">{formatNaira(product.price)}</p><span className="text-[10px] font-bold uppercase text-slate-400">In stock</span></div>
+                <div className="flex flex-1 flex-col p-3 sm:p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="rounded-full bg-[#F3F4F6] px-2 py-1 text-[10px] font-black text-[#166534] ring-1 ring-[#E5E7EB]">
+                      {"★".repeat(rating.stars)}{"☆".repeat(5 - rating.stars)}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
                   </div>
-                  <button onClick={() => handleAddToCart(product)} className="mt-4 w-full rounded-md bg-orange-500 px-3 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-orange-600 sm:text-sm">
-                    Add to cart
+                  <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] sm:text-lg">{product.name}</h3>
+                  <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">
+                    {product.variant_options || `SKU: ${product.sku}`}
+                  </p>
+                  <p className="mt-2 text-xs font-black text-[#166534]">{rating.label}</p>
+                  <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">
+                    {formatNaira(product.price)} <span className="text-xs font-bold text-[#6B7280]">/ kg</span>
+                  </p>
+                  <button onClick={() => handleAddToCart(product)} className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">
+                    <IconGlyph name="cart" className="h-4 w-4" />
+                    Add to Cart
                   </button>
                 </div>
               </article>
