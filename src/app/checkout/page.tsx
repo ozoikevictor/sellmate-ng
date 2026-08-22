@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PublicFooter, SectionTitle, SellerLogo } from "@/components/ui";
+import { PublicFooter, SellerLogo } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -159,8 +159,8 @@ export default function CheckoutPage() {
 
   if (!mounted) {
     return (
-      <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
-        <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
+      <main className="grid min-h-screen place-items-center bg-[#f2f6fb] px-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-xl">
           <p className="text-sm font-black text-slate-950">Loading checkout...</p>
           <p className="mt-2 text-xs font-semibold text-slate-500">Getting your cart and seller details first.</p>
         </div>
@@ -169,54 +169,78 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen sellmate-page-bg pt-20">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-300 bg-white/95 shadow-sm backdrop-blur">
-        <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-5">
-          <div className="flex min-w-0 items-center gap-3">
+    <main className="min-h-screen bg-[#f2f6fb] pt-[72px]">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+        <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+          <Link href={storeHref} className="flex min-w-0 items-center gap-3">
             <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} />
             <div className="min-w-0">
-              <p className="truncate text-lg font-black capitalize leading-tight text-slate-950 sm:text-2xl">{sellerName}</p>
+              <p className="truncate text-base font-black capitalize leading-tight text-slate-950 sm:text-2xl">{sellerName}</p>
               <p className="hidden text-xs font-semibold text-slate-500 sm:block">Secure Paystack checkout</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href={cartHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:bg-slate-50 sm:px-4 sm:text-sm">Edit cart</Link>
-            <Link href={storeHref} className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-slate-800 sm:px-4 sm:text-sm">Shop products</Link>
+          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href={cartHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm hover:border-orange-300 hover:bg-orange-50 sm:px-4 sm:text-sm">Edit cart</Link>
+            <Link href={storeHref} className="rounded-md bg-orange-500 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-orange-600 sm:px-5 sm:text-sm">Shop</Link>
           </div>
         </nav>
       </header>
-      <div className="mx-auto grid max-w-6xl gap-6 px-5 py-10 lg:grid-cols-[1fr_380px]">
+
+      <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#f8fafc_0%,#e7f8ef_55%,#fff4df_100%)]">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_420px] lg:items-center">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700">Checkout</p>
+            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight text-slate-950 sm:text-6xl">Delivery and payment.</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Add your delivery details, confirm the security check, then pay securely through Paystack.</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
+            <div className="grid gap-3">
+              <CheckoutStep number="1" title="Delivery details" text="Name, phone, city, and address." />
+              <CheckoutStep number="2" title="Security check" text="Confirm details before payment." />
+              <CheckoutStep number="3" title="Paystack payment" text="Pay online and send WhatsApp receipt." />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_390px]">
         <section>
-          <SectionTitle eyebrow="Checkout" title="Delivery and payment" />
-          <form onSubmit={placeOrder} className="sellmate-card rounded-lg p-5">
-            {message ? <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</div> : null}
-            <div className="grid gap-4 md:grid-cols-2">
-              <CheckoutField label="Full name" name="customer_name" placeholder="Muna Okafor" />
-              <CheckoutField label="Email for payment receipt" name="customer_email" placeholder="customer@example.com" type="email" />
-              <CheckoutField label="Phone number" name="customer_phone" placeholder="+234 801 234 5678" />
-              <CheckoutField label="City" name="city" placeholder="Lagos" />
-              <CheckoutField label="Delivery address" name="delivery_address" placeholder="12 Admiralty Way, Lekki" />
+          <form onSubmit={placeOrder} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+            <div className="border-b border-slate-100 bg-white p-5">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-600">Customer details</p>
+              <h2 className="mt-2 text-2xl font-black text-slate-950">Where should the seller deliver?</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">Use the correct email because the payment receipt and order update depend on it.</p>
             </div>
-            <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-              Payment is processed securely through Paystack. Delivery fee is set by this seller in their dashboard.
+            <div className="p-5">
+              {message ? <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</div> : null}
+              <div className="grid gap-4 md:grid-cols-2">
+                <CheckoutField label="Full name" name="customer_name" placeholder="Muna Okafor" />
+                <CheckoutField label="Email for payment receipt" name="customer_email" placeholder="customer@example.com" type="email" />
+                <CheckoutField label="Phone number" name="customer_phone" placeholder="+234 801 234 5678" />
+                <CheckoutField label="City" name="city" placeholder="Lagos" />
+                <CheckoutField label="Delivery address" name="delivery_address" placeholder="12 Admiralty Way, Lekki" wide />
+              </div>
+              <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm font-semibold leading-6 text-orange-900">
+                Payment is processed securely through Paystack. Delivery fee is set by this seller in their dashboard.
+              </div>
+              <label className="mt-5 flex cursor-pointer gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-slate-800">
+                <input
+                  type="checkbox"
+                  checked={securityAccepted}
+                  onChange={(event) => setSecurityAccepted(event.target.checked)}
+                  className="mt-1 h-4 w-4 accent-emerald-700"
+                />
+                <span>I confirm my delivery details are correct and I understand this payment is processed securely through Paystack.</span>
+              </label>
+              <button disabled={!mounted || items.length === 0 || saving || !securityAccepted} className="mt-5 w-full rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-400">{saving ? "Opening payment..." : "Pay with Paystack"}</button>
             </div>
-            <label className="mt-5 flex cursor-pointer gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-slate-800">
-              <input
-                type="checkbox"
-                checked={securityAccepted}
-                onChange={(event) => setSecurityAccepted(event.target.checked)}
-                className="mt-1 h-4 w-4 accent-emerald-700"
-              />
-              <span>
-                I confirm my delivery details are correct and I understand this payment is processed securely through Paystack.
-              </span>
-            </label>
-            <button disabled={!mounted || items.length === 0 || saving || !securityAccepted} className="mt-5 w-full rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">{saving ? "Opening payment..." : "Pay now"}</button>
           </form>
         </section>
-        <aside className="sellmate-card h-fit rounded-lg p-5">
-          <h2 className="text-lg font-black text-slate-950">Order summary</h2>
-          <div className="mt-4 grid gap-3 text-sm text-slate-600">
+
+        <aside className="h-fit rounded-lg border border-slate-200 bg-white p-5 shadow-lg lg:sticky lg:top-24">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Order summary</p>
+          <h2 className="mt-2 text-2xl font-black text-slate-950">Payment total</h2>
+          <div className="mt-5 grid gap-3 text-sm text-slate-600">
             {mounted && items.length === 0 ? <p>No item to checkout yet. Go back to the store and add products first.</p> : null}
             {items.map((item) => (
               <div key={item.id} className="flex justify-between gap-4">
@@ -224,20 +248,37 @@ export default function CheckoutPage() {
                 <strong className="text-slate-950">{formatNaira(item.price * item.qty)}</strong>
               </div>
             ))}
-            {items.length > 0 ? <div className="flex justify-between gap-4">
-              <span>Delivery</span>
-              <strong className="text-slate-950">{formatNaira(delivery)}</strong>
-            </div> : null}
+            {items.length > 0 ? (
+              <>
+                <div className="flex justify-between gap-4 border-t border-slate-100 pt-3">
+                  <span>Delivery</span>
+                  <strong className="text-slate-950">{formatNaira(delivery)}</strong>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3 text-xs font-semibold leading-5 text-slate-500">After payment, SellMate prepares a neat WhatsApp receipt for the seller.</div>
+              </>
+            ) : null}
           </div>
-          <div className="mt-5 flex justify-between border-t border-slate-200 pt-5 text-xl font-black text-slate-950">
+          <div className="mt-5 flex justify-between border-t border-slate-200 pt-5 text-2xl font-black text-slate-950">
             <span>Total</span>
-            <span>{formatNaira(total)}</span>
+            <span className="text-orange-600">{formatNaira(total)}</span>
           </div>
-          <Link href={storeHref} className="mt-5 block text-center text-sm font-bold text-emerald-700">Back to store</Link>
+          <Link href={storeHref} className="mt-5 block rounded-md border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-800 hover:border-orange-300 hover:bg-orange-50">Back to store</Link>
         </aside>
       </div>
-          <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} />
+      <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} />
     </main>
+  );
+}
+
+function CheckoutStep({ number, title, text }: { number: string; title: string; text: string }) {
+  return (
+    <div className="flex gap-3 rounded-lg bg-slate-50 p-3">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-orange-500 text-sm font-black text-white">{number}</span>
+      <span>
+        <span className="block text-sm font-black text-slate-950">{title}</span>
+        <span className="block text-xs font-semibold leading-5 text-slate-500">{text}</span>
+      </span>
+    </div>
   );
 }
 
@@ -442,16 +483,11 @@ function savePendingWhatsAppOrder({
   );
 }
 
-function CheckoutField({ label, name, placeholder, type = "text" }: { label: string; name: string; placeholder: string; type?: string }) {
+function CheckoutField({ label, name, placeholder, type = "text", wide = false }: { label: string; name: string; placeholder: string; type?: string; wide?: boolean }) {
   return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
+    <label className={`grid gap-2 text-sm font-bold text-slate-700 ${wide ? "md:col-span-2" : ""}`}>
       {label}
-      <input name={name} type={type} required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder={placeholder} />
+      <input name={name} type={type} required className="rounded-md border border-slate-300 bg-slate-50 px-3 py-3 font-normal outline-none transition focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-100" placeholder={placeholder} />
     </label>
   );
 }
-
-
-
-
-
