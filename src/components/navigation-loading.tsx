@@ -55,21 +55,10 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
     <>
       {children}
       {loading ? (
-        <div className="fixed inset-0 z-[9999] grid place-items-center bg-slate-950/65 px-5 backdrop-blur-md">
-          <div className="w-full max-w-sm overflow-hidden rounded-lg border border-white/20 bg-white shadow-2xl">
-            <div className="bg-[linear-gradient(135deg,#0f172a,#064e3b_55%,#f97316)] p-5 text-white">
-              <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white/15 ring-1 ring-white/25">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-white/30 border-t-orange-300" />
-              </div>
-              <p className="mt-4 text-center text-lg font-black">Opening your shopping page</p>
-              <p className="mt-2 text-center text-xs font-semibold leading-5 text-slate-100">We are connecting the correct store, cart, and checkout details.</p>
-            </div>
-            <div className="p-4">
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full w-2/3 animate-pulse rounded-full bg-orange-500" />
-              </div>
-              <p className="mt-3 text-center text-xs font-black uppercase tracking-[0.18em] text-emerald-700">SellMate secure flow</p>
-            </div>
+        <div className="fixed inset-0 z-[9999] grid place-items-center bg-white/80 px-5 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 shadow-lg">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
+            <p className="text-sm font-bold text-slate-700">Loading...</p>
           </div>
         </div>
       ) : null}
