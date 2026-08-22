@@ -104,6 +104,20 @@ function hasVerifiedLoginCode(userId: string) {
   return window.sessionStorage.getItem(loginVerifiedKey) === userId;
 }
 
+function isPasswordResetPage() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return window.location.pathname === "/reset-password";
+}
+
+function toVerifiedSellerUser(sessionUser: { id?: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
+  if (!sessionUser?.id || !hasVerifiedLoginCode(String(sessionUser.id))) {
+    return null;
+  }
+  return toDemoUser(sessionUser);
+}
+
 function getRedirectUrl(path: string) {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   if (configuredSiteUrl) {
@@ -121,12 +135,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(toDemoUser(data.session?.user ?? null));
+      const sessionUser = data.session?.user ?? null;
+      setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(sessionUser));
       setReady(true);
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(toDemoUser(session?.user ?? null));
+      setUser(isPasswordResetPage() ? null : toVerifiedSellerUser(session?.user ?? null));
       setReady(true);
     });
 
