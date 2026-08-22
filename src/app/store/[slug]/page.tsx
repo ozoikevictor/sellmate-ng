@@ -126,7 +126,9 @@ export default function DynamicStorefrontPage() {
   const heroProducts = products.length > 0 ? products.slice(0, 6) : [];
   const featuredProduct = heroProducts[heroIndex % Math.max(heroProducts.length, 1)];
   const lowStockCount = products.filter((product) => product.stock <= 5).length;
-  const storeCartHref = `/cart?store=${encodeURIComponent(slug)}`;
+  const activeStoreSlug = profile?.store_slug || slug;
+  const storeHomeHref = `/store/${activeStoreSlug}`;
+  const storeCartHref = `/cart?store=${encodeURIComponent(activeStoreSlug)}`;
 
   useEffect(() => {
     if (products.length <= 1) {
@@ -165,7 +167,7 @@ export default function DynamicStorefrontPage() {
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}
-        storeHref={`/store/${slug}`}
+        storeHref={storeHomeHref}
         cartHref={storeCartHref}
         cartCount={cartCount}
         searchTerm={searchTerm}
@@ -316,7 +318,7 @@ export default function DynamicStorefrontPage() {
           </div>
         </div>
       ) : null}
-      <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={`/store/${slug}`} />
+      <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={storeHomeHref} />
     </main>
   );
 }
