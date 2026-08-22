@@ -539,10 +539,79 @@ export function PublicFooter({
   const footerName = sellerName || "VENDORAQ";
   const isSellerFooter = Boolean(sellerName);
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
-  const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
-  const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
   const productHref = storeHref;
   const categoryHref = storeHref === "/" ? "/#how-it-works" : `${storeHref}#products`;
+  const [activeFooterModal, setActiveFooterModal] = useState<string | null>(null);
+  const modalDetails: Record<string, { title: string; eyebrow: string; body: string; points: string[]; actionLabel?: string; actionHref?: string }> = {
+    Deals: {
+      eyebrow: "Seller deals",
+      title: `${footerName} deals`,
+      body: isSellerFooter
+        ? `Deals here belong to ${footerName}. Customers should use this seller's store link to see live products, discounts, stock, and checkout.`
+        : "Deals are seller-specific. Open a seller store to see that seller's products, prices, offers, and checkout flow.",
+      points: ["Deals are not shared across all sellers.", "Each seller controls their own products and prices.", "Customers can browse products, add to cart, and checkout from the correct seller store."],
+      actionLabel: "View products",
+      actionHref: productHref,
+    },
+    "Seller Guide": {
+      eyebrow: "Seller guide",
+      title: "How VENDORAQ works for sellers",
+      body: "Create your seller account, set your business details, add products with images, share your public store link, then manage orders from your private dashboard.",
+      points: ["Register or log in as a seller.", "Add product name, price, stock, category, variants, and image.", "Share your store link with customers on WhatsApp, Instagram, or anywhere.", "Customers order while your dashboard keeps products, orders, receipts, and settings together."],
+      actionLabel: "Start selling",
+      actionHref: "/register",
+    },
+    Pricing: {
+      eyebrow: "Pricing",
+      title: "Simple seller plans",
+      body: "Pricing is for business owners using VENDORAQ to run their online store. Customers do not need to pay VENDORAQ to shop.",
+      points: ["Free trial for new sellers.", "Upgrade when your product limit is reached.", "Higher plans unlock more products and business tools.", "Payment setup can be completed from the seller dashboard."],
+      actionLabel: "Open seller login",
+      actionHref: "/login",
+    },
+    "Help Center": {
+      eyebrow: "Help center",
+      title: "Getting help on VENDORAQ",
+      body: "Use the help center when you need guidance on seller setup, product upload, cart, checkout, payment, delivery, or account access.",
+      points: ["Sellers can learn how to add products and manage orders.", "Customers can understand browsing, cart, checkout, and WhatsApp receipt follow-up.", "For urgent order questions, contact the seller directly from the store details."],
+    },
+    "Track Order": {
+      eyebrow: "Coming soon",
+      title: "Track order",
+      body: "Order tracking is not active yet. For now, customers should contact the seller after checkout using the WhatsApp receipt flow.",
+      points: ["Tracking will be added later.", "Paid orders can still be followed up with the seller on WhatsApp.", "The seller dashboard keeps the order record."],
+    },
+    "Contact Us": {
+      eyebrow: "Contact",
+      title: "Contact VENDORAQ support",
+      body: "For platform support, sellers can reach out about account setup, store links, product upload, payments, and dashboard issues.",
+      points: ["Seller account and setup support.", "Help with product images, cart, checkout, and Paystack setup.", "Customers should contact the seller for product delivery questions."],
+    },
+    Returns: {
+      eyebrow: "Returns",
+      title: "Returns and order issues",
+      body: "Returns are controlled by each seller because every seller manages their own products, delivery, and customer agreement.",
+      points: ["Contact the seller first for return questions.", "Keep your order receipt and WhatsApp conversation.", "VENDORAQ helps sellers manage the order flow but each seller sets their own return policy."],
+    },
+    About: {
+      eyebrow: "About",
+      title: "About VENDORAQ",
+      body: "VENDORAQ helps Nigerian sellers create public stores, collect customer orders, manage products, receive payments, and follow up on WhatsApp from one dashboard.",
+      points: ["Built for sellers who sell through WhatsApp and social media.", "Customers can browse without needing a seller dashboard.", "Every seller gets their own public store experience."],
+    },
+    Terms: {
+      eyebrow: "Terms",
+      title: "VENDORAQ terms",
+      body: "These terms explain the basic rules for using VENDORAQ as a seller or customer.",
+      points: ["Sellers are responsible for product accuracy, delivery details, and customer support.", "Customers should review products, totals, and delivery details before payment.", "VENDORAQ provides the store, cart, checkout, and dashboard tools."],
+    },
+    Privacy: {
+      eyebrow: "Privacy",
+      title: "Privacy on VENDORAQ",
+      body: "VENDORAQ should only collect information needed to run accounts, orders, checkout, delivery, and seller support.",
+      points: ["Seller account details are used for dashboard access and store setup.", "Customer delivery details are used to process orders.", "Payment is handled securely through the connected payment provider."],
+    },
+  };
 
   const footerColumns = [
     {
@@ -550,7 +619,7 @@ export function PublicFooter({
       links: [
         { label: "Products", href: productHref },
         { label: "Categories", href: categoryHref },
-        { label: "Deals", href: categoryHref },
+        { label: "Deals", modal: "Deals" },
         { label: "New Arrivals", href: categoryHref },
       ],
     },
@@ -559,25 +628,25 @@ export function PublicFooter({
       links: [
         { label: "Start Selling", href: "/register" },
         { label: "Seller Dashboard", href: "/login" },
-        { label: "Seller Guide", href: "/#how-it-works" },
-        { label: "Pricing", href: "/login" },
+        { label: "Seller Guide", modal: "Seller Guide" },
+        { label: "Pricing", modal: "Pricing" },
       ],
     },
     {
       title: "SUPPORT",
       links: [
-        { label: "Help Center", href: "#help" },
-        { label: "Track Order", href: cartHref },
-        { label: "Contact Us", href: "#help" },
-        { label: "Returns", href: "#help" },
+        { label: "Help Center", modal: "Help Center" },
+        { label: "Track Order", modal: "Track Order" },
+        { label: "Contact Us", modal: "Contact Us" },
+        { label: "Returns", modal: "Returns" },
       ],
     },
     {
       title: "COMPANY",
       links: [
-        { label: "About", href: "/#how-it-works" },
-        { label: "Terms", href: "/login" },
-        { label: "Privacy", href: "/login" },
+        { label: "About", modal: "About" },
+        { label: "Terms", modal: "Terms" },
+        { label: "Privacy", modal: "Privacy" },
       ],
     },
   ];
@@ -618,15 +687,32 @@ export function PublicFooter({
             <h2 className="text-xs font-black uppercase tracking-[0.22em] text-white">{column.title}</h2>
             <div className="mt-2 h-0.5 w-8 rounded-full bg-[#16A34A]" />
             <nav className="mt-5 grid gap-3 text-sm font-bold text-slate-300">
-              {column.links.map((link) => (
-                <Link key={`${column.title}-${link.label}`} href={link.href} className="transition hover:text-[#16A34A]">
-                  {link.label}
-                </Link>
-              ))}
+              {column.links.map((link) =>
+                "modal" in link ? (
+                  <button
+                    key={`${column.title}-${link.label}`}
+                    type="button"
+                    onClick={() => setActiveFooterModal(link.modal ?? null)}
+                    className="w-fit text-left transition hover:text-[#16A34A]"
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <Link key={`${column.title}-${link.label}`} href={link.href} className="transition hover:text-[#16A34A]">
+                    {link.label}
+                  </Link>
+                ),
+              )}
             </nav>
           </div>
         ))}
       </div>
+      {activeFooterModal ? (
+        <FooterInfoModal
+          details={modalDetails[activeFooterModal]}
+          onClose={() => setActiveFooterModal(null)}
+        />
+      ) : null}
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-semibold text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {isSellerFooter ? footerName : "VENDORAQ"}. All rights reserved.</p>
@@ -638,6 +724,60 @@ export function PublicFooter({
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterInfoModal({
+  details,
+  onClose,
+}: {
+  details: { title: string; eyebrow: string; body: string; points: string[]; actionLabel?: string; actionHref?: string };
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/70 px-4 py-8 backdrop-blur-sm">
+      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white text-[#0F172A] shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-[#F3F4F6] p-5 sm:p-6">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#16A34A]">{details.eyebrow}</p>
+            <h2 className="mt-2 text-2xl font-black text-[#0F172A] sm:text-3xl">{details.title}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-lg font-black text-slate-700 shadow-sm transition hover:border-[#16A34A] hover:text-[#16A34A]"
+            aria-label="Close popup"
+          >
+            X
+          </button>
+        </div>
+        <div className="p-5 sm:p-6">
+          <p className="text-sm font-semibold leading-7 text-slate-600 sm:text-base">{details.body}</p>
+          <div className="mt-5 grid gap-3">
+            {details.points.map((point) => (
+              <div key={point} className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#16A34A]" />
+                <p className="text-sm font-bold leading-6 text-slate-700">{point}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {details.actionLabel && details.actionHref ? (
+              <Link href={details.actionHref} onClick={onClose} className="rounded-full bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">
+                {details.actionLabel}
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:border-[#16A34A] hover:bg-emerald-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 export function DataTable({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
