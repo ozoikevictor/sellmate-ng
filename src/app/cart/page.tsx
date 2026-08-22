@@ -91,20 +91,20 @@ export default function CartPage() {
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         {items.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-orange-300 bg-white p-8 text-center shadow-lg">
+          <div className="rounded-lg border border-dashed border-emerald-300 bg-white p-8 text-center shadow-lg">
             <p className="text-2xl font-black text-slate-950">Nothing in cart yet.</p>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">Your cart is connected to this store. Add products first, then come back here to review your order.</p>
-            <Link href={storeHref} className="mt-5 inline-block rounded-md bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-sm hover:bg-orange-600">Shop products</Link>
+            <Link href={storeHref} className="mt-5 inline-block rounded-md bg-[#16A34A] px-6 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">Shop products</Link>
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
             <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
               <div className="flex items-center justify-between border-b border-slate-100 bg-white p-5">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-600">Order items</p>
+                  <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Order items</p>
                   <p className="mt-1 text-sm font-bold text-slate-500">{itemCount} item{itemCount === 1 ? "" : "s"} in cart</p>
                 </div>
-                <Link href={storeHref} className="text-sm font-black text-emerald-700 hover:text-orange-600">Add more</Link>
+                <Link href={storeHref} className="text-sm font-black text-emerald-700 hover:text-emerald-800">Add more</Link>
               </div>
               <div className="divide-y divide-slate-100">
                 {items.map((item) => (
@@ -123,9 +123,9 @@ export default function CartPage() {
                       </div>
                       <div className="flex flex-wrap items-center gap-3 md:justify-end">
                         <div className="flex items-center overflow-hidden rounded-md border border-slate-300 bg-white shadow-sm">
-                          <button onClick={() => changeQty(item.id, item.qty - 1)} className="px-3 py-2 text-sm font-black text-slate-700 hover:bg-orange-50" aria-label="Reduce quantity">-</button>
+                          <button onClick={() => changeQty(item.id, item.qty - 1)} className="px-3 py-2 text-sm font-black text-slate-700 hover:bg-emerald-50" aria-label="Reduce quantity">-</button>
                           <span className="min-w-10 border-x border-slate-200 px-3 py-2 text-center text-sm font-black text-slate-950">{item.qty}</span>
-                          <button onClick={() => changeQty(item.id, Math.min(item.stock, item.qty + 1))} className="px-3 py-2 text-sm font-black text-slate-700 hover:bg-orange-50" aria-label="Increase quantity">+</button>
+                          <button onClick={() => changeQty(item.id, Math.min(item.stock, item.qty + 1))} className="px-3 py-2 text-sm font-black text-slate-700 hover:bg-emerald-50" aria-label="Increase quantity">+</button>
                         </div>
                         <p className="w-28 text-right text-xl font-black text-slate-950">{formatNaira(item.price * item.qty)}</p>
                         <button onClick={() => changeQty(item.id, 0)} className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-black text-rose-700 hover:bg-rose-100">Remove</button>
@@ -145,9 +145,9 @@ export default function CartPage() {
               </div>
               <div className="mt-5 flex justify-between border-t border-slate-200 pt-5 text-2xl font-black text-slate-950">
                 <span>Total</span>
-                <span className="text-orange-600">{formatNaira(total)}</span>
+                <span className="text-emerald-700">{formatNaira(total)}</span>
               </div>
-              <Link href={checkoutHref} className="mt-6 block rounded-md bg-orange-500 px-5 py-3 text-center text-sm font-black text-white shadow-sm hover:bg-orange-600">Continue to checkout</Link>
+              <Link href={checkoutHref} className="mt-6 block rounded-md bg-[#16A34A] px-5 py-3 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">Continue to checkout</Link>
               <p className="mt-3 text-xs leading-5 text-slate-500">Delivery fee is controlled by the seller from dashboard settings. Payment is completed securely through Paystack.</p>
             </aside>
           </div>

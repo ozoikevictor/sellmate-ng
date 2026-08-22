@@ -187,14 +187,14 @@ export default function DynamicStorefrontPage() {
             <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Categories</p>
             <div className="grid gap-2 text-sm font-bold text-slate-700">
               {(categories.length ? categories : ["Products", "New arrivals", "Best sellers", "Deals"]).map((category) => (
-                <a key={category} href="#products" className="rounded-md px-3 py-2 hover:bg-orange-50 hover:text-orange-700">{category}</a>
+                <a key={category} href="#products" className="rounded-md px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700">{category}</a>
               ))}
             </div>
           </aside>
           <div className="overflow-hidden rounded-lg bg-slate-950 shadow-xl">
             <div className="grid min-h-[280px] gap-5 bg-[radial-gradient(circle_at_80%_20%,rgba(249,115,22,0.45),transparent_24rem),linear-gradient(135deg,#0f172a,#064e3b)] p-6 text-white sm:p-8 lg:grid-cols-[1fr_280px] lg:items-center">
               <div>
-                <p className="w-fit rounded-full bg-orange-500 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-white">{city} storefront</p>
+                <p className="w-fit rounded-full bg-[#16A34A] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-white">{city} storefront</p>
                 <h1 className="mt-4 max-w-3xl text-4xl font-black capitalize leading-[1.02] sm:text-5xl lg:text-6xl">
                   {businessName} deals and latest products
                 </h1>
@@ -209,7 +209,7 @@ export default function DynamicStorefrontPage() {
                   </div>
                 ) : null}
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <a href="#products" className="rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-orange-600">Shop now</a>
+                  <a href="#products" className="rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">Shop now</a>
                   <Link href={storeCartHref} className="rounded-md bg-white px-5 py-3 text-sm font-black text-slate-950 shadow-sm hover:bg-slate-100">View cart</Link>
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function DynamicStorefrontPage() {
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
           {(categories.length ? categories : ["All products"]).map((category) => (
-            <button key={category} onClick={() => setSearchTerm(category)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm hover:border-orange-300 hover:text-orange-700">{category}</button>
+            <button key={category} onClick={() => setSearchTerm(category)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm hover:border-emerald-300 hover:text-emerald-700">{category}</button>
           ))}
           {searchTerm ? <button onClick={() => setSearchTerm("")} className="rounded-full px-3 py-1.5 text-xs font-black text-emerald-700">Clear search</button> : null}
         </div>
@@ -330,7 +330,7 @@ export default function DynamicStorefrontPage() {
                 {cartNotice || `${cartCount} item${cartCount === 1 ? "" : "s"} in cart`}
               </p>
             </div>
-            <Link href={storeCartHref} className="shrink-0 rounded-md bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm hover:bg-orange-600">
+            <Link href={storeCartHref} className="shrink-0 rounded-md bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D]">
               View cart
             </Link>
           </div>

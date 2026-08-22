@@ -194,7 +194,7 @@ export default function CheckoutPage() {
         <section>
           <form onSubmit={placeOrder} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
             <div className="border-b border-slate-100 bg-white p-5">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-600">Customer details</p>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Customer details</p>
               <h2 className="mt-2 text-2xl font-black text-slate-950">Where should the seller deliver?</h2>
               <p className="mt-2 text-sm leading-6 text-slate-500">Use the correct email because the payment receipt and order update depend on it.</p>
             </div>
@@ -207,7 +207,7 @@ export default function CheckoutPage() {
                 <CheckoutField label="City" name="city" placeholder="Lagos" />
                 <CheckoutField label="Delivery address" name="delivery_address" placeholder="12 Admiralty Way, Lekki" wide />
               </div>
-              <div className="mt-5 rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm font-semibold leading-6 text-orange-900">
+              <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold leading-6 text-emerald-900">
                 Payment is processed securely through Paystack. Delivery fee is set by this seller in their dashboard.
               </div>
               <label className="mt-5 flex cursor-pointer gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-slate-800">
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
                 />
                 <span>I confirm my delivery details are correct and I understand this payment is processed securely through Paystack.</span>
               </label>
-              <button disabled={!mounted || items.length === 0 || saving || !securityAccepted} className="mt-5 w-full rounded-md bg-orange-500 px-5 py-3 text-sm font-black text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-400">{saving ? "Opening payment..." : "Pay with Paystack"}</button>
+              <button disabled={!mounted || items.length === 0 || saving || !securityAccepted} className="mt-5 w-full rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400">{saving ? "Opening payment..." : "Pay with Paystack"}</button>
             </div>
           </form>
         </section>
@@ -247,9 +247,9 @@ export default function CheckoutPage() {
           </div>
           <div className="mt-5 flex justify-between border-t border-slate-200 pt-5 text-2xl font-black text-slate-950">
             <span>Total</span>
-            <span className="text-orange-600">{formatNaira(total)}</span>
+            <span className="text-emerald-700">{formatNaira(total)}</span>
           </div>
-          <Link href={storeHref} className="mt-5 block rounded-md border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-800 hover:border-orange-300 hover:bg-orange-50">Back to store</Link>
+          <Link href={storeHref} className="mt-5 block rounded-md border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-800 transition hover:border-emerald-300 hover:bg-emerald-50">Back to store</Link>
         </aside>
       </div>
       <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} />
@@ -260,7 +260,7 @@ export default function CheckoutPage() {
 function CheckoutStep({ number, title, text }: { number: string; title: string; text: string }) {
   return (
     <div className="flex gap-3 rounded-lg bg-slate-50 p-3">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-orange-500 text-sm font-black text-white">{number}</span>
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#16A34A] text-sm font-black text-white">{number}</span>
       <span>
         <span className="block text-sm font-black text-slate-950">{title}</span>
         <span className="block text-xs font-semibold leading-5 text-slate-500">{text}</span>
@@ -474,7 +474,7 @@ function CheckoutField({ label, name, placeholder, type = "text", wide = false }
   return (
     <label className={`grid gap-2 text-sm font-bold text-slate-700 ${wide ? "md:col-span-2" : ""}`}>
       {label}
-      <input name={name} type={type} required className="rounded-md border border-slate-300 bg-slate-50 px-3 py-3 font-normal outline-none transition focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-100" placeholder={placeholder} />
+      <input name={name} type={type} required className="rounded-md border border-slate-300 bg-slate-50 px-3 py-3 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-emerald-100" placeholder={placeholder} />
     </label>
   );
 }
