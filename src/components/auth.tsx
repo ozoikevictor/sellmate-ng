@@ -18,6 +18,7 @@ type AuthContextValue = {
   user: DemoUser | null;
   ready: boolean;
   login: (email: string, password: string) => AuthResult;
+  verifyLoginCode: (email: string, code: string) => AuthResult;
   register: (user: Omit<DemoUser, "id"> & { password: string }) => AuthResult;
   requestPasswordReset: (email: string) => AuthResult;
   updatePassword: (password: string) => AuthResult;
@@ -25,6 +26,7 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+const loginVerifiedKey = "vendoraq-login-code-verified-user";
 
 function toDemoUser(sessionUser: { id?: string; email?: string; user_metadata?: Record<string, unknown> } | null): DemoUser | null {
   if (!sessionUser?.email) {
@@ -59,6 +61,29 @@ function validatePassword(password: string) {
   return "";
 }
 
+function isGmailAddress(email: string) {
+  return email.trim().toLowerCase().endsWith("@gmail.com");
+}
+
+function markLoginCodeVerified(userId: string) {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(loginVerifiedKey, userId);
+  }
+}
+
+function clearLoginCodeVerified() {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.removeItem(loginVerifiedKey);
+  }
+}
+
+function hasVerifiedLoginCode(userId: string) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return window.sessionStorage.getItem(loginVerifiedKey) === userId;
+}
+
 function getRedirectUrl(path: string) {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   if (configuredSiteUrl) {
@@ -89,16 +114,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    clearLoginCodeVerified();
+    const normalizedEmail = email.trim().toLowerCase();
+    const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
     if (error) {
       return { ok: false, message: formatAuthError(error.message) };
     }
+    await supabase.auth.signOut();
+    setUser(null);
+
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: {
+        shouldCreateUser: false,
+      },
+    });
+    if (otpError) {
+      return { ok: false, message: formatAuthError(otpError.message) };
+    }
+
+    return { ok: true, message: "Password accepted. We sent a login code to your email." };
+  }, []);
+
+  const verifyLoginCode = useCallback(async (email: string, code: string) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: code.trim(),
+      type: "email",
+    });
+    if (error) {
+      return { ok: false, message: formatAuthError(error.message) };
+    }
+    if (data.user?.id) {
+      markLoginCodeVerified(data.user.id);
+    }
+    setUser(toDemoUser(data.user));
     return { ok: true };
   }, []);
 
   const register = useCallback(async (newUser: Omit<DemoUser, "id"> & { password: string }) => {
+    const normalizedEmail = newUser.email.trim().toLowerCase();
+    if (!isGmailAddress(normalizedEmail)) {
+      return { ok: false, message: "Please register with a Gmail address ending in @gmail.com." };
+    }
+
     const { data, error } = await supabase.auth.signUp({
-      email: newUser.email,
+      email: normalizedEmail,
       password: newUser.password,
       options: {
         emailRedirectTo: getRedirectUrl("/login?confirmed=1"),
@@ -138,18 +199,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       return { ok: false, message: formatAuthError(error.message) };
     }
+    clearLoginCodeVerified();
     await supabase.auth.signOut();
     setUser(null);
     return { ok: true, message: "Password updated. You can now log in with your new password." };
   }, []);
 
   const logout = useCallback(async () => {
+    clearLoginCodeVerified();
     await supabase.auth.signOut();
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, ready, login, register, requestPasswordReset, updatePassword, logout }}>
+    <AuthContext.Provider value={{ user, ready, login, verifyLoginCode, register, requestPasswordReset, updatePassword, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -164,16 +227,23 @@ export function useAuth() {
 }
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { ready, user } = useAuth();
+  const { ready, user, logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (ready && !user) {
       router.replace("/login");
+      return;
     }
-  }, [ready, router, user]);
 
-  if (!ready || !user) {
+    if (ready && user && !hasVerifiedLoginCode(user.id)) {
+      logout().finally(() => {
+        router.replace("/login?code_required=1");
+      });
+    }
+  }, [logout, ready, router, user]);
+
+  if (!ready || !user || !hasVerifiedLoginCode(user.id)) {
     return (
       <main className="grid min-h-screen place-items-center bg-slate-50 px-5">
         <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
@@ -259,10 +329,11 @@ function AuthShell({ children }: { children: React.ReactNode }) {
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
-  const { login, register, logout } = useAuth();
+  const { login, verifyLoginCode, register, logout } = useAuth();
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   useEffect(() => {
     if (mode === "login") {
@@ -271,6 +342,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         const params = new URLSearchParams(window.location.search);
         if (params.get("confirmed") === "1") {
           setNotice("Email confirmed. You can now log in to your seller dashboard.");
+        }
+        if (params.get("code_required") === "1") {
+          setNotice("For security, enter your password and email code before opening the dashboard.");
         }
       }
     }
@@ -284,10 +358,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
+    const loginCode = String(formData.get("login_code") ?? "").trim();
     const name = String(formData.get("name") ?? "Ada Seller").trim();
     const business = String(formData.get("business") ?? "My Store").trim();
 
     if (mode === "register") {
+      if (!isGmailAddress(email)) {
+        setError("Please register with a Gmail address ending in @gmail.com.");
+        setLoading(false);
+        return;
+      }
+
       const passwordMessage = validatePassword(password);
       if (passwordMessage) {
         setError(passwordMessage);
@@ -309,14 +390,32 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       return;
     }
 
+    if (pendingEmail) {
+      if (!loginCode) {
+        setError("Enter the code sent to your email.");
+        setLoading(false);
+        return;
+      }
+      const codeResult = await verifyLoginCode(pendingEmail, loginCode);
+      if (!codeResult.ok) {
+        setError(codeResult.message ?? "The code is wrong or expired. Please try again.");
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+      window.location.href = "/dashboard/account";
+      return;
+    }
+
     const result = await login(email, password);
     if (!result.ok) {
       setError(result.message ?? "Login failed. Check your email and password.");
       setLoading(false);
       return;
     }
+    setPendingEmail(email);
+    setNotice(result.message ?? "We sent a login code to your email.");
     setLoading(false);
-    window.location.href = "/dashboard/account";
   }
 
   return (
@@ -324,20 +423,36 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">VENDORAQ</Link>
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{mode === "login" ? "Seller login" : "Create seller account"}</p>
-        <h2 className="mt-2 text-3xl font-black text-slate-950">{mode === "login" ? "Login to your seller dashboard" : "Start your seller account"}</h2>
+        <h2 className="mt-2 text-3xl font-black text-slate-950">
+          {mode === "login" ? (pendingEmail ? "Enter your email code" : "Login to your seller dashboard") : "Start your seller account"}
+        </h2>
         {mode === "login" ? (
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            This login is for business owners. Customers can shop without logging in.
+            {pendingEmail ? `We sent a one-time login code to ${pendingEmail}. Enter it here to open your dashboard.` : "This login is for business owners. Customers can shop without logging in."}
           </p>
         ) : null}
         <div className="mt-6 grid gap-4">
+          {mode === "login" && pendingEmail ? (
+            <label className="grid gap-2 text-sm font-bold text-slate-700">
+              Email login code
+              <input
+                name="login_code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                className="rounded-md border border-slate-300 px-3 py-3 text-center text-2xl font-black tracking-[0.24em] outline-none focus:border-emerald-600"
+                placeholder="123456"
+              />
+            </label>
+          ) : (
+            <>
           {mode === "register" ? (
             <>
               <label className="grid gap-2 text-sm font-bold text-slate-700">Your name<input name="name" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="Ada Okafor" /></label>
               <label className="grid gap-2 text-sm font-bold text-slate-700">Business name<input name="business" required className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="Victor Stores, Beauty Hub, Builders Mart" /></label>
             </>
           ) : null}
-          <label className="grid gap-2 text-sm font-bold text-slate-700">Email<input name="email" type="email" required autoComplete="username" className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="ada@example.com" /></label>
+          <label className="grid gap-2 text-sm font-bold text-slate-700">Email<input name="email" type="email" required autoComplete="username" className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder={mode === "register" ? "seller@gmail.com" : "seller@example.com"} /></label>
           <PasswordField
             name="password"
             label="Password"
@@ -345,16 +460,31 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             placeholder={mode === "login" ? "Your password" : "8+ characters, uppercase, lowercase, number"}
           />
+            </>
+          )}
         </div>
-        {mode === "login" ? (
+        {mode === "login" && !pendingEmail ? (
           <button type="button" onClick={() => router.push("/forgot-password")} className="mt-3 text-sm font-bold text-emerald-700 hover:text-emerald-900">
             Forgot password?
+          </button>
+        ) : null}
+        {mode === "login" && pendingEmail ? (
+          <button
+            type="button"
+            onClick={() => {
+              setPendingEmail("");
+              setError("");
+              setNotice("");
+            }}
+            className="mt-3 text-sm font-bold text-emerald-700 hover:text-emerald-900"
+          >
+            Use another email
           </button>
         ) : null}
         {error ? <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p> : null}
         {notice ? <p className="mt-4 rounded-md bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{notice}</p> : null}
         <button type="submit" disabled={loading} className="mt-6 w-full rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">
-          {loading ? "Please wait..." : mode === "login" ? "Open seller dashboard" : "Create seller account"}
+          {loading ? "Please wait..." : mode === "login" ? (pendingEmail ? "Verify code and open dashboard" : "Continue securely") : "Create seller account"}
         </button>
         <div className="mt-5 text-center text-sm text-slate-600">
           <span>{mode === "login" ? "Need a seller account? " : "Already registered? "}</span>
