@@ -529,13 +529,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                maxLength={6}
+                maxLength={8}
                 autoComplete="off"
                 required
                 className="rounded-md border border-slate-300 px-3 py-3 text-center text-2xl font-black tracking-[0.24em] outline-none focus:border-emerald-600"
-                placeholder="123456"
+                placeholder="12345678"
                 onInput={(event) => {
-                  event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "").slice(0, 6);
+                  event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "").slice(0, 8);
                 }}
               />
             </label>
