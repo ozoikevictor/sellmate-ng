@@ -86,16 +86,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [storeSlug, setStoreSlug] = useState("store");
   const [storeReady, setStoreReady] = useState(false);
+  const storeHref = `/store/${storeSlug}`;
   const links = [
-    { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "dashboard" },
-    { key: "account", label: "Account", href: "/dashboard/account", icon: "account" },
+    { key: "overview", label: "Overview", href: "/dashboard", icon: "dashboard" },
     { key: "products", label: "Products", href: "/dashboard/products", icon: "products" },
     { key: "orders", label: "Orders", href: "/dashboard/orders", icon: "orders" },
     { key: "customers", label: "Customers", href: "/dashboard/customers", icon: "customers" },
-    { key: "inventory", label: "Inventory", href: "/dashboard/inventory", icon: "inventory" },
     { key: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
-    { key: "receipts", label: "Receipts", href: "/dashboard/receipts", icon: "receipts" },
-    { key: "billing", label: "Billing", href: "/dashboard/billing", icon: "billing" },
+    { key: "billing", label: "Billing & Payments", href: "/dashboard/billing", icon: "billing" },
+    { key: "store", label: "Store", href: storeHref, icon: "store" },
+    { key: "delivery", label: "Delivery / Tracking", href: "/dashboard/settings", icon: "delivery" },
     { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
   ];
 
@@ -131,72 +131,94 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [user?.business, user?.id, user?.name]);
 
-  const storeHref = `/store/${storeSlug}`;
+  const sellerInitial = (user?.business || user?.name || "V").trim().charAt(0).toUpperCase();
 
   return (
-    <main className="min-h-screen sellmate-page-bg">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white/95 p-6 shadow-[8px_0_30px_rgba(15,23,42,0.05)] lg:block">
-        {storeReady ? (
-          <Link href={storeHref} className="text-xl font-black text-slate-950">SellMate NG</Link>
-        ) : (
-          <span className="text-xl font-black text-slate-950">SellMate NG</span>
-        )}
-        <p className="mt-2 text-sm text-slate-500">{user?.business ?? "Ada Fashion"} command center</p>
-        <nav className="mt-8 grid gap-1">
+    <main className="min-h-screen bg-[#F6F8FB]">
+      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-slate-200/80 bg-white p-5 shadow-[18px_0_60px_rgba(15,23,42,0.06)] lg:block">
+        <div className="flex h-full flex-col">
+          <Link href="/dashboard" className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+            <VendoraqLogo compact />
+          </Link>
+          <div className="mt-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4">
+            <div className="flex items-center gap-3">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0F172A] text-lg font-black text-white shadow-sm">{sellerInitial}</span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-[#0F172A]">{user?.business ?? "Seller workspace"}</p>
+                <p className="text-xs font-bold text-slate-500">Vendor control center</p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-white/80 px-3 py-2 text-xs font-black text-slate-600 ring-1 ring-emerald-100">
+              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#16A34A]" /> Store status</span>
+              <span className="text-[#16A34A]">Live</span>
+            </div>
+          </div>
+        <nav className="mt-6 grid gap-1.5">
           {links.map((link) => {
             const active = link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href);
             return (
             <Link
               key={link.key}
               href={link.href}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition ${
-                active ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-800"
+              className={`flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-black transition ${
+                active ? "bg-[#0F172A] text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]" : "text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0F172A]"
               }`}
             >
-              <MenuIcon name={link.icon} />
+              <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "bg-white/10 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
+                <MenuIcon name={link.icon} />
+              </span>
               <span>{link.label}</span>
             </Link>
             );
           })}
         </nav>
-        {storeReady ? (
-          <Link href={storeHref} className="mt-8 block rounded-md bg-emerald-700 px-4 py-3 text-center text-sm font-bold text-white shadow-sm hover:bg-emerald-800">View storefront</Link>
-        ) : (
-          <span className="mt-8 block rounded-md bg-slate-200 px-4 py-3 text-center text-sm font-bold text-slate-600">Loading store...</span>
-        )}
-      </aside>
-      <section className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/92 px-5 py-4 shadow-sm backdrop-blur">
-          <div className="flex items-center justify-between">
+          <div className="mt-auto rounded-2xl bg-[#0F172A] p-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.22)]">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Public store</p>
+            <p className="mt-2 text-sm font-semibold text-slate-300">Open your storefront to see what customers see.</p>
             {storeReady ? (
-              <Link href={storeHref} className="font-black text-slate-950 lg:hidden">SellMate NG</Link>
+              <Link href={storeHref} className="mt-4 block rounded-xl bg-[#16A34A] px-4 py-3 text-center text-sm font-black text-white shadow-sm hover:bg-[#15803D]">View storefront</Link>
             ) : (
-              <span className="font-black text-slate-950 lg:hidden">SellMate NG</span>
+              <span className="mt-4 block rounded-xl bg-white/10 px-4 py-3 text-center text-sm font-black text-slate-300">Loading store...</span>
             )}
-            <p className="hidden text-sm font-semibold text-slate-700 lg:block">{user?.business ?? "Seller workspace"}</p>
+          </div>
+        </div>
+      </aside>
+      <section className="lg:pl-72">
+        <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6">
+          <div className="flex items-center justify-between gap-4">
+            {storeReady ? (
+              <Link href={storeHref} className="lg:hidden"><VendoraqLogo compact /></Link>
+            ) : (
+              <span className="lg:hidden"><VendoraqLogo compact /></span>
+            )}
+            <div className="hidden min-w-0 lg:block">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Vendor dashboard</p>
+              <p className="truncate text-sm font-bold text-slate-500">{user?.business ?? "Seller workspace"} · Manage products, orders, payments and delivery</p>
+            </div>
             <div className="flex items-center gap-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              <span className="hidden text-sm font-semibold text-slate-700 sm:inline">Logged in</span>
+              <span className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-[#166534] sm:inline-flex">
+                Logged in
+              </span>
               {storeReady ? (
-                <Link href={storeHref} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm lg:hidden">
+                <Link href={storeHref} className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-800 shadow-sm transition hover:border-[#16A34A] hover:text-[#16A34A] lg:hidden">
                   View store
                 </Link>
               ) : (
-                <span className="rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-black text-slate-500 shadow-sm lg:hidden">
+                <span className="rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-black text-slate-500 shadow-sm lg:hidden">
                   Loading store...
                 </span>
               )}
               <LogoutButton />
             </div>
           </div>
-          <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden">
+          <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden">
             {links.map((link) => {
               const active = link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.key}
                   href={link.href}
-                  className={`flex shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-xs font-bold ${
+                  className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-black ${
                     active
                       ? "border-slate-950 bg-slate-950 text-white"
                       : "border-slate-200 bg-white text-slate-700"
@@ -209,13 +231,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </header>
-        <div className="mx-auto max-w-7xl px-5 py-8">{children}</div>
+        <div className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:py-8">{children}</div>
       </section>
     </main>
   );
 }
 
-function MenuIcon({ name }: { name: string }) {
+export function MenuIcon({ name }: { name: string }) {
   const common = "h-4 w-4 shrink-0";
   const icons: Record<string, ReactNode> = {
     dashboard: (
@@ -278,6 +300,22 @@ function MenuIcon({ name }: { name: string }) {
         <path d="M3 7h18v10H3V7Z" />
         <path d="M3 10h18" />
         <path d="M7 15h4" />
+      </svg>
+    ),
+    store: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={common} aria-hidden="true">
+        <path d="M4 10h16" />
+        <path d="M5 10l1.5-5h11L19 10" />
+        <path d="M6 10v10h12V10" />
+        <path d="M9 20v-5h6v5" />
+      </svg>
+    ),
+    delivery: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={common} aria-hidden="true">
+        <path d="M3 7h11v9H3V7Z" />
+        <path d="M14 10h4l3 3v3h-7" />
+        <circle cx="7" cy="18" r="2" />
+        <circle cx="18" cy="18" r="2" />
       </svg>
     ),
     settings: (
