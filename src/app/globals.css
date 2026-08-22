@@ -47,3 +47,53 @@ a {
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
 }
+
+.landing-fade-up {
+  animation: landing-fade-up 720ms ease both;
+}
+
+.landing-delay-1 {
+  animation-delay: 120ms;
+}
+
+.landing-delay-2 {
+  animation-delay: 220ms;
+}
+
+.landing-delay-3 {
+  animation-delay: 320ms;
+}
+
+.landing-float {
+  animation: landing-fade-up 760ms ease both, landing-float 6s ease-in-out 900ms infinite;
+}
+
+@keyframes landing-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-fade-up,
+  .landing-float {
+    animation: none;
+  }
+}

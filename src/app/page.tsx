@@ -36,6 +36,7 @@ export default function LandingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
   const [accountChecked, setAccountChecked] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   useEffect(() => {
     async function loadSellerSummary() {
@@ -121,31 +122,32 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen sellmate-page-bg pt-28 sm:pt-20">
-      <PlatformHeader cartCount={cartCount} storeHref={storeHref} isLoggedInSeller={isLoggedInSeller} />
+      <PlatformHeader cartCount={cartCount} storeHref={storeHref} isLoggedInSeller={isLoggedInSeller} onHelpClick={() => setSupportOpen(true)} />
       <section className="border-b border-slate-300 sellmate-hero-bg">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[1fr_0.92fr] lg:items-center">
-          <div>
-            <p className="w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">WhatsApp commerce for Nigerian sellers</p>
-            <h1 className="mt-5 max-w-3xl text-4xl font-black capitalize leading-[1.02] text-slate-950 sm:text-5xl lg:text-6xl">
+          <div className="landing-fade-up">
+            <p className="landing-fade-up w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">WhatsApp commerce for Nigerian sellers</p>
+            <h1 className="landing-fade-up landing-delay-1 mt-5 max-w-3xl text-4xl font-black capitalize leading-[1.02] text-slate-950 sm:text-5xl lg:text-6xl">
               {isLoggedInSeller ? `${sellerSummary?.businessName} store control.` : "Create your online store and manage WhatsApp orders."}
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            <p className="landing-fade-up landing-delay-2 mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
               {isLoggedInSeller
                 ? "You are logged in. Open your store to see your public products, pictures, available stock, cart, and checkout flow."
                 : "VENDORAQ helps sellers create a public shop, add products, collect customer orders, receive Paystack payments, and manage everything from a private dashboard."}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="landing-fade-up landing-delay-3 mt-8 flex flex-wrap gap-3">
               {isLoggedInSeller ? (
                 <Link href={storeHref} className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-700">Open my store</Link>
               ) : (
                 <>
                   <Link href="/register" className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white">Create seller account</Link>
                   <Link href="/login" className="rounded-md border border-slate-400 bg-slate-100 px-5 py-3 text-sm font-black text-slate-800">Seller login</Link>
+                  <button type="button" onClick={() => setSupportOpen(true)} className="rounded-md border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50">Need help?</button>
                 </>
               )}
             </div>
           </div>
-          <div className="rounded-lg border border-slate-700 bg-[#0b1728] p-3 shadow-2xl shadow-emerald-900/10">
+          <div className="landing-float rounded-lg border border-slate-700 bg-[#0b1728] p-3 shadow-2xl shadow-emerald-900/10">
             <div className="rounded-md bg-slate-100 p-4 shadow-inner">
               <div className="grid gap-3 sm:grid-cols-2">
                 {publicMetrics.map((metric) => <StatCard key={metric.label} {...metric} />)}
@@ -210,15 +212,15 @@ export default function LandingPage() {
           <>
             <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="text-sm font-bold text-emerald-700">View demo store</Link>} />
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+              <div className="landing-fade-up rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
                 <h2 className="text-lg font-black text-slate-950">1. Seller creates store</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">The seller registers, adds business details, delivery fee, logo, products, prices, stock, and WhatsApp number.</p>
               </div>
-              <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+              <div className="landing-fade-up landing-delay-1 rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
                 <h2 className="text-lg font-black text-slate-950">2. Customer shops</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">Customers open the seller store link, search products, add items to cart, and enter delivery details.</p>
               </div>
-              <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
+              <div className="landing-fade-up landing-delay-2 rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
                 <h2 className="text-lg font-black text-slate-950">3. Payment and receipt</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">Customers pay through Paystack, then send a neat receipt-style WhatsApp message to the seller.</p>
               </div>
@@ -226,8 +228,71 @@ export default function LandingPage() {
           </>
         )}
       </section>
+      {supportOpen ? <LandingSupportModal onClose={() => setSupportOpen(false)} storeHref={storeHref} /> : null}
       <PublicFooter storeHref={storeHref} />
     </main>
+  );
+}
+
+function LandingSupportModal({ onClose, storeHref }: { onClose: () => void; storeHref: string }) {
+  const guides = [
+    {
+      title: "Create a seller account",
+      text: "Click Start Selling, enter your name, business name, email, and password. After that you can open the dashboard and add products.",
+    },
+    {
+      title: "Log in as a seller",
+      text: "Click Seller Login, enter the same email and password you used to register, then you will enter your private dashboard.",
+    },
+    {
+      title: "How customers shop",
+      text: "Customers open your store link, search for goods, add products to cart, review the order, and continue to checkout.",
+    },
+    {
+      title: "Payment and support flow",
+      text: "Customers fill delivery details, pay through Paystack when connected, then send a clean receipt-style WhatsApp message to the seller.",
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="support-title">
+      <div className="landing-fade-up max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50 p-5 sm:p-6">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Help and support</p>
+            <h2 id="support-title" className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Learn how VENDORAQ works</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">This quick guide helps sellers and customers understand registration, login, shopping, checkout, and payment follow-up.</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm hover:bg-slate-100" aria-label="Close help">
+            Close
+          </button>
+        </div>
+        <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
+          {guides.map((guide, index) => (
+            <article key={guide.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-sm font-black text-emerald-700 ring-1 ring-emerald-200">
+                {index + 1}
+              </div>
+              <h3 className="mt-4 text-lg font-black text-slate-950">{guide.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{guide.text}</p>
+            </article>
+          ))}
+        </div>
+        <div className="border-t border-slate-200 bg-[#0F172A] p-5 text-white sm:p-6">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+            <div>
+              <h3 className="text-xl font-black">Need to test it now?</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">Use the buttons to register, log in, or open the public store flow.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/register" onClick={onClose} className="rounded-md bg-[#16A34A] px-4 py-3 text-sm font-black text-white hover:bg-[#15803D]">Start selling</Link>
+              <Link href="/login" onClick={onClose} className="rounded-md bg-white px-4 py-3 text-sm font-black text-slate-950 hover:bg-slate-100">Seller login</Link>
+              <Link href={storeHref} onClick={onClose} className="rounded-md border border-white/20 px-4 py-3 text-sm font-black text-white hover:bg-white/10">Open store</Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

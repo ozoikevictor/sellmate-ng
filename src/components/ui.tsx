@@ -374,7 +374,17 @@ export function HeaderIconButton({ href, icon, label }: { href: string; icon: "s
     </Link>
   );
 }
-export function PlatformHeader({ cartCount, storeHref = "/store/ada-fashion", isLoggedInSeller = false }: { cartCount: number; storeHref?: string; isLoggedInSeller?: boolean }) {
+export function PlatformHeader({
+  cartCount,
+  storeHref = "/store/ada-fashion",
+  isLoggedInSeller = false,
+  onHelpClick,
+}: {
+  cartCount: number;
+  storeHref?: string;
+  isLoggedInSeller?: boolean;
+  onHelpClick?: () => void;
+}) {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: storeHref, label: "Explore" },
@@ -390,11 +400,22 @@ export function PlatformHeader({ cartCount, storeHref = "/store/ada-fashion", is
           <VendoraqLogo compact />
         </Link>
         <div className="hidden items-center gap-1 rounded-full bg-[#F3F4F6] p-1 lg:flex">
-          {navLinks.map((link) => (
-            <Link key={link.href + link.label} href={link.href} className="rounded-full px-3 py-2 text-sm font-bold text-[#0F172A]/80 transition hover:bg-white hover:text-[#16A34A] hover:shadow-sm">
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) =>
+            link.label === "Help" && onHelpClick ? (
+              <button
+                key={link.href + link.label}
+                type="button"
+                onClick={onHelpClick}
+                className="rounded-full px-3 py-2 text-sm font-bold text-[#0F172A]/80 transition hover:bg-white hover:text-[#16A34A] hover:shadow-sm"
+              >
+                {link.label}
+              </button>
+            ) : (
+              <Link key={link.href + link.label} href={link.href} className="rounded-full px-3 py-2 text-sm font-bold text-[#0F172A]/80 transition hover:bg-white hover:text-[#16A34A] hover:shadow-sm">
+                {link.label}
+              </Link>
+            ),
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <CartIconLink href="/cart" count={cartCount} />
