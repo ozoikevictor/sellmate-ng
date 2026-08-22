@@ -502,11 +502,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               Email login code
               <input
                 name="login_code"
+                type="text"
                 inputMode="numeric"
-                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={6}
+                autoComplete="off"
                 required
                 className="rounded-md border border-slate-300 px-3 py-3 text-center text-2xl font-black tracking-[0.24em] outline-none focus:border-emerald-600"
                 placeholder="123456"
+                onInput={(event) => {
+                  event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "").slice(0, 6);
+                }}
               />
             </label>
           ) : (
