@@ -19,6 +19,7 @@ type AuthContextValue = {
   ready: boolean;
   login: (email: string, password: string) => AuthResult;
   verifyLoginCode: (email: string, code: string) => AuthResult;
+  resendLoginCode: (email: string) => AuthResult;
   register: (user: Omit<DemoUser, "id"> & { password: string }) => AuthResult;
   requestPasswordReset: (email: string) => AuthResult;
   updatePassword: (password: string) => AuthResult;
@@ -48,6 +49,9 @@ function formatAuthError(message: string) {
   }
   if (normalized.includes("email not confirmed")) {
     return "Please confirm your email first, then log in again.";
+  }
+  if (normalized.includes("expired") || normalized.includes("invalid")) {
+    return "This code is expired or not the newest one. Click Send new code and use the latest code from your email.";
   }
   return message;
 }
@@ -199,6 +203,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }, []);
 
+  const resendLoginCode = useCallback(async (email: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      return { ok: false, message: "Enter your email first." };
+    }
+
+    savePendingLoginEmail(normalizedEmail);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: getRedirectUrl(`/login?code_email=${encodeURIComponent(normalizedEmail)}`),
+        shouldCreateUser: false,
+      },
+    });
+    if (error) {
+      return { ok: false, message: formatAuthError(error.message) };
+    }
+
+    return { ok: true, message: "We sent a fresh login code to your email. Use the newest code only." };
+  }, []);
+
   const register = useCallback(async (newUser: Omit<DemoUser, "id"> & { password: string }) => {
     const normalizedEmail = newUser.email.trim().toLowerCase();
     if (!isGmailAddress(normalizedEmail)) {
@@ -261,7 +286,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, ready, login, verifyLoginCode, register, requestPasswordReset, updatePassword, logout }}>
+    <AuthContext.Provider value={{ user, ready, login, verifyLoginCode, resendLoginCode, register, requestPasswordReset, updatePassword, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -378,10 +403,11 @@ function AuthShell({ children }: { children: React.ReactNode }) {
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
-  const { login, verifyLoginCode, register, logout } = useAuth();
+  const { login, verifyLoginCode, resendLoginCode, register, logout } = useAuth();
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendingCode, setResendingCode] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
 
   useEffect(() => {
@@ -538,18 +564,39 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           </button>
         ) : null}
         {mode === "login" && pendingEmail ? (
-          <button
-            type="button"
-            onClick={() => {
-              setPendingEmail("");
-              clearPendingLoginEmail();
-              setError("");
-              setNotice("");
-            }}
-            className="mt-3 text-sm font-bold text-emerald-700 hover:text-emerald-900"
-          >
-            Use another email
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                setPendingEmail("");
+                clearPendingLoginEmail();
+                setError("");
+                setNotice("");
+              }}
+              className="text-sm font-bold text-emerald-700 hover:text-emerald-900"
+            >
+              Use another email
+            </button>
+            <button
+              type="button"
+              disabled={resendingCode}
+              onClick={async () => {
+                setError("");
+                setNotice("");
+                setResendingCode(true);
+                const result = await resendLoginCode(pendingEmail);
+                setResendingCode(false);
+                if (result.ok) {
+                  setNotice(result.message ?? "We sent a fresh code.");
+                } else {
+                  setError(result.message ?? "Could not send a fresh code.");
+                }
+              }}
+              className="text-sm font-bold text-slate-700 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-400"
+            >
+              {resendingCode ? "Sending new code..." : "Send new code"}
+            </button>
+          </div>
         ) : null}
         {error ? <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p> : null}
         {notice ? <p className="mt-4 rounded-md bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{notice}</p> : null}
