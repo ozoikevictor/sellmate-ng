@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { PublicFooter, SectionTitle, StatCard } from "@/components/ui";
+import { CartIconLink, PublicFooter, SectionTitle, StatCard } from "@/components/ui";
 import { readCart } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -134,7 +134,7 @@ export default function LandingPage() {
             ) : (
               <Link href={demoStoreHref} className="hidden text-sm font-bold text-slate-700 hover:text-slate-950 sm:inline">Demo store</Link>
             )}
-            <Link href="/cart" className="shrink-0 rounded-md bg-slate-200 px-3 py-2 text-xs font-black text-slate-800 ring-1 ring-slate-400 hover:bg-slate-100 sm:text-sm">Cart · {cartCount}</Link>
+            <CartIconLink href="/cart" count={cartCount} />
             {isLoggedInSeller ? null : (
               <>
                 <Link href="/login" className="shrink-0 rounded-md px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 hover:text-slate-950 sm:text-sm">Seller login</Link>
@@ -252,3 +252,4 @@ export default function LandingPage() {
     </main>
   );
 }
+
