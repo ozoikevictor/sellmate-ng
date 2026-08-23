@@ -174,6 +174,10 @@ button,
   animation: landing-pulse-dot 1.8s ease-out infinite;
 }
 
+.landing-rotate-line {
+  animation: landing-rotate-line 520ms ease both;
+}
+
 @keyframes landing-fade-up {
   from {
     opacity: 0;
@@ -211,10 +215,23 @@ button,
   }
 }
 
+@keyframes landing-rotate-line {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .landing-fade-up,
   .landing-float,
-  .landing-pulse-dot {
+  .landing-pulse-dot,
+  .landing-rotate-line {
     animation: none;
   }
 }
