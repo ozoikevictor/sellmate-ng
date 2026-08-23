@@ -11,6 +11,8 @@
   --brand-sky: #dff3ff;
   --brand-line: #c8d4e3;
   --brand-card: #ffffff;
+  --font-display: "Segoe UI", Inter, Arial, Helvetica, sans-serif;
+  --font-body: "Segoe UI", Inter, Arial, Helvetica, sans-serif;
 }
 
 * {
@@ -23,11 +25,90 @@ body {
     radial-gradient(circle at top right, rgba(0, 143, 97, 0.12), transparent 32rem),
     linear-gradient(180deg, #f8fbff 0%, #eef5f9 42%, #f7fbff 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
   text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #07111f;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 5vw, 5.75rem);
+}
+
+h2 {
+  font-size: clamp(1.75rem, 3vw, 3.25rem);
+}
+
+h3 {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+}
+
+p,
+li,
+label,
+input,
+textarea,
+select,
+button {
+  letter-spacing: 0;
+}
+
+p,
+li {
+  color: #334155;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+}
+
+input,
+textarea,
+select {
+  font-weight: 600;
+}
+
+button,
+[role="button"] {
+  font-weight: 800;
+}
+
+.vendoraq-kicker,
+.text-kicker {
+  color: #047857;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.vendoraq-title-case {
+  text-transform: capitalize;
 }
 
 .sellmate-page-bg {
