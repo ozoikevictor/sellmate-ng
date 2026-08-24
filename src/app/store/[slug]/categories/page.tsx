@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import GlobalPageLoader from "@/components/global-page-loader";
 import { CartIconLink, PublicFooter, StoreHeader } from "@/components/ui";
 import { readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { getCategoryMainLabel, getStoreCategoryLabels } from "@/lib/categories";
@@ -24,21 +23,20 @@ export default function StoreCategoriesPage() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const nextProfile = await loadStoreBySlug(slug);
-      if (nextProfile) {
-        setProfile(nextProfile);
-        setProducts(await loadLiveStoreProducts(nextProfile.user_id));
-      }
       writeCurrentStoreHref(storeHref);
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
-      setLoading(false);
+      try {
+        const nextProfile = await loadStoreBySlug(slug);
+        if (nextProfile) {
+          setProfile(nextProfile);
+          setProducts(await loadLiveStoreProducts(nextProfile.user_id));
+        }
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, [slug, storeHref]);
-
-  if (loading) {
-    return <GlobalPageLoader />;
-  }
 
   const sellerName = profile?.business_name ?? "Store";
   const categories = getStoreCategoryLabels(products.map((product) => product.category));
@@ -62,7 +60,16 @@ export default function StoreCategoriesPage() {
           ))}
         </div>
         <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {visibleProducts.map((product) => (
+          {loading ? Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
+              <div className="aspect-square animate-pulse bg-slate-200" />
+              <div className="p-4">
+                <div className="h-6 w-24 animate-pulse rounded-full bg-slate-200" />
+                <div className="mt-3 h-5 w-4/5 animate-pulse rounded bg-slate-200" />
+                <div className="mt-3 h-5 w-24 animate-pulse rounded bg-slate-200" />
+              </div>
+            </div>
+          )) : visibleProducts.map((product) => (
             <Link key={product.id} href={`${storeHref}/product/${product.id}`} className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
               <div className="aspect-square bg-slate-100 bg-cover bg-center" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
               <div className="p-4">
@@ -73,7 +80,7 @@ export default function StoreCategoriesPage() {
             </Link>
           ))}
         </div>
-        {visibleProducts.length === 0 ? <p className="mt-8 rounded-lg bg-amber-50 p-4 text-sm font-bold text-amber-800">No products in this category yet.</p> : null}
+        {!loading && visibleProducts.length === 0 ? <p className="mt-8 rounded-lg bg-amber-50 p-4 text-sm font-bold text-amber-800">No products in this category yet.</p> : null}
       </section>
       <PublicFooter sellerName={sellerName} storeHref={storeHref} />
     </main>

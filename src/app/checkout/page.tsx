@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import GlobalPageLoader from "@/components/global-page-loader";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { saveCustomerOrder } from "@/lib/customer-orders";
@@ -58,12 +57,10 @@ export default function CheckoutPage() {
         return;
       }
       setStoreHref(preferredStoreHref);
+      setItems(cartItems);
+      setMounted(true);
       const nextItems = await syncCartWithProducts(cartItems, setItems, setMessage);
       await loadSellerDetails(nextItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
-      if (!active) {
-        return;
-      }
-      setMounted(true);
     }
 
     loadCheckoutPage();
@@ -196,10 +193,6 @@ export default function CheckoutPage() {
     }
 
     window.location.href = paymentData.authorizationUrl;
-  }
-
-  if (!mounted) {
-    return <GlobalPageLoader />;
   }
 
   return (

@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import GlobalPageLoader from "@/components/global-page-loader";
 import { IconGlyph, PublicFooter, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { getCategoryMainLabel } from "@/lib/categories";
@@ -13,6 +12,7 @@ import { isWishlisted, toggleWishlist } from "@/lib/wishlist";
 
 export default function ProductDetailsPage() {
   const params = useParams<{ slug: string; productId: string }>();
+  const router = useRouter();
   const slug = params.slug;
   const productId = params.productId;
   const [profile, setProfile] = useState<StoreProfile | null>(null);
@@ -27,6 +27,8 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     async function load() {
       setLoading(true);
+      writeCurrentStoreHref(`/store/${slug}`);
+      setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
       try {
         const nextProfile = await loadStoreBySlug(slug);
         if (!nextProfile) {
@@ -37,8 +39,6 @@ export default function ProductDetailsPage() {
         setProfile(nextProfile);
         setProduct(nextProduct);
         setFavorite(isWishlisted(productId, slug));
-        writeCurrentStoreHref(`/store/${slug}`);
-        setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
         if (!nextProduct) {
           setMessage("This product is not available right now.");
         }
@@ -73,7 +73,7 @@ export default function ProductDetailsPage() {
     }
     setCartCount(nextCart.filter((item) => item.store_slug === profile.store_slug).reduce((sum, item) => sum + item.qty, 0));
     if (openCheckout) {
-      window.location.href = `/checkout?store=${encodeURIComponent(profile.store_slug)}`;
+      router.push(`/checkout?store=${encodeURIComponent(profile.store_slug)}`);
     } else {
       setMessage(`${product.name} added to cart.`);
     }
@@ -98,10 +98,6 @@ export default function ProductDetailsPage() {
     setFavorite((current) => !current);
   }
 
-  if (loading) {
-    return <GlobalPageLoader />;
-  }
-
   const sellerName = profile?.business_name ?? "Store";
   const storeHref = `/store/${slug}`;
   const cartHref = `/cart?store=${encodeURIComponent(slug)}`;
@@ -118,7 +114,26 @@ export default function ProductDetailsPage() {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[1fr_420px]">
-        {!product ? (
+        {loading ? (
+          <>
+            <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-lg">
+              <div className="aspect-[4/3] animate-pulse rounded-lg bg-slate-200" />
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="aspect-video animate-pulse rounded-lg bg-slate-200" />
+                <div className="aspect-video animate-pulse rounded-lg bg-slate-200" />
+                <div className="aspect-video animate-pulse rounded-lg bg-slate-200" />
+              </div>
+            </div>
+            <aside className="h-fit rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-lg lg:sticky lg:top-28">
+              <div className="h-8 w-32 animate-pulse rounded-full bg-slate-200" />
+              <div className="mt-5 h-10 w-4/5 animate-pulse rounded bg-slate-200" />
+              <div className="mt-4 h-4 w-full animate-pulse rounded bg-slate-200" />
+              <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-slate-200" />
+              <div className="mt-6 h-12 w-40 animate-pulse rounded bg-slate-200" />
+              <div className="mt-8 h-12 w-full animate-pulse rounded-lg bg-slate-200" />
+            </aside>
+          </>
+        ) : !product ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-800">{message}</div>
         ) : (
           <>

@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import GlobalPageLoader from "@/components/global-page-loader";
 import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { getCategoryMainLabel, getStoreCategoryLabels } from "@/lib/categories";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
+import { primeStorefrontCache } from "@/lib/storefront";
 import { readWishlist, toggleWishlist } from "@/lib/wishlist";
 
 type StoreProfile = {
@@ -93,7 +93,9 @@ export default function DynamicStorefrontPage() {
         setMessage(productError.message);
       } else {
         setProfile(profileData);
-        setProducts(productData ?? []);
+        const nextProducts = productData ?? [];
+        setProducts(nextProducts);
+        primeStorefrontCache(profileData, nextProducts);
       }
       setLoading(false);
     }
@@ -175,10 +177,6 @@ export default function DynamicStorefrontPage() {
 
     return matchesCategory && [product.name, product.category, product.sku, product.variant_options ?? ""].some((value) => value.toLowerCase().includes(query));
   });
-
-  if (loading && !profile) {
-    return <GlobalPageLoader />;
-  }
 
   return (
     <main className="min-h-screen bg-[#f2f6fb]">
@@ -286,14 +284,28 @@ export default function DynamicStorefrontPage() {
           action={<CartIconLink href={storeCartHref} count={cartCount} />}
         />
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
-        {loading ? <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">Loading products...</p> : null}
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm">
+                <div className="h-36 animate-pulse bg-slate-200 sm:h-48 lg:h-44 xl:h-48" />
+                <div className="p-3 sm:p-4">
+                  <div className="h-6 w-24 animate-pulse rounded-full bg-slate-200" />
+                  <div className="mt-3 h-5 w-4/5 animate-pulse rounded bg-slate-200" />
+                  <div className="mt-3 h-4 w-full animate-pulse rounded bg-slate-200" />
+                  <div className="mt-5 h-11 w-full animate-pulse rounded-lg bg-slate-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
         {!loading && !message && products.length === 0 ? (
           <p className="rounded-md bg-amber-50 p-4 text-sm font-semibold text-amber-800">No live products yet. Add a product in the seller dashboard and set its status to Live.</p>
         ) : null}
         {!loading && !message && products.length > 0 && filteredProducts.length === 0 ? (
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
         ) : null}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        {!loading ? <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {filteredProducts.map((product) => {
             const rating = getProductRating(product);
             const isFavorite = favoriteIds.includes(product.id);
@@ -341,7 +353,7 @@ export default function DynamicStorefrontPage() {
               </article>
             );
           })}
-        </div>
+        </div> : null}
       </section>
       {cartNotice || cartCount > 0 ? (
         <div className="fixed bottom-5 left-4 right-4 z-50 sellmate-card rounded-lg p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">

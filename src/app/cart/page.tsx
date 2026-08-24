@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import GlobalPageLoader from "@/components/global-page-loader";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -44,11 +43,8 @@ export default function CartPage() {
       }
       setItems(cartItems);
       setStoreHref(preferredStoreHref);
-      await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
-      if (!active) {
-        return;
-      }
       setMounted(true);
+      await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
     }
 
     loadCartPage();
@@ -60,10 +56,6 @@ export default function CartPage() {
   function changeQty(id: string, qty: number) {
     const updatedItems = updateCartQty(id, qty);
     setItems(storeSlug ? updatedItems.filter((item) => item.store_slug === storeSlug) : updatedItems);
-  }
-
-  if (!mounted) {
-    return <GlobalPageLoader />;
   }
 
   return (
@@ -96,7 +88,15 @@ export default function CartPage() {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {items.length === 0 ? (
+        {!mounted ? (
+          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-lg">
+            <div className="h-5 w-36 animate-pulse rounded bg-slate-100" />
+            <div className="mt-5 grid gap-4">
+              <div className="h-24 animate-pulse rounded-lg bg-slate-100" />
+              <div className="h-24 animate-pulse rounded-lg bg-slate-100" />
+            </div>
+          </div>
+        ) : items.length === 0 ? (
           <div className="rounded-lg border border-dashed border-emerald-300 bg-white p-8 text-center shadow-lg">
             <p className="text-2xl font-black text-slate-950">Nothing in cart yet.</p>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">Your cart is connected to this store. Add products first, then come back here to review your order.</p>

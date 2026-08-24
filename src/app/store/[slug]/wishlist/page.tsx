@@ -20,10 +20,10 @@ export default function WishlistPage() {
 
   useEffect(() => {
     async function load() {
-      setProfile(await loadStoreBySlug(slug));
       setItems(readWishlist(slug));
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
       writeCurrentStoreHref(storeHref);
+      setProfile(await loadStoreBySlug(slug));
     }
     load();
   }, [slug, storeHref]);
