@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
+import { getCategoryMainLabel, getStoreCategoryLabels } from "@/lib/categories";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -54,6 +55,7 @@ export default function DynamicStorefrontPage() {
   const [message, setMessage] = useState("");
   const [cartNotice, setCartNotice] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [heroIndex, setHeroIndex] = useState(0);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
@@ -129,7 +131,7 @@ export default function DynamicStorefrontPage() {
   const brandName = businessName;
   const logoUrl = profile?.logo_url || "";
   const city = profile?.city || "Nigeria";
-  const categories = Array.from(new Set(products.map((product) => product.category).filter(Boolean))).slice(0, 8);
+  const categories = getStoreCategoryLabels(products.map((product) => product.category));
   const heroProducts = products.length > 0 ? products.slice(0, 6) : [];
   const featuredProduct = heroProducts[heroIndex % Math.max(heroProducts.length, 1)];
   const lowStockCount = products.filter((product) => product.stock <= 5).length;
@@ -151,11 +153,14 @@ export default function DynamicStorefrontPage() {
 
   const filteredProducts = products.filter((product) => {
     const query = searchTerm.trim().toLowerCase();
+    const activeCategory = selectedCategory.trim().toLowerCase();
+    const matchesCategory = !activeCategory || getCategoryMainLabel(product.category).toLowerCase() === activeCategory;
+
     if (!query) {
-      return true;
+      return matchesCategory;
     }
 
-    return [product.name, product.category, product.sku, product.variant_options ?? ""].some((value) => value.toLowerCase().includes(query));
+    return matchesCategory && [product.name, product.category, product.sku, product.variant_options ?? ""].some((value) => value.toLowerCase().includes(query));
   });
 
   if (loading && !profile) {
@@ -186,8 +191,15 @@ export default function DynamicStorefrontPage() {
           <aside className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:block">
             <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Categories</p>
             <div className="grid gap-2 text-sm font-bold text-slate-700">
-              {(categories.length ? categories : ["Products", "New arrivals", "Best sellers", "Deals"]).map((category) => (
-                <a key={category} href="#products" className="rounded-md px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700">{category}</a>
+              {(categories.length ? categories : ["All products"]).map((category) => (
+                <a
+                  key={category}
+                  href="#products"
+                  onClick={() => setSelectedCategory(category === "All products" ? "" : category)}
+                  className={`rounded-md px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700 ${selectedCategory === category ? "bg-emerald-50 text-emerald-700" : ""}`}
+                >
+                  {category}
+                </a>
               ))}
             </div>
           </aside>
@@ -252,9 +264,15 @@ export default function DynamicStorefrontPage() {
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
           {(categories.length ? categories : ["All products"]).map((category) => (
-            <button key={category} onClick={() => setSearchTerm(category)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm hover:border-emerald-300 hover:text-emerald-700">{category}</button>
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category === "All products" ? "" : category)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-black shadow-sm hover:border-emerald-300 hover:text-emerald-700 ${selectedCategory === category ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-white text-slate-700"}`}
+            >
+              {category}
+            </button>
           ))}
-          {searchTerm ? <button onClick={() => setSearchTerm("")} className="rounded-full px-3 py-1.5 text-xs font-black text-emerald-700">Clear search</button> : null}
+          {searchTerm || selectedCategory ? <button onClick={() => { setSearchTerm(""); setSelectedCategory(""); }} className="rounded-full px-3 py-1.5 text-xs font-black text-emerald-700">Clear filters</button> : null}
         </div>
         <SectionTitle
           eyebrow="Latest deals"
@@ -291,7 +309,7 @@ export default function DynamicStorefrontPage() {
                     </svg>
                   </button>
                   <span className="absolute bottom-3 left-3 rounded-full bg-[#DCFCE7] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#166534] sm:text-xs">
-                    {product.category}
+                    {getCategoryMainLabel(product.category)}
                   </span>
                 </div>
                 <div className="flex flex-1 flex-col p-3 sm:p-4">
