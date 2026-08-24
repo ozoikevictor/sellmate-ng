@@ -491,6 +491,19 @@ export function StoreHeader({
     { label: "My Orders", href: "#products", icon: "user" },
     { label: "Contact Store / Support", href: contactHref, icon: "user", external: Boolean(cleanPhone) },
   ];
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
   const searchField = (
     <label className="relative block">
       <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
@@ -504,7 +517,7 @@ export function StoreHeader({
   );
 
   return (
-    <header className="sticky inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
+    <header className="sticky inset-x-0 top-0 z-[900] border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
       <nav className="mx-auto max-w-7xl px-3 py-2 sm:px-5 lg:py-3">
         <div className="flex min-h-14 items-center gap-2 lg:min-h-16 lg:gap-4">
           <button
@@ -532,15 +545,21 @@ export function StoreHeader({
         <div className="mt-2 lg:hidden">{searchField}</div>
       </nav>
 
-      {menuOpen ? (
-        <>
-          <button
-            type="button"
-            aria-label="Close store menu"
-            onClick={() => setMenuOpen(false)}
-            className="fixed inset-0 z-[60] bg-slate-950/55 backdrop-blur-[2px]"
-          />
-          <aside className="fixed inset-y-0 left-0 z-[70] flex w-[min(86vw,360px)] flex-col bg-white shadow-2xl">
+      <>
+        <button
+          type="button"
+          aria-label="Close store menu"
+          onClick={() => setMenuOpen(false)}
+          className={`fixed inset-0 z-[1000] bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ${
+            menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        />
+        <aside
+          aria-hidden={!menuOpen}
+          className={`fixed left-0 top-0 z-[1001] flex h-[100dvh] w-[min(88vw,360px)] max-w-full flex-col overflow-y-auto border-r border-[#E5E7EB] bg-white shadow-2xl transition-transform duration-300 ease-out ${
+            menuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
             <div className="flex items-center justify-between gap-3 border-b border-[#E5E7EB] p-4">
               <Link href={storeHref} onClick={() => setMenuOpen(false)} className="flex min-w-0 items-center gap-3 font-black text-[#0F172A]">
                 <SellerLogo name={sellerName} size="sm" />
@@ -558,11 +577,11 @@ export function StoreHeader({
 
             <div className="grid gap-2 p-4">
               {drawerLinks.map((link) => {
-                const className = "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]";
+                const className = "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-black leading-tight text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]";
                 const content = (
                   <>
-                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#F3F4F6] text-[#16A34A]"><IconGlyph name={link.icon} className="h-4 w-4" /></span>
-                    <span>{link.label}</span>
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#F3F4F6] text-[#16A34A]"><IconGlyph name={link.icon} className="h-4 w-4" /></span>
+                    <span className="min-w-0 flex-1">{link.label}</span>
                   </>
                 );
 
@@ -582,8 +601,7 @@ export function StoreHeader({
               {whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Browse products, add to cart, and checkout securely."}
             </div>
           </aside>
-        </>
-      ) : null}
+      </>
     </header>
   );
 }
