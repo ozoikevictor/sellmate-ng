@@ -501,11 +501,14 @@ export function StoreHeader({
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [menuOpen]);
 
@@ -530,12 +533,12 @@ export function StoreHeader({
             onClick={() => setMenuOpen(true)}
             aria-label="Open store menu"
             title="Open store menu"
-            className="fixed left-3 top-3 z-[950] grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[#E5E7EB] bg-white text-[#16A34A] shadow-[0_10px_28px_rgba(15,23,42,0.16)] transition hover:-translate-y-0.5 hover:bg-[#F3F4F6] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20 lg:static lg:z-auto lg:h-10 lg:w-10 lg:rounded-full lg:border-0 lg:bg-transparent lg:text-[#0F172A] lg:shadow-none lg:hover:bg-[#F3F4F6] lg:hover:text-[#16A34A]"
+            className="grid h-10 w-10 shrink-0 place-items-center text-[#16A34A] transition hover:text-[#15803D] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16A34A]/30 lg:text-[#0F172A] lg:hover:text-[#16A34A]"
           >
             <IconGlyph name="menu" className="h-5 w-5" />
           </button>
 
-          <Link href={storeHref} className="ml-12 flex min-w-0 flex-1 items-center gap-2 text-base font-black leading-tight text-[#0F172A] lg:ml-0 lg:flex-none lg:basis-[240px] lg:text-lg">
+          <Link href={storeHref} className="flex min-w-0 flex-1 items-center gap-2 text-base font-black leading-tight text-[#0F172A] lg:flex-none lg:basis-[240px] lg:text-lg">
             <SellerLogo name={sellerName} size="sm" />
             <span className="truncate capitalize">{sellerName}</span>
           </Link>
@@ -561,11 +564,11 @@ export function StoreHeader({
         />
         <aside
           aria-hidden={!menuOpen}
-          className={`fixed left-0 top-0 z-[1001] flex h-[100dvh] w-[min(88vw,360px)] max-w-full flex-col overflow-y-auto border-r border-[#E5E7EB] bg-white shadow-2xl transition-transform duration-300 ease-out ${
+          className={`fixed inset-y-0 left-0 z-[1001] flex h-[100dvh] w-[min(90vw,380px)] max-w-full flex-col overflow-hidden border-r border-[#E5E7EB] bg-white text-[#0F172A] shadow-2xl transition-transform duration-300 ease-out ${
             menuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-            <div className="flex items-center justify-between gap-3 border-b border-[#E5E7EB] p-4">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#E5E7EB] p-4">
               <Link href={storeHref} onClick={() => setMenuOpen(false)} className="flex min-w-0 items-center gap-3 font-black text-[#0F172A]">
                 <SellerLogo name={sellerName} size="sm" />
                 <span className="truncate capitalize">{sellerName}</span>
@@ -580,7 +583,8 @@ export function StoreHeader({
               </button>
             </div>
 
-            <div className="grid gap-2 p-4">
+            <div className="flex h-0 min-h-0 flex-1 flex-col overflow-y-scroll overflow-x-hidden px-4 py-5 [-webkit-overflow-scrolling:touch] [overscroll-behavior-y:contain] [touch-action:pan-y]">
+            <div className="grid gap-2">
               {drawerLinks.map((link) => {
                 const className = "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-black leading-tight text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]";
                 const content = (
@@ -602,8 +606,9 @@ export function StoreHeader({
               })}
             </div>
 
-            <div className="mt-auto border-t border-[#E5E7EB] bg-[#F3F4F6] p-4 text-sm font-semibold text-slate-600">
+            <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-[#F3F4F6] p-4 text-sm font-semibold text-slate-600">
               {whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Browse products, add to cart, and checkout securely."}
+            </div>
             </div>
           </aside>
       </>
