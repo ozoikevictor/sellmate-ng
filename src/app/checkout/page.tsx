@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import GlobalPageLoader from "@/components/global-page-loader";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
+import { saveCustomerOrder } from "@/lib/customer-orders";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -115,6 +116,7 @@ export default function CheckoutPage() {
       body: JSON.stringify({
         sellerId,
         customerName,
+        customerEmail,
         customerPhone,
         city,
         deliveryAddress,
@@ -137,6 +139,31 @@ export default function CheckoutPage() {
       .select("business_name,whatsapp_phone")
       .eq("user_id", sellerId)
       .maybeSingle();
+
+    saveCustomerOrder({
+      id: orderData.orderId,
+      store_slug: storeSlug,
+      seller_id: sellerId,
+      seller_name: sellerProfile?.business_name ?? sellerName,
+      customer_name: customerName,
+      customer_email: customerEmail,
+      customer_phone: customerPhone,
+      city,
+      delivery_address: deliveryAddress,
+      subtotal: Number(orderData.subtotal ?? subtotal),
+      delivery_fee: Number(orderData.deliveryFee ?? delivery),
+      total: Number(orderData.total ?? total),
+      payment_status: "Pending",
+      order_status: "New",
+      created_at: new Date().toISOString(),
+      items: validatedItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+        image_url: item.image_url,
+      })),
+    });
 
     savePendingWhatsAppOrder({
       orderId: orderData.orderId,

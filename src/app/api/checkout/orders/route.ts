@@ -34,6 +34,7 @@ export async function POST(request: Request) {
   let body: {
     sellerId?: string;
     customerName?: string;
+    customerEmail?: string;
     customerPhone?: string;
     city?: string;
     deliveryAddress?: string;
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
 
   const sellerId = String(body.sellerId ?? "").trim();
   const customerName = String(body.customerName ?? "").trim();
+  const customerEmail = String(body.customerEmail ?? "").trim();
   const customerPhone = String(body.customerPhone ?? "").trim();
   const city = String(body.city ?? "").trim();
   const deliveryAddress = String(body.deliveryAddress ?? "").trim();
@@ -116,22 +118,32 @@ export async function POST(request: Request) {
   const deliveryFee = Number(profile?.delivery_fee ?? 0);
   const total = subtotal + deliveryFee;
 
-  const { data: order, error: orderError } = await supabase
+  const baseOrderInsert = {
+    user_id: sellerId,
+    customer_name: customerName,
+    customer_phone: customerPhone,
+    city,
+    delivery_address: deliveryAddress,
+    subtotal,
+    delivery_fee: deliveryFee,
+    total,
+    status: "New",
+    payment_status: "Pending",
+  };
+
+  const orderInsert = customerEmail ? { ...baseOrderInsert, customer_email: customerEmail } : baseOrderInsert;
+
+  let { data: order, error: orderError } = await supabase
     .from("orders")
-    .insert({
-      user_id: sellerId,
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      city,
-      delivery_address: deliveryAddress,
-      subtotal,
-      delivery_fee: deliveryFee,
-      total,
-      status: "New",
-      payment_status: "Pending",
-    })
+    .insert(orderInsert)
     .select("id")
     .single();
+
+  if (orderError && /customer_email|schema cache|column/i.test(orderError.message)) {
+    const retry = await supabase.from("orders").insert(baseOrderInsert).select("id").single();
+    order = retry.data;
+    orderError = retry.error;
+  }
 
   if (orderError || !order) {
     return NextResponse.json({ message: orderError?.message ?? "Could not create order." }, { status: 400 });

@@ -482,13 +482,17 @@ export function StoreHeader({
   const [menuOpen, setMenuOpen] = useState(false);
   const cleanPhone = whatsappPhone?.replace(/\D/g, "");
   const contactHref = cleanPhone ? `https://wa.me/${cleanPhone}` : "#products";
+  const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
+  const categoriesHref = storeSlug ? `/store/${storeSlug}/categories` : `${storeHref}#products`;
+  const wishlistHref = storeSlug ? `/store/${storeSlug}/wishlist` : `${storeHref}#products`;
+  const ordersHref = storeSlug ? `/store/${storeSlug}/orders` : `${storeHref}#products`;
   const drawerLinks: Array<{ label: string; href: string; icon: "search" | "heart" | "cart" | "user" | "home" | "menu"; external?: boolean }> = [
     { label: "Home", href: storeHref, icon: "home" },
-    { label: "All Products", href: "#products", icon: "search" },
-    { label: "Categories", href: "#products", icon: "menu" },
-    { label: "Wishlist", href: "#products", icon: "heart" },
+    { label: "All Products", href: `${storeHref}#products`, icon: "search" },
+    { label: "Categories", href: categoriesHref, icon: "menu" },
+    { label: "Wishlist", href: wishlistHref, icon: "heart" },
     { label: "My Cart", href: cartHref, icon: "cart" },
-    { label: "My Orders", href: "#products", icon: "user" },
+    { label: "My Orders", href: ordersHref, icon: "user" },
     { label: "Contact Store / Support", href: contactHref, icon: "user", external: Boolean(cleanPhone) },
   ];
   useEffect(() => {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { clearCart, readCurrentStoreHref } from "@/lib/cart";
+import { markCustomerOrderPaid } from "@/lib/customer-orders";
 
 function PaymentCallbackContent() {
   const params = useSearchParams();
@@ -33,6 +34,7 @@ function PaymentCallbackContent() {
       }
 
       clearCart();
+      markCustomerOrderPaid(order);
       setStatus("success");
       setMessage("Payment received. Your order has been sent to the seller.");
       const nextWhatsappUrl = buildPendingWhatsAppUrl();

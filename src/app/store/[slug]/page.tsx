@@ -9,6 +9,7 @@ import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { getCategoryMainLabel, getStoreCategoryLabels } from "@/lib/categories";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
+import { readWishlist, toggleWishlist } from "@/lib/wishlist";
 
 type StoreProfile = {
   user_id: string;
@@ -99,6 +100,7 @@ export default function DynamicStorefrontPage() {
 
     loadStore();
     writeCurrentStoreHref(`/store/${slug}`);
+    setFavoriteIds(readWishlist(slug).map((item) => item.id));
     const timer = window.setTimeout(() => {
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
     }, 0);
@@ -122,10 +124,20 @@ export default function DynamicStorefrontPage() {
     window.setTimeout(() => setCartNotice(""), 2600);
   }
 
-  function toggleFavorite(productId: string) {
-    setFavoriteIds((current) =>
-      current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId],
-    );
+  function toggleFavorite(product: StoreProduct) {
+    const next = toggleWishlist({
+      id: product.id,
+      user_id: product.user_id,
+      store_slug: activeStoreSlug,
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      variant_options: product.variant_options,
+      price: product.price,
+      stock: product.stock,
+      image_url: product.image_url,
+    });
+    setFavoriteIds(next.filter((item) => item.store_slug === activeStoreSlug).map((item) => item.id));
   }
 
   const businessName = profile?.business_name || "Store";
@@ -288,13 +300,15 @@ export default function DynamicStorefrontPage() {
             return (
               <article key={product.id} className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
                 <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
-                  <div
-                    className="h-36 bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
-                    style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
-                  />
+                  <Link href={`/store/${activeStoreSlug}/product/${product.id}`} aria-label={`View ${product.name}`}>
+                    <div
+                      className="h-36 bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
+                      style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
+                    />
+                  </Link>
                   <button
                     type="button"
-                    onClick={() => toggleFavorite(product.id)}
+                    onClick={() => toggleFavorite(product)}
                     aria-label={isFavorite ? "Remove from favourites" : "Add to favourites"}
                     className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-lg bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] transition hover:bg-white ${isFavorite ? "text-rose-600" : "text-slate-600 hover:text-rose-600"}`}
                   >
@@ -313,10 +327,10 @@ export default function DynamicStorefrontPage() {
                     </span>
                     <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
                   </div>
-                  <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] sm:text-lg">{product.name}</h3>
-                  <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">
+                  <Link href={`/store/${activeStoreSlug}/product/${product.id}`} className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] transition hover:text-[#16A34A] sm:text-lg">{product.name}</Link>
+                  <Link href={`/store/${activeStoreSlug}/product/${product.id}`} className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] transition hover:text-slate-800 sm:text-sm">
                     {product.variant_options || `SKU: ${product.sku}`}
-                  </p>
+                  </Link>
                   <p className="mt-2 text-xs font-black text-[#166534]">{rating.label}</p>
                   <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">{formatNaira(product.price)}</p>
                   <button onClick={() => handleAddToCart(product)} className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">
