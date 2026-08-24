@@ -89,7 +89,7 @@ export default function StorefrontPage() {
   }
 
   const businessName = profile.business_name;
-  const brandName = profile.logo_text || businessName;
+  const brandName = businessName;
   const logoUrl = profile.logo_url || "";
   const city = profile.city;
   const filteredProducts = products.filter((product) => {

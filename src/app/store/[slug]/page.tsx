@@ -126,7 +126,7 @@ export default function DynamicStorefrontPage() {
   }
 
   const businessName = profile?.business_name || "Store";
-  const brandName = profile?.logo_text || businessName;
+  const brandName = businessName;
   const logoUrl = profile?.logo_url || "";
   const city = profile?.city || "Nigeria";
   const categories = Array.from(new Set(products.map((product) => product.category).filter(Boolean))).slice(0, 8);
