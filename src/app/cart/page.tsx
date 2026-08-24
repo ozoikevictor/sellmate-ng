@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import GlobalPageLoader from "@/components/global-page-loader";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -31,17 +32,29 @@ export default function CartPage() {
   const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   useEffect(() => {
-    const timer = window.setTimeout(async () => {
+    let active = true;
+
+    async function loadCartPage() {
       const allCartItems = readCart();
       const storeSlugFromUrl = new URLSearchParams(window.location.search).get("store");
       const cartItems = storeSlugFromUrl ? allCartItems.filter((item) => item.store_slug === storeSlugFromUrl) : allCartItems;
       const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref();
+      if (!active) {
+        return;
+      }
       setItems(cartItems);
       setStoreHref(preferredStoreHref);
       await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
+      if (!active) {
+        return;
+      }
       setMounted(true);
-    }, 0);
-    return () => window.clearTimeout(timer);
+    }
+
+    loadCartPage();
+    return () => {
+      active = false;
+    };
   }, []);
 
   function changeQty(id: string, qty: number) {
@@ -50,14 +63,7 @@ export default function CartPage() {
   }
 
   if (!mounted) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#f2f6fb] px-5">
-        <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-xl">
-          <p className="text-sm font-black text-slate-950">Loading your cart...</p>
-          <p className="mt-2 text-xs font-semibold text-slate-500">Getting the correct store before showing this page.</p>
-        </div>
-      </main>
-    );
+    return <GlobalPageLoader />;
   }
 
   return (

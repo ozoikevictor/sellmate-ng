@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import GlobalPageLoader from "@/components/global-page-loader";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -45,17 +46,29 @@ export default function CheckoutPage() {
   const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
 
   useEffect(() => {
-    const timer = window.setTimeout(async () => {
+    let active = true;
+
+    async function loadCheckoutPage() {
       const allCartItems = readCart();
       const storeSlugFromUrl = new URLSearchParams(window.location.search).get("store");
       const cartItems = storeSlugFromUrl ? allCartItems.filter((item) => item.store_slug === storeSlugFromUrl) : allCartItems;
       const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref();
+      if (!active) {
+        return;
+      }
       setStoreHref(preferredStoreHref);
       const nextItems = await syncCartWithProducts(cartItems, setItems, setMessage);
       await loadSellerDetails(nextItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
+      if (!active) {
+        return;
+      }
       setMounted(true);
-    }, 0);
-    return () => window.clearTimeout(timer);
+    }
+
+    loadCheckoutPage();
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function placeOrder(event: React.FormEvent<HTMLFormElement>) {
@@ -159,14 +172,7 @@ export default function CheckoutPage() {
   }
 
   if (!mounted) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#f2f6fb] px-5">
-        <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-xl">
-          <p className="text-sm font-black text-slate-950">Loading checkout...</p>
-          <p className="mt-2 text-xs font-semibold text-slate-500">Getting your cart and seller details first.</p>
-        </div>
-      </main>
-    );
+    return <GlobalPageLoader />;
   }
 
   return (

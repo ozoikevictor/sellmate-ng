@@ -81,16 +81,47 @@ export default function OrdersPage() {
   }, [orders]);
 
   async function updateOrder(orderId: string, field: "status" | "payment_status", value: string) {
+    const userId = user?.id;
+    if (!userId) {
+      setMessage("Please log in again before updating this order.");
+      return;
+    }
+
     setSavingId(`${orderId}-${field}`);
     setMessage("");
 
-    const { error } = await supabase.from("orders").update({ [field]: value }).eq("id", orderId).eq("user_id", user?.id);
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ [field]: value })
+      .eq("id", orderId)
+      .eq("user_id", userId)
+      .select("id,status,payment_status")
+      .maybeSingle();
+
     if (error) {
-      setMessage(error.message);
-    } else {
-      setOrders((current) => current.map((order) => (order.id === orderId ? { ...order, [field]: value } : order)));
+      setMessage(formatOrderUpdateError(error.message));
+      setSavingId("");
+      return;
     }
 
+    if (!data) {
+      setMessage("Order update was not saved. Please refresh and try again. If it continues, the orders update policy is missing in Supabase.");
+      setSavingId("");
+      return;
+    }
+
+    setOrders((current) =>
+      current.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              status: data.status ?? order.status,
+              payment_status: data.payment_status ?? order.payment_status,
+            }
+          : order,
+      ),
+    );
+    setMessage("Order updated successfully.");
     setSavingId("");
   }
 
@@ -181,6 +212,9 @@ export default function OrdersPage() {
                     <div className="flex justify-between"><span>Subtotal</span><strong>{formatNaira(order.subtotal)}</strong></div>
                     <div className="mt-2 flex justify-between"><span>Delivery</span><strong>{formatNaira(order.delivery_fee)}</strong></div>
                   </div>
+                  {savingId.startsWith(order.id) ? (
+                    <p className="mt-4 rounded-md bg-emerald-50 p-3 text-sm font-bold text-emerald-700">Saving order update...</p>
+                  ) : null}
                 </div>
               </div>
             </article>
@@ -199,4 +233,18 @@ function orderTone(status: string) {
     return "amber";
   }
   return "green";
+}
+
+function formatOrderUpdateError(message: string) {
+  const lowerMessage = message.toLowerCase();
+
+  if (lowerMessage.includes("row-level security") || lowerMessage.includes("policy") || lowerMessage.includes("permission")) {
+    return "Order update was blocked by Supabase security rules. Add an update policy so sellers can update their own orders.";
+  }
+
+  if (lowerMessage.includes("failed to fetch")) {
+    return "Could not reach Supabase. Check your internet connection and try again.";
+  }
+
+  return message;
 }
