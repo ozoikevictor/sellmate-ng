@@ -481,14 +481,15 @@ export function StoreHeader({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const cleanPhone = whatsappPhone?.replace(/\D/g, "");
-  const contactHref = cleanPhone ? `https://wa.me/${cleanPhone}` : "#products";
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
+  const productsHref = storeSlug ? `/store/${storeSlug}#products` : `${storeHref}#products`;
   const categoriesHref = storeSlug ? `/store/${storeSlug}/categories` : `${storeHref}#products`;
   const wishlistHref = storeSlug ? `/store/${storeSlug}/wishlist` : `${storeHref}#products`;
   const ordersHref = storeSlug ? `/store/${storeSlug}/orders` : `${storeHref}#products`;
+  const contactHref = cleanPhone ? `https://wa.me/${cleanPhone}` : productsHref;
   const drawerLinks: Array<{ label: string; href: string; icon: "search" | "heart" | "cart" | "user" | "home" | "menu"; external?: boolean }> = [
     { label: "Home", href: storeHref, icon: "home" },
-    { label: "All Products", href: `${storeHref}#products`, icon: "search" },
+    { label: "All Products", href: productsHref, icon: "search" },
     { label: "Categories", href: categoriesHref, icon: "menu" },
     { label: "Wishlist", href: wishlistHref, icon: "heart" },
     { label: "My Cart", href: cartHref, icon: "cart" },
@@ -529,12 +530,12 @@ export function StoreHeader({
             onClick={() => setMenuOpen(true)}
             aria-label="Open store menu"
             title="Open store menu"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
+            className="fixed left-3 top-3 z-[950] grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[#E5E7EB] bg-white text-[#16A34A] shadow-[0_10px_28px_rgba(15,23,42,0.16)] transition hover:-translate-y-0.5 hover:bg-[#F3F4F6] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20 lg:static lg:z-auto lg:h-10 lg:w-10 lg:rounded-full lg:border-0 lg:bg-transparent lg:text-[#0F172A] lg:shadow-none lg:hover:bg-[#F3F4F6] lg:hover:text-[#16A34A]"
           >
             <IconGlyph name="menu" className="h-5 w-5" />
           </button>
 
-          <Link href={storeHref} className="flex min-w-0 flex-1 items-center gap-2 text-base font-black leading-tight text-[#0F172A] lg:flex-none lg:basis-[240px] lg:text-lg">
+          <Link href={storeHref} className="ml-12 flex min-w-0 flex-1 items-center gap-2 text-base font-black leading-tight text-[#0F172A] lg:ml-0 lg:flex-none lg:basis-[240px] lg:text-lg">
             <SellerLogo name={sellerName} size="sm" />
             <span className="truncate capitalize">{sellerName}</span>
           </Link>
