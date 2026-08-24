@@ -330,25 +330,22 @@ export function MenuIcon({ name }: { name: string }) {
 
 export function SellerLogo({
   name,
-  logoUrl,
+  logoUrl: _logoUrl,
   size = "md",
 }: {
   name: string;
   logoUrl?: string | null;
   size?: "sm" | "md";
 }) {
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase() || "S";
-  const boxSize = size === "sm" ? "h-10 w-10 text-sm" : "h-12 w-12 text-base";
+  const boxSize = size === "sm" ? "h-10 w-10" : "h-12 w-12";
+  const iconSize = size === "sm" ? "h-5 w-5" : "h-6 w-6";
 
   return (
-    <span className={`grid shrink-0 place-items-center overflow-hidden rounded-md bg-white font-black text-emerald-700 shadow-sm ring-1 ring-slate-300 ${boxSize}`}>
-      {logoUrl ? <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-contain p-1" /> : initials}
+    <span
+      aria-label={`${name} store`}
+      className={`grid shrink-0 place-items-center rounded-xl bg-[#16A34A] text-white shadow-sm ring-1 ring-[#16A34A]/20 ${boxSize}`}
+    >
+      <IconGlyph name="cart" className={iconSize} />
     </span>
   );
 }
@@ -593,7 +590,7 @@ export function StoreHeader({
 
 export function CheckoutHeader({
   sellerName,
-  sellerLogoUrl,
+  sellerLogoUrl: _sellerLogoUrl,
   storeHref,
   cartHref,
   cartCount,
@@ -612,7 +609,7 @@ export function CheckoutHeader({
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
       <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link href={storeHref} className="flex min-w-0 items-center gap-3">
-          <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} />
+          <SellerLogo name={sellerName} />
           <div className="min-w-0">
             <p className="truncate text-base font-black capitalize leading-tight text-[#0F172A] sm:text-2xl">{sellerName}</p>
             <p className="hidden items-center gap-1 text-xs font-semibold text-slate-500 sm:flex">

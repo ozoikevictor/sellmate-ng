@@ -203,8 +203,8 @@ async function loadSellerDetails(
       if (data) {
         const nextStoreHref = `/store/${data.store_slug || preferredSlug}`;
         setDelivery(Number(data.delivery_fee ?? 0));
-        setSellerName(data.logo_text || data.business_name || "Store");
-        setSellerLogoUrl(data.logo_url || "");
+        setSellerName(data.business_name || "Store");
+        setSellerLogoUrl("");
         setStoreHref(nextStoreHref);
         writeCurrentStoreHref(nextStoreHref);
         return;
@@ -223,8 +223,8 @@ async function loadSellerDetails(
       const businessName = data?.business_name || "Your store";
       const nextStoreHref = `/store/${data?.store_slug || makeStoreSlug(businessName, loggedInSellerId)}`;
       setDelivery(Number(data?.delivery_fee ?? 0));
-      setSellerName(data?.logo_text || businessName);
-      setSellerLogoUrl(data?.logo_url || "");
+      setSellerName(businessName);
+      setSellerLogoUrl("");
       setStoreHref(nextStoreHref);
       writeCurrentStoreHref(nextStoreHref);
       return;
@@ -245,8 +245,8 @@ async function loadSellerDetails(
     .maybeSingle();
 
   setDelivery(Number(data?.delivery_fee ?? 0));
-  setSellerName(data?.logo_text || data?.business_name || "Store");
-  setSellerLogoUrl(data?.logo_url || "");
+  setSellerName(data?.business_name || "Store");
+  setSellerLogoUrl("");
   const nextStoreHref = data?.store_slug || items[0]?.store_slug ? `/store/${data?.store_slug || items[0]?.store_slug}` : readCurrentStoreHref();
   setStoreHref(nextStoreHref);
   writeCurrentStoreHref(nextStoreHref);
