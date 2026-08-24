@@ -170,7 +170,7 @@ export default function DynamicStorefrontPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] sm:pt-[116px]">
+    <main className="min-h-screen bg-[#f2f6fb]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}

@@ -354,7 +354,7 @@ export function SellerLogo({
 }
 
 
-export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock"; className?: string }) {
+export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock" | "x"; className?: string }) {
   const common = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   const icons: Record<string, ReactNode> = {
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
@@ -364,6 +364,7 @@ export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "h
     home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></>,
     menu: <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>,
     lock: <><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
+    x: <><path d="M18 6 6 18" /><path d="m6 6 12 12" /></>,
   };
 
   return (
@@ -464,7 +465,7 @@ export function PlatformHeader({
 
 export function StoreHeader({
   sellerName,
-  sellerLogoUrl,
+  sellerLogoUrl: _sellerLogoUrl,
   storeHref,
   cartHref,
   cartCount,
@@ -481,38 +482,111 @@ export function StoreHeader({
   onSearchChange: (value: string) => void;
   whatsappPhone?: string | null;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const cleanPhone = whatsappPhone?.replace(/\D/g, "");
+  const contactHref = cleanPhone ? `https://wa.me/${cleanPhone}` : "#products";
+  const drawerLinks: Array<{ label: string; href: string; icon: "search" | "heart" | "cart" | "user" | "home" | "menu"; external?: boolean }> = [
+    { label: "Home", href: storeHref, icon: "home" },
+    { label: "All Products", href: "#products", icon: "search" },
+    { label: "Categories", href: "#products", icon: "menu" },
+    { label: "Wishlist", href: "#products", icon: "heart" },
+    { label: "My Cart", href: cartHref, icon: "cart" },
+    { label: "My Orders", href: "#products", icon: "user" },
+    { label: "Contact Store / Support", href: contactHref, icon: "user", external: Boolean(cleanPhone) },
+  ];
+  const searchField = (
+    <label className="relative block">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
+      <input
+        value={searchTerm}
+        onChange={(event) => onSearchChange(event.target.value)}
+        placeholder="Search products, brands and categories"
+        className="h-11 w-full rounded-full border border-[#E5E7EB] bg-[#F3F4F6] pl-9 pr-4 text-sm font-semibold text-[#0F172A] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 lg:h-12"
+      />
+    </label>
+  );
+
   return (
-    <header className="relative z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:fixed sm:inset-x-0 sm:top-0">
-      <div className="hidden border-b border-[#E5E7EB] bg-[#F3F4F6] text-[#0F172A] sm:block">
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-5 text-xs font-bold">
-          <span>Secure shopping powered by VENDORAQ</span>
-          <span>{whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Search products, add to cart, checkout securely"}</span>
+    <header className="sticky inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
+      <nav className="mx-auto max-w-7xl px-3 py-2 sm:px-5 lg:py-3">
+        <div className="flex min-h-14 items-center gap-2 lg:min-h-16 lg:gap-4">
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Open store menu"
+            title="Open store menu"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
+          >
+            <IconGlyph name="menu" className="h-5 w-5" />
+          </button>
+
+          <Link href={storeHref} className="flex min-w-0 flex-1 items-center gap-2 text-base font-black leading-tight text-[#0F172A] lg:flex-none lg:basis-[240px] lg:text-lg">
+            <SellerLogo name={sellerName} size="sm" />
+            <span className="truncate capitalize">{sellerName}</span>
+          </Link>
+
+          <div className="hidden flex-1 lg:block">{searchField}</div>
+
+          <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-2">
+            <HeaderIconButton href="/login" icon="user" label="Seller account" />
+            <CartIconLink href={cartHref} count={cartCount} />
+          </div>
         </div>
-      </div>
-      <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-[76px] sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3">
-        <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-[#0F172A] sm:gap-3 sm:text-lg">
-          <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
-          <span className="truncate capitalize">{sellerName}</span>
-        </Link>
-        <div className="order-3 sm:order-none">
-          <label className="relative block">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
-            <input
-              value={searchTerm}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search products"
-              className="h-10 w-full rounded-full border border-[#E5E7EB] bg-[#F3F4F6] pl-9 pr-4 text-sm font-semibold text-[#0F172A] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:h-11"
-            />
-          </label>
-        </div>
-        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-          <HeaderIconButton href={storeHref} icon="home" label="Store home" />
-          <HeaderIconButton href="#products" icon="menu" label="Categories" />
-          <HeaderIconButton href="#products" icon="heart" label="Wishlist" />
-          <CartIconLink href={cartHref} count={cartCount} />
-          <HeaderIconButton href="/login" icon="user" label="Seller account" />
-        </div>
+        <div className="mt-2 lg:hidden">{searchField}</div>
       </nav>
+
+      {menuOpen ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close store menu"
+            onClick={() => setMenuOpen(false)}
+            className="fixed inset-0 z-[60] bg-slate-950/55 backdrop-blur-[2px]"
+          />
+          <aside className="fixed inset-y-0 left-0 z-[70] flex w-[min(86vw,360px)] flex-col bg-white shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-[#E5E7EB] p-4">
+              <Link href={storeHref} onClick={() => setMenuOpen(false)} className="flex min-w-0 items-center gap-3 font-black text-[#0F172A]">
+                <SellerLogo name={sellerName} size="sm" />
+                <span className="truncate capitalize">{sellerName}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]"
+              >
+                <IconGlyph name="x" className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="grid gap-2 p-4">
+              {drawerLinks.map((link) => {
+                const className = "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]";
+                const content = (
+                  <>
+                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#F3F4F6] text-[#16A34A]"><IconGlyph name={link.icon} className="h-4 w-4" /></span>
+                    <span>{link.label}</span>
+                  </>
+                );
+
+                return link.external ? (
+                  <a key={link.label} href={link.href} target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)} className={className}>
+                    {content}
+                  </a>
+                ) : (
+                  <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className={className}>
+                    {content}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="mt-auto border-t border-[#E5E7EB] bg-[#F3F4F6] p-4 text-sm font-semibold text-slate-600">
+              {whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Browse products, add to cart, and checkout securely."}
+            </div>
+          </aside>
+        </>
+      ) : null}
     </header>
   );
 }
@@ -558,7 +632,7 @@ export function CheckoutHeader({
 
 export function PublicFooter({
   sellerName,
-  sellerLogoUrl,
+  sellerLogoUrl: _sellerLogoUrl,
   storeHref = "/",
 }: {
   sellerName?: string;
@@ -686,7 +760,7 @@ export function PublicFooter({
         <div className="max-w-xl">
           <Link href={isSellerFooter ? storeHref : "/"} className="flex w-fit items-center gap-3 text-xl font-black text-white">
             {isSellerFooter ? (
-              <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
+              <SellerLogo name={footerName} />
             ) : (
               <VendoraqLogo tone="light" />
             )}
