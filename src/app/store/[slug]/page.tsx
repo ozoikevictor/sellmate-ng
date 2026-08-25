@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
+import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader, VendoraqLogo } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { getCategoryMainLabel, getStoreCategoryLabels } from "@/lib/categories";
 import { formatNaira } from "@/lib/data";
@@ -45,6 +45,35 @@ function getProductRating(product: StoreProduct) {
     return { stars: 3, label: "Customer favorite" };
   }
   return { stars: 2, label: "New in store" };
+}
+
+function StorefrontLoadingShell() {
+  return (
+    <main className="min-h-screen bg-[#f2f6fb]">
+      <header className="sticky top-0 z-[900] border-b border-slate-200 bg-white shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+          <VendoraqLogo compact />
+          <div className="h-10 w-10 animate-pulse rounded-full bg-slate-100" />
+        </div>
+      </header>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Opening store</p>
+          <div className="mt-5 h-10 w-64 max-w-full animate-pulse rounded bg-slate-100" />
+          <div className="mt-4 h-5 w-80 max-w-full animate-pulse rounded bg-slate-100" />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((item) => (
+              <div key={item} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="aspect-[4/3] animate-pulse rounded-md bg-slate-100" />
+                <div className="mt-4 h-5 w-2/3 animate-pulse rounded bg-slate-100" />
+                <div className="mt-3 h-4 w-1/2 animate-pulse rounded bg-slate-100" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
 
 export default function DynamicStorefrontPage() {
@@ -177,6 +206,10 @@ export default function DynamicStorefrontPage() {
 
     return matchesCategory && [product.name, product.category, product.sku, product.variant_options ?? ""].some((value) => value.toLowerCase().includes(query));
   });
+
+  if (loading && !profile && !message) {
+    return <StorefrontLoadingShell />;
+  }
 
   return (
     <main className="min-h-screen bg-[#f2f6fb]">

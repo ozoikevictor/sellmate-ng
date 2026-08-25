@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CheckoutHeader, PublicFooter } from "@/components/ui";
+import { CheckoutHeader, PublicFooter, VendoraqLogo } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -15,6 +15,32 @@ function makeStoreSlug(businessName: string, userId: string) {
     .replace(/^-+|-+$/g, "");
 
   return `${baseSlug || "store"}-${userId.slice(0, 6)}`;
+}
+
+function getRememberedStoreHref(storeSlugFromUrl: string | null) {
+  const rememberedStoreHref = readCurrentStoreHref();
+  if (!storeSlugFromUrl && rememberedStoreHref === "/store/ada-fashion") {
+    return "/";
+  }
+  return rememberedStoreHref;
+}
+
+function RouteLoadingShell({ label }: { label: string }) {
+  return (
+    <main className="min-h-screen bg-[#f2f6fb]">
+      <div className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <div className="flex justify-center">
+            <VendoraqLogo compact />
+          </div>
+          <div className="mx-auto mt-6 h-2 w-40 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-[#16A34A]" />
+          </div>
+          <p className="mt-4 text-sm font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+        </div>
+      </div>
+    </main>
+  );
 }
 
 export default function CartPage() {
@@ -37,14 +63,16 @@ export default function CartPage() {
       const allCartItems = readCart();
       const storeSlugFromUrl = new URLSearchParams(window.location.search).get("store");
       const cartItems = storeSlugFromUrl ? allCartItems.filter((item) => item.store_slug === storeSlugFromUrl) : allCartItems;
-      const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref();
+      const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : getRememberedStoreHref(storeSlugFromUrl);
       if (!active) {
         return;
       }
       setItems(cartItems);
       setStoreHref(preferredStoreHref);
-      setMounted(true);
       await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
+      if (active) {
+        setMounted(true);
+      }
     }
 
     loadCartPage();
@@ -56,6 +84,10 @@ export default function CartPage() {
   function changeQty(id: string, qty: number) {
     const updatedItems = updateCartQty(id, qty);
     setItems(storeSlug ? updatedItems.filter((item) => item.store_slug === storeSlug) : updatedItems);
+  }
+
+  if (!mounted) {
+    return <RouteLoadingShell label="Opening cart" />;
   }
 
   return (
@@ -88,15 +120,7 @@ export default function CartPage() {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {!mounted ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-lg">
-            <div className="h-5 w-36 animate-pulse rounded bg-slate-100" />
-            <div className="mt-5 grid gap-4">
-              <div className="h-24 animate-pulse rounded-lg bg-slate-100" />
-              <div className="h-24 animate-pulse rounded-lg bg-slate-100" />
-            </div>
-          </div>
-        ) : items.length === 0 ? (
+        {items.length === 0 ? (
           <div className="rounded-lg border border-dashed border-emerald-300 bg-white p-8 text-center shadow-lg">
             <p className="text-2xl font-black text-slate-950">Nothing in cart yet.</p>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">Your cart is connected to this store. Add products first, then come back here to review your order.</p>
@@ -236,7 +260,7 @@ async function loadSellerDetails(
       return;
     }
 
-    const rememberedStoreHref = readCurrentStoreHref();
+    const rememberedStoreHref = preferredStoreHref === "/store/ada-fashion" ? "/" : getRememberedStoreHref(null);
     setDelivery(0);
     setSellerName("Store");
     setSellerLogoUrl("");
