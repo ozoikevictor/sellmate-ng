@@ -2,33 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import GlobalPageLoader from "@/components/global-page-loader";
+
+function isCustomerShoppingPath(pathname: string) {
+  return pathname === "/cart" || pathname === "/checkout" || pathname.startsWith("/store/");
+}
 
 export function NavigationLoading({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
-  const [loadingLabel, setLoadingLabel] = useState("Loading...");
 
   useEffect(() => {
     setLoading(false);
   }, [pathname]);
-
-  useEffect(() => {
-    if (!loading) {
-      return;
-    }
-
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    const timer = window.setTimeout(() => setLoading(false), 10000);
-    return () => {
-      window.clearTimeout(timer);
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-    };
-  }, [loading]);
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -53,12 +38,13 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
       }
 
       const nextUrl = new URL(href, window.location.href);
-      if (nextUrl.origin !== window.location.origin || nextUrl.href === window.location.href) {
+      if (nextUrl.origin !== window.location.origin || nextUrl.pathname === window.location.pathname) {
         return;
       }
 
-      setLoadingLabel(nextUrl.pathname.includes("/product/") ? "Loading product..." : "Loading...");
-      setLoading(true);
+      if (isCustomerShoppingPath(nextUrl.pathname)) {
+        setLoading(true);
+      }
     }
 
     document.addEventListener("click", handleClick, true);
@@ -68,7 +54,14 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      {loading ? <GlobalPageLoader overlay label={loadingLabel} /> : null}
+      {loading ? (
+        <div className="fixed inset-0 z-[9999] grid place-items-center bg-white/80 px-5 backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 shadow-lg">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
+            <p className="text-sm font-bold text-slate-700">Loading...</p>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

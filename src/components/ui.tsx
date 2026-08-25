@@ -330,28 +330,31 @@ export function MenuIcon({ name }: { name: string }) {
 
 export function SellerLogo({
   name,
-  logoUrl: _logoUrl,
+  logoUrl,
   size = "md",
 }: {
   name: string;
   logoUrl?: string | null;
   size?: "sm" | "md";
 }) {
-  const boxSize = size === "sm" ? "h-10 w-10" : "h-12 w-12";
-  const iconSize = size === "sm" ? "h-5 w-5" : "h-6 w-6";
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "S";
+  const boxSize = size === "sm" ? "h-10 w-10 text-sm" : "h-12 w-12 text-base";
 
   return (
-    <span
-      aria-label={`${name} store`}
-      className={`grid shrink-0 place-items-center rounded-xl bg-[#16A34A] text-white shadow-sm ring-1 ring-[#16A34A]/20 ${boxSize}`}
-    >
-      <IconGlyph name="cart" className={iconSize} />
+    <span className={`grid shrink-0 place-items-center overflow-hidden rounded-md bg-white font-black text-emerald-700 shadow-sm ring-1 ring-slate-300 ${boxSize}`}>
+      {logoUrl ? <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-contain p-1" /> : initials}
     </span>
   );
 }
 
 
-export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock" | "x"; className?: string }) {
+export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock"; className?: string }) {
   const common = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   const icons: Record<string, ReactNode> = {
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
@@ -361,7 +364,6 @@ export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "h
     home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></>,
     menu: <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>,
     lock: <><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
-    x: <><path d="M18 6 6 18" /><path d="m6 6 12 12" /></>,
   };
 
   return (
@@ -462,7 +464,7 @@ export function PlatformHeader({
 
 export function StoreHeader({
   sellerName,
-  sellerLogoUrl: _sellerLogoUrl,
+  sellerLogoUrl,
   storeHref,
   cartHref,
   cartCount,
@@ -479,170 +481,45 @@ export function StoreHeader({
   onSearchChange: (value: string) => void;
   whatsappPhone?: string | null;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const pathname = usePathname();
-  const cleanPhone = whatsappPhone?.replace(/\D/g, "");
-  const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
-  const productsHref = storeSlug ? `/store/${storeSlug}#products` : `${storeHref}#products`;
-  const categoriesHref = storeSlug ? `/store/${storeSlug}/categories` : `${storeHref}#products`;
-  const wishlistHref = storeSlug ? `/store/${storeSlug}/wishlist` : `${storeHref}#products`;
-  const ordersHref = storeSlug ? `/store/${storeSlug}/orders` : `${storeHref}#products`;
-  const contactHref = cleanPhone ? `https://wa.me/${cleanPhone}` : productsHref;
-  const drawerLinks: Array<{ label: string; href: string; icon: "search" | "heart" | "cart" | "user" | "home" | "menu"; external?: boolean }> = [
-    { label: "Home", href: storeHref, icon: "home" },
-    { label: "All Products", href: productsHref, icon: "search" },
-    { label: "Categories", href: categoriesHref, icon: "menu" },
-    { label: "Wishlist", href: wishlistHref, icon: "heart" },
-    { label: "My Cart", href: cartHref, icon: "cart" },
-    { label: "My Orders", href: ordersHref, icon: "user" },
-    { label: "Contact Store / Support", href: contactHref, icon: "user", external: Boolean(cleanPhone) },
-  ];
-  useEffect(() => {
-    if (!menuOpen) {
-      return;
-    }
-
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-    };
-  }, [menuOpen]);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (!menuOpen) {
-      return;
-    }
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [menuOpen]);
-
-  const searchField = (
-    <label className="relative block">
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
-      <input
-        value={searchTerm}
-        onChange={(event) => onSearchChange(event.target.value)}
-        placeholder="Search products, brands and categories"
-        className="h-11 w-full rounded-full border border-[#E5E7EB] bg-[#F3F4F6] pl-9 pr-4 text-sm font-semibold text-[#0F172A] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 lg:h-12"
-      />
-    </label>
-  );
-
   return (
-    <header className="sticky inset-x-0 top-0 z-[900] border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
-      <nav className="mx-auto max-w-7xl px-3 py-2 sm:px-5 lg:py-3">
-        <div className="flex min-h-14 items-center gap-2 lg:min-h-16 lg:gap-4">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open store menu"
-            title="Open store menu"
-            className="grid h-10 w-10 shrink-0 place-items-center text-[#16A34A] transition hover:text-[#15803D] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#16A34A]/30 lg:text-[#0F172A] lg:hover:text-[#16A34A]"
-          >
-            <IconGlyph name="menu" className="h-5 w-5" />
-          </button>
-
-          <Link href={storeHref} className="flex min-w-0 flex-1 items-center gap-2 text-base font-black leading-tight text-[#0F172A] lg:flex-none lg:basis-[240px] lg:text-lg">
-            <SellerLogo name={sellerName} size="sm" />
-            <span className="truncate capitalize">{sellerName}</span>
-          </Link>
-
-          <div className="hidden flex-1 lg:block">{searchField}</div>
-
-          <div className="ml-auto flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-            <HeaderIconButton href="/login" icon="user" label="Seller account" />
-            <CartIconLink href={cartHref} count={cartCount} />
-          </div>
+    <header className="relative z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:fixed sm:inset-x-0 sm:top-0">
+      <div className="hidden border-b border-[#E5E7EB] bg-[#F3F4F6] text-[#0F172A] sm:block">
+        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-5 text-xs font-bold">
+          <span>Secure shopping powered by VENDORAQ</span>
+          <span>{whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Search products, add to cart, checkout securely"}</span>
         </div>
-        <div className="mt-2 lg:hidden">{searchField}</div>
+      </div>
+      <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-[76px] sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3">
+        <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-[#0F172A] sm:gap-3 sm:text-lg">
+          <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
+          <span className="truncate capitalize">{sellerName}</span>
+        </Link>
+        <div className="order-3 sm:order-none">
+          <label className="relative block">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
+            <input
+              value={searchTerm}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Search products"
+              className="h-10 w-full rounded-full border border-[#E5E7EB] bg-[#F3F4F6] pl-9 pr-4 text-sm font-semibold text-[#0F172A] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:h-11"
+            />
+          </label>
+        </div>
+        <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
+          <HeaderIconButton href={storeHref} icon="home" label="Store home" />
+          <HeaderIconButton href="#products" icon="menu" label="Categories" />
+          <HeaderIconButton href="#products" icon="heart" label="Wishlist" />
+          <CartIconLink href={cartHref} count={cartCount} />
+          <HeaderIconButton href="/login" icon="user" label="Seller account" />
+        </div>
       </nav>
-
-      <>
-        <button
-          type="button"
-          aria-label="Close store menu"
-          onClick={() => setMenuOpen(false)}
-          disabled={!menuOpen}
-          tabIndex={menuOpen ? 0 : -1}
-          className={`fixed inset-0 z-[1000] bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ${
-            menuOpen ? "pointer-events-auto visible opacity-100" : "pointer-events-none invisible opacity-0"
-          }`}
-        />
-        <aside
-          role="dialog"
-          aria-modal={menuOpen}
-          aria-hidden={!menuOpen}
-          className={`fixed inset-y-0 left-0 z-[1001] flex h-[100dvh] w-[min(90vw,380px)] max-w-full flex-col overflow-hidden border-r border-[#E5E7EB] bg-white text-[#0F172A] shadow-2xl transition-transform duration-300 ease-out ${
-            menuOpen ? "pointer-events-auto visible translate-x-0" : "pointer-events-none invisible -translate-x-full"
-          }`}
-        >
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#E5E7EB] p-4">
-              <Link href={storeHref} onClick={() => setMenuOpen(false)} className="flex min-w-0 items-center gap-3 font-black text-[#0F172A]">
-                <SellerLogo name={sellerName} size="sm" />
-                <span className="truncate capitalize">{sellerName}</span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(false)}
-                aria-label="Close menu"
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]"
-              >
-                <IconGlyph name="x" className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="flex h-0 min-h-0 flex-1 flex-col overflow-y-scroll overflow-x-hidden px-4 py-5 [-webkit-overflow-scrolling:touch] [overscroll-behavior-y:contain] [touch-action:pan-y]">
-            <div className="grid gap-2">
-              {drawerLinks.map((link) => {
-                const className = "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-black leading-tight text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]";
-                const content = (
-                  <>
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#F3F4F6] text-[#16A34A]"><IconGlyph name={link.icon} className="h-4 w-4" /></span>
-                    <span className="min-w-0 flex-1">{link.label}</span>
-                  </>
-                );
-
-                return link.external ? (
-                  <a key={link.label} href={link.href} target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)} className={className}>
-                    {content}
-                  </a>
-                ) : (
-                  <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className={className}>
-                    {content}
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 rounded-2xl border border-[#E5E7EB] bg-[#F3F4F6] p-4 text-sm font-semibold text-slate-600">
-              {whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Browse products, add to cart, and checkout securely."}
-            </div>
-            </div>
-          </aside>
-      </>
     </header>
   );
 }
 
 export function CheckoutHeader({
   sellerName,
-  sellerLogoUrl: _sellerLogoUrl,
+  sellerLogoUrl,
   storeHref,
   cartHref,
   cartCount,
@@ -661,7 +538,7 @@ export function CheckoutHeader({
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
       <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link href={storeHref} className="flex min-w-0 items-center gap-3">
-          <SellerLogo name={sellerName} />
+          <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} />
           <div className="min-w-0">
             <p className="truncate text-base font-black capitalize leading-tight text-[#0F172A] sm:text-2xl">{sellerName}</p>
             <p className="hidden items-center gap-1 text-xs font-semibold text-slate-500 sm:flex">
@@ -681,7 +558,7 @@ export function CheckoutHeader({
 
 export function PublicFooter({
   sellerName,
-  sellerLogoUrl: _sellerLogoUrl,
+  sellerLogoUrl,
   storeHref = "/",
 }: {
   sellerName?: string;
@@ -804,12 +681,12 @@ export function PublicFooter({
   ];
 
   return (
-    <footer id="help" className="vendoraq-footer text-white">
+    <footer id="help" className="bg-[#0F172A] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_0.75fr_0.75fr_0.75fr_0.75fr]">
         <div className="max-w-xl">
           <Link href={isSellerFooter ? storeHref : "/"} className="flex w-fit items-center gap-3 text-xl font-black text-white">
             {isSellerFooter ? (
-              <SellerLogo name={footerName} />
+              <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
             ) : (
               <VendoraqLogo tone="light" />
             )}
@@ -818,13 +695,13 @@ export function PublicFooter({
           <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-[#16A34A]">
             {isSellerFooter ? "Powered by VENDORAQ" : "Sell. Connect. Grow."}
           </p>
-          <p className="mt-4 max-w-md text-sm leading-6 text-slate-200">
+          <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">
             {isSellerFooter
               ? "Secure product browsing, cart checkout, payment follow-up, and customer support for this seller."
               : "A modern commerce platform for Nigerian sellers to launch online stores, manage orders, receive payments, and grow with confidence."}
           </p>
-          <div className="mt-6 rounded-lg border border-white/15 bg-white/10 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.18)]">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-200">Newsletter</p>
+          <div className="mt-6 rounded-lg border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Newsletter</p>
             <div className="mt-3 flex overflow-hidden rounded-full bg-white p-1">
               <span className="min-w-0 flex-1 px-4 py-2 text-sm font-semibold text-slate-500">Business growth updates</span>
               <Link href="/register" className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white transition hover:bg-[#15803D]">
@@ -838,7 +715,7 @@ export function PublicFooter({
           <div key={column.title}>
             <h2 className="text-xs font-black uppercase tracking-[0.22em] text-white">{column.title}</h2>
             <div className="mt-2 h-0.5 w-8 rounded-full bg-[#16A34A]" />
-            <nav className="mt-5 grid gap-3 text-sm font-bold text-slate-200">
+            <nav className="mt-5 grid gap-3 text-sm font-bold text-slate-300">
               {column.links.map((link) =>
                 "modal" in link ? (
                   <button
@@ -866,8 +743,8 @@ export function PublicFooter({
         />
       ) : null}
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-semibold text-slate-300 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-slate-300">© 2026 {isSellerFooter ? footerName : "VENDORAQ"}. All rights reserved.</p>
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-semibold text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 {isSellerFooter ? footerName : "VENDORAQ"}. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">Secure payments</span>
             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">Paystack ready</span>

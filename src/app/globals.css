@@ -44,6 +44,7 @@ h3,
 h4,
 h5,
 h6 {
+  color: #07111f;
   font-family: var(--font-display);
   font-weight: 900;
   letter-spacing: 0;
@@ -71,6 +72,11 @@ textarea,
 select,
 button {
   letter-spacing: 0;
+}
+
+p,
+li {
+  color: #334155;
 }
 
 button,
@@ -123,32 +129,6 @@ button,
   box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
 }
 
-.vendoraq-footer {
-  background:
-    radial-gradient(circle at 8% 0%, rgba(22, 163, 74, 0.18), transparent 28rem),
-    radial-gradient(circle at 96% 0%, rgba(14, 165, 233, 0.08), transparent 24rem),
-    linear-gradient(180deg, #0f172a 0%, #111827 100%);
-  color: #ffffff;
-}
-
-.vendoraq-footer h1,
-.vendoraq-footer h2,
-.vendoraq-footer h3,
-.vendoraq-footer h4,
-.vendoraq-footer h5,
-.vendoraq-footer h6 {
-  color: #ffffff;
-}
-
-.vendoraq-footer p {
-  color: #cbd5e1;
-}
-
-.vendoraq-footer a,
-.vendoraq-footer button {
-  color: inherit;
-}
-
 .landing-fade-up {
   animation: landing-fade-up 720ms ease both;
 }
@@ -172,10 +152,6 @@ button,
 .landing-pulse-dot {
   box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.42);
   animation: landing-pulse-dot 1.8s ease-out infinite;
-}
-
-.landing-rotate-line {
-  animation: landing-rotate-line 520ms ease both;
 }
 
 @keyframes landing-fade-up {
@@ -215,23 +191,10 @@ button,
   }
 }
 
-@keyframes landing-rotate-line {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .landing-fade-up,
   .landing-float,
-  .landing-pulse-dot,
-  .landing-rotate-line {
+  .landing-pulse-dot {
     animation: none;
   }
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { SectionTitle } from "@/components/ui";
+import { SectionTitle, SellerLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -129,6 +129,27 @@ export default function SettingsPage() {
     }));
   }
 
+  function uploadLogo(file: File | null) {
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setMessage("Please choose an image file for your logo.");
+      return;
+    }
+    if (file.size > 650_000) {
+      setMessage("Logo image is too large. Use a small logo image under 650KB for now.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setProfile((current) => ({ ...current, logo_url: String(reader.result ?? "") }));
+      setMessage("Logo ready. Click Save settings to keep it.");
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!user?.id) {
@@ -141,8 +162,6 @@ export default function SettingsPage() {
     const payload = {
       user_id: user.id,
       ...profile,
-      logo_url: "",
-      logo_text: profile.business_name,
       delivery_fee: Number(profile.delivery_fee || 0),
       store_slug: profile.store_slug.trim().toLowerCase().replace(/\s+/g, "-"),
       updated_at: new Date().toISOString(),
@@ -213,6 +232,7 @@ export default function SettingsPage() {
           <SettingsField label="City" name="city" value={profile.city} onChange={updateProfile} placeholder="Lagos" />
           <SettingsField label="Delivery fee" name="delivery_fee" value={profile.delivery_fee} onChange={updateProfile} placeholder="3500" type="number" />
           <SettingsField label="Store slug" name="store_slug" value={profile.store_slug} onChange={updateProfile} placeholder="victor-fashions" />
+          <SettingsField label="Logo text" name="logo_text" value={profile.logo_text} onChange={updateProfile} placeholder="Victor Fashions" />
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm text-slate-500">Store URL</p>
             <p className="mt-2 break-all text-lg font-black text-slate-950">{storeUrl}</p>
@@ -236,6 +256,28 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
+        </div>
+        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <h3 className="text-sm font-black text-slate-950">Store logo</h3>
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <SellerLogo name={profile.logo_text || profile.business_name || "Store"} logoUrl={profile.logo_url} />
+            <div className="grid gap-3">
+              <label className="w-fit cursor-pointer rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm hover:bg-slate-100">
+                Upload logo from device
+                <input type="file" accept="image/*" onChange={(event) => uploadLogo(event.target.files?.[0] ?? null)} className="sr-only" />
+              </label>
+              <button
+                type="button"
+                onClick={() => setProfile((current) => ({ ...current, logo_url: "" }))}
+                className="w-fit text-sm font-bold text-rose-700"
+              >
+                Remove picture and use text logo
+              </button>
+            </div>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-slate-500">
+            The logo is automatically fitted into a small square so it does not appear too large on your shop, cart, checkout, and footer.
+          </p>
         </div>
         <div className="mt-8 border-t border-slate-200 pt-6">
           <h2 className="text-xl font-black text-slate-950">Seller payment account</h2>

@@ -4,14 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/components/auth";
-import {
-  buildCategoryPath,
-  getAttributesForCategory,
-  getCategoryBySlug,
-  getSubcategoriesForCategory,
-  marketplaceCategories,
-  parseCategoryPath,
-} from "@/lib/categories";
 import { formatNaira } from "@/lib/data";
 import { formatProductLimit, getProductLimit, isPlanExpired } from "@/lib/plans";
 import { supabase } from "@/lib/supabase";
@@ -34,11 +26,6 @@ const emptyForm = {
   name: "",
   sku: "",
   category: "",
-  category_slug: "",
-  subcategory_slug: "",
-  product_type: "",
-  brand: "",
-  condition: "New",
   variant_options: "",
   price: "",
   stock: "",
@@ -63,11 +50,6 @@ export default function ProductsPage() {
   const limitReached = !editingId && productLimit !== null && usedProducts >= productLimit;
   const businessExpired = billingPlan === "Business" && billingStatus === "Active" && isPlanExpired(billingRenewsAt, nowMs);
   const planLabel = billingStatus === "Active" && !businessExpired ? billingPlan : "Free trial";
-  const selectedCategory = getCategoryBySlug(form.category_slug);
-  const subcategories = getSubcategoriesForCategory(form.category_slug);
-  const selectedSubcategory = subcategories.find((subcategory) => subcategory.slug === form.subcategory_slug);
-  const productTypes = selectedSubcategory?.productTypes ?? [];
-  const suggestedAttributes = getAttributesForCategory(form.category_slug, form.subcategory_slug);
 
   const loadProducts = useCallback(async () => {
     const userId = user?.id;
@@ -104,15 +86,7 @@ export default function ProductsPage() {
   }, [loadProducts]);
 
   function updateForm(name: string, value: string) {
-    setForm((current) => {
-      if (name === "category_slug") {
-        return { ...current, category_slug: value, subcategory_slug: "", product_type: "" };
-      }
-      if (name === "subcategory_slug") {
-        return { ...current, subcategory_slug: value, product_type: "" };
-      }
-      return { ...current, [name]: value };
-    });
+    setForm((current) => ({ ...current, [name]: value }));
   }
 
   function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -141,17 +115,11 @@ export default function ProductsPage() {
   }
 
   function startEdit(product: Product) {
-    const categoryParts = parseCategoryPath(product.category);
     setEditingId(product.id);
     setForm({
       name: product.name,
       sku: product.sku,
       category: product.category,
-      category_slug: categoryParts.categorySlug,
-      subcategory_slug: categoryParts.subcategorySlug,
-      product_type: categoryParts.productType,
-      brand: "",
-      condition: "New",
       variant_options: product.variant_options ?? "",
       price: String(product.price),
       stock: String(product.stock),
@@ -178,24 +146,12 @@ export default function ProductsPage() {
     setSaving(true);
     setMessage("");
     const formData = new FormData(event.currentTarget);
-    const brand = String(formData.get("brand") ?? "").trim();
-    const condition = String(formData.get("condition") ?? "").trim();
-    const productDetails = String(formData.get("variant_options") ?? "").trim();
-    const detailParts = [
-      brand ? `Brand: ${brand}` : "",
-      condition ? `Condition: ${condition}` : "",
-      productDetails,
-    ].filter(Boolean);
     const payload = {
       user_id: user.id,
       name: String(formData.get("name") ?? "").trim(),
       sku: String(formData.get("sku") ?? "").trim(),
-      category: buildCategoryPath(
-        String(formData.get("category_slug") ?? ""),
-        String(formData.get("subcategory_slug") ?? ""),
-        String(formData.get("product_type") ?? ""),
-      ) || String(formData.get("category") ?? "").trim(),
-      variant_options: detailParts.join(" | ") || null,
+      category: String(formData.get("category") ?? "").trim(),
+      variant_options: String(formData.get("variant_options") ?? "").trim() || null,
       price: Number(formData.get("price") ?? 0),
       stock: Number(formData.get("stock") ?? 0),
       image_url: String(formData.get("image_url") ?? "").trim() || null,
@@ -257,21 +213,8 @@ export default function ProductsPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Product name" name="name" value={form.name} onChange={updateForm} placeholder="Blue Jeans, Cement, Lip Gloss, Human Hair Wig" />
           <Field label="SKU" name="sku" value={form.sku} onChange={updateForm} placeholder="SKU-001" />
-          <CategorySelect label="Main category" name="category_slug" value={form.category_slug} onChange={updateForm} />
-          <SubcategorySelect label="Subcategory" name="subcategory_slug" value={form.subcategory_slug} onChange={updateForm} options={subcategories} disabled={!selectedCategory} />
-          <ProductTypeField label="Product type" name="product_type" value={form.product_type} onChange={updateForm} options={productTypes} disabled={!selectedSubcategory} />
-          <input type="hidden" name="category" value={form.category} />
-          <Field label="Brand" name="brand" value={form.brand} onChange={updateForm} placeholder="Optional: Nike, Samsung, Dangote..." required={false} />
-          <label className="grid gap-2 text-sm font-bold text-slate-700">
-            Condition
-            <select name="condition" value={form.condition} onChange={(event) => updateForm("condition", event.target.value)} className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600">
-              <option>New</option>
-              <option>Used</option>
-              <option>Refurbished</option>
-              <option>Not applicable</option>
-            </select>
-          </label>
-          <Field label="Options / variants / details" name="variant_options" value={form.variant_options} onChange={updateForm} placeholder={suggestedAttributes.length ? `Example: ${suggestedAttributes.slice(0, 4).join(", ")}` : "Blue, Brown, Black / Size 40, 41, 42 / 50kg"} required={false} />
+          <Field label="Category" name="category" value={form.category} onChange={updateForm} placeholder="Clothing, Shoes, Makeup, Building Materials" />
+          <Field label="Options / variants" name="variant_options" value={form.variant_options} onChange={updateForm} placeholder="Blue, Brown, Black / Size 40, 41, 42 / 50kg" required={false} />
           <Field label="Price" name="price" value={form.price} onChange={updateForm} placeholder="38500" type="number" />
           <Field label="Stock" name="stock" value={form.stock} onChange={updateForm} placeholder="18" type="number" />
           <label className="grid gap-2 text-sm font-bold text-slate-700">
@@ -289,18 +232,6 @@ export default function ProductsPage() {
             </select>
           </label>
         </div>
-        {suggestedAttributes.length ? (
-          <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-950">
-            <p className="font-black">Useful details for this category</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {suggestedAttributes.map((attribute) => (
-                <span key={attribute} className="rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-800 ring-1 ring-emerald-100">
-                  {attribute}
-                </span>
-              ))}
-            </div>
-          </div>
-        ) : null}
         {form.image_url ? (
           <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="mb-3 text-sm font-bold text-slate-700">Image preview</p>
@@ -403,113 +334,6 @@ function Field({
         className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600"
         placeholder={placeholder}
       />
-    </label>
-  );
-}
-
-function CategorySelect({
-  label,
-  name,
-  value,
-  onChange,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (name: string, value: string) => void;
-}) {
-  return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
-      {label}
-      <select
-        name={name}
-        value={value}
-        onChange={(event) => onChange(name, event.target.value)}
-        required
-        className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600"
-      >
-        <option value="">Choose product category</option>
-        {marketplaceCategories.map((category) => (
-          <option key={category.slug} value={category.slug}>
-            {category.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function SubcategorySelect({
-  label,
-  name,
-  value,
-  onChange,
-  options,
-  disabled,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (name: string, value: string) => void;
-  options: Array<{ slug: string; name: string }>;
-  disabled: boolean;
-}) {
-  return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
-      {label}
-      <select
-        name={name}
-        value={value}
-        onChange={(event) => onChange(name, event.target.value)}
-        required
-        disabled={disabled}
-        className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600 disabled:bg-slate-100 disabled:text-slate-400"
-      >
-        <option value="">{disabled ? "Choose main category first" : "Choose subcategory"}</option>
-        {options.map((subcategory) => (
-          <option key={subcategory.slug} value={subcategory.slug}>
-            {subcategory.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function ProductTypeField({
-  label,
-  name,
-  value,
-  onChange,
-  options,
-  disabled,
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (name: string, value: string) => void;
-  options: string[];
-  disabled: boolean;
-}) {
-  const listId = "product-type-options";
-  return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
-      {label}
-      <input
-        name={name}
-        value={value}
-        onChange={(event) => onChange(name, event.target.value)}
-        list={listId}
-        disabled={disabled}
-        required={false}
-        className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600 disabled:bg-slate-100 disabled:text-slate-400"
-        placeholder={disabled ? "Choose subcategory first" : "Example: Sneakers, Cement, Wig, Phone"}
-      />
-      <datalist id={listId}>
-        {options.map((option) => (
-          <option key={option} value={option} />
-        ))}
-      </datalist>
     </label>
   );
 }

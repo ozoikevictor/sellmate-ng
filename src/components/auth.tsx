@@ -200,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       markLoginCodeVerified(data.user.id);
     }
     clearPendingLoginEmail();
-    setUser(toVerifiedSellerUser(data.user));
+    setUser(toDemoUser(data.user));
     return { ok: true };
   }, []);
 

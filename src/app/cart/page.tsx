@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CheckoutHeader, PublicFooter, VendoraqLogo } from "@/components/ui";
+import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -15,32 +15,6 @@ function makeStoreSlug(businessName: string, userId: string) {
     .replace(/^-+|-+$/g, "");
 
   return `${baseSlug || "store"}-${userId.slice(0, 6)}`;
-}
-
-function getRememberedStoreHref(storeSlugFromUrl: string | null) {
-  const rememberedStoreHref = readCurrentStoreHref();
-  if (!storeSlugFromUrl && rememberedStoreHref === "/store/ada-fashion") {
-    return "/";
-  }
-  return rememberedStoreHref;
-}
-
-function RouteLoadingShell({ label }: { label: string }) {
-  return (
-    <main className="min-h-screen bg-[#f2f6fb]">
-      <div className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <div className="flex justify-center">
-            <VendoraqLogo compact />
-          </div>
-          <div className="mx-auto mt-6 h-2 w-40 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full w-1/2 animate-pulse rounded-full bg-[#16A34A]" />
-          </div>
-          <p className="mt-4 text-sm font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
-        </div>
-      </div>
-    </main>
-  );
 }
 
 export default function CartPage() {
@@ -57,28 +31,17 @@ export default function CartPage() {
   const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   useEffect(() => {
-    let active = true;
-
-    async function loadCartPage() {
+    const timer = window.setTimeout(async () => {
       const allCartItems = readCart();
       const storeSlugFromUrl = new URLSearchParams(window.location.search).get("store");
       const cartItems = storeSlugFromUrl ? allCartItems.filter((item) => item.store_slug === storeSlugFromUrl) : allCartItems;
-      const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : getRememberedStoreHref(storeSlugFromUrl);
-      if (!active) {
-        return;
-      }
+      const preferredStoreHref = storeSlugFromUrl ? `/store/${storeSlugFromUrl}` : cartItems[0]?.store_slug ? `/store/${cartItems[0].store_slug}` : readCurrentStoreHref();
       setItems(cartItems);
       setStoreHref(preferredStoreHref);
       await loadSellerDetails(cartItems, setDelivery, setSellerName, setSellerLogoUrl, setStoreHref, preferredStoreHref);
-      if (active) {
-        setMounted(true);
-      }
-    }
-
-    loadCartPage();
-    return () => {
-      active = false;
-    };
+      setMounted(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   function changeQty(id: string, qty: number) {
@@ -87,7 +50,14 @@ export default function CartPage() {
   }
 
   if (!mounted) {
-    return <RouteLoadingShell label="Opening cart" />;
+    return (
+      <main className="grid min-h-screen place-items-center bg-[#f2f6fb] px-5">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-xl">
+          <p className="text-sm font-black text-slate-950">Loading your cart...</p>
+          <p className="mt-2 text-xs font-semibold text-slate-500">Getting the correct store before showing this page.</p>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -233,8 +203,8 @@ async function loadSellerDetails(
       if (data) {
         const nextStoreHref = `/store/${data.store_slug || preferredSlug}`;
         setDelivery(Number(data.delivery_fee ?? 0));
-        setSellerName(data.business_name || "Store");
-        setSellerLogoUrl("");
+        setSellerName(data.logo_text || data.business_name || "Store");
+        setSellerLogoUrl(data.logo_url || "");
         setStoreHref(nextStoreHref);
         writeCurrentStoreHref(nextStoreHref);
         return;
@@ -253,14 +223,14 @@ async function loadSellerDetails(
       const businessName = data?.business_name || "Your store";
       const nextStoreHref = `/store/${data?.store_slug || makeStoreSlug(businessName, loggedInSellerId)}`;
       setDelivery(Number(data?.delivery_fee ?? 0));
-      setSellerName(businessName);
-      setSellerLogoUrl("");
+      setSellerName(data?.logo_text || businessName);
+      setSellerLogoUrl(data?.logo_url || "");
       setStoreHref(nextStoreHref);
       writeCurrentStoreHref(nextStoreHref);
       return;
     }
 
-    const rememberedStoreHref = preferredStoreHref === "/store/ada-fashion" ? "/" : getRememberedStoreHref(null);
+    const rememberedStoreHref = readCurrentStoreHref();
     setDelivery(0);
     setSellerName("Store");
     setSellerLogoUrl("");
@@ -275,8 +245,8 @@ async function loadSellerDetails(
     .maybeSingle();
 
   setDelivery(Number(data?.delivery_fee ?? 0));
-  setSellerName(data?.business_name || "Store");
-  setSellerLogoUrl("");
+  setSellerName(data?.logo_text || data?.business_name || "Store");
+  setSellerLogoUrl(data?.logo_url || "");
   const nextStoreHref = data?.store_slug || items[0]?.store_slug ? `/store/${data?.store_slug || items[0]?.store_slug}` : readCurrentStoreHref();
   setStoreHref(nextStoreHref);
   writeCurrentStoreHref(nextStoreHref);

@@ -148,12 +148,6 @@ export default function LandingPage() {
     },
   ];
 
-  const howItWorksTitles = [
-    "for sellers",
-    "for customers",
-    "for WhatsApp orders",
-  ];
-
   if (!accountChecked) {
     return (
       <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
@@ -272,23 +266,7 @@ export default function LandingPage() {
           </>
         ) : (
           <>
-            <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-              <div className="max-w-4xl">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-800">How it works</p>
-                <h2 className="mt-4 text-4xl font-black leading-[1.04] text-slate-950 sm:text-5xl lg:text-6xl">
-                  <span className="block">One platform</span>
-                  <span key={activeStep} className="landing-rotate-line mt-1 block text-emerald-700">
-                    {howItWorksTitles[activeStep]}
-                  </span>
-                </h2>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                  VENDORAQ connects the seller dashboard, public store, cart, checkout, payment, and receipt follow-up in one clean flow.
-                </p>
-              </div>
-              <Link href={storeHref} className="w-fit rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50">
-                View demo store
-              </Link>
-            </div>
+            <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50">View demo store</Link>} />
             <div className="grid gap-4 md:grid-cols-3">
               {howItWorks.map((step, index) => (
                 <button

@@ -89,7 +89,7 @@ export default function StorefrontPage() {
   }
 
   const businessName = profile.business_name;
-  const brandName = businessName;
+  const brandName = profile.logo_text || businessName;
   const logoUrl = profile.logo_url || "";
   const city = profile.city;
   const filteredProducts = products.filter((product) => {
@@ -102,7 +102,7 @@ export default function StorefrontPage() {
   });
 
   return (
-    <main className="min-h-screen sellmate-page-bg">
+    <main className="min-h-screen sellmate-page-bg sm:pt-20">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}
