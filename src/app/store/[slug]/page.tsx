@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader, VendoraqLogo } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
@@ -89,44 +89,72 @@ export default function DynamicStorefrontPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [heroIndex, setHeroIndex] = useState(0);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const cartNoticeTimer = useRef<number | null>(null);
 
   useEffect(() => {
+    let isActive = true;
+
     async function loadStore() {
       setLoading(true);
-      const { data: profileData, error: profileError } = await supabase
-        .from("seller_profiles")
-        .select("user_id,business_name,whatsapp_phone,city,store_slug,logo_url,logo_text")
-        .eq("store_slug", slug)
-        .maybeSingle();
+      setMessage("");
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from("seller_profiles")
+          .select("user_id,business_name,whatsapp_phone,city,store_slug,logo_url,logo_text")
+          .eq("store_slug", slug)
+          .maybeSingle();
 
-      if (profileError) {
-        setMessage(profileError.message);
-        setLoading(false);
-        return;
-      }
+        if (!isActive) {
+          return;
+        }
 
-      if (!profileData) {
-        setMessage("Store not found. Check the store slug in seller settings.");
-        setLoading(false);
-        return;
-      }
+        if (profileError) {
+          setMessage(profileError.message);
+          setProfile(null);
+          setProducts([]);
+          return;
+        }
 
-      const { data: productData, error: productError } = await supabase
-        .from("products")
-        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url")
-        .eq("user_id", profileData.user_id)
-        .eq("status", "Live")
-        .order("created_at", { ascending: false });
+        if (!profileData) {
+          setMessage("Store not found. Check the store slug in seller settings.");
+          setProfile(null);
+          setProducts([]);
+          return;
+        }
 
-      if (productError) {
-        setMessage(productError.message);
-      } else {
-        setProfile(profileData);
+        const { data: productData, error: productError } = await supabase
+          .from("products")
+          .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url")
+          .eq("user_id", profileData.user_id)
+          .eq("status", "Live")
+          .order("created_at", { ascending: false });
+
+        if (!isActive) {
+          return;
+        }
+
+        if (productError) {
+          setMessage(productError.message);
+          setProfile(profileData);
+          setProducts([]);
+          return;
+        }
+
         const nextProducts = productData ?? [];
+        setProfile(profileData);
         setProducts(nextProducts);
         primeStorefrontCache(profileData, nextProducts);
+      } catch (error) {
+        if (isActive) {
+          setMessage("Unable to load this store. Please refresh and try again.");
+          setProfile(null);
+          setProducts([]);
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     }
 
     loadStore();
@@ -135,8 +163,19 @@ export default function DynamicStorefrontPage() {
     const timer = window.setTimeout(() => {
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      isActive = false;
+      window.clearTimeout(timer);
+    };
   }, [slug]);
+
+  useEffect(() => {
+    return () => {
+      if (cartNoticeTimer.current) {
+        window.clearTimeout(cartNoticeTimer.current);
+      }
+    };
+  }, []);
 
   function handleAddToCart(product: StoreProduct) {
     const nextCart = addToCart({
@@ -152,7 +191,10 @@ export default function DynamicStorefrontPage() {
     });
     setCartCount(nextCart.filter((item) => item.store_slug === (profile?.store_slug || slug)).reduce((sum, item) => sum + item.qty, 0));
     setCartNotice(`${product.name} added to cart`);
-    window.setTimeout(() => setCartNotice(""), 2600);
+    if (cartNoticeTimer.current) {
+      window.clearTimeout(cartNoticeTimer.current);
+    }
+    cartNoticeTimer.current = window.setTimeout(() => setCartNotice(""), 2600);
   }
 
   function toggleFavorite(product: StoreProduct) {

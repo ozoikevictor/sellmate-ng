@@ -18,12 +18,15 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
     const timer = window.setTimeout(() => setLoading(false), 10000);
     return () => {
       window.clearTimeout(timer);
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [loading]);
 

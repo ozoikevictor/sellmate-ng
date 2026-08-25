@@ -480,6 +480,7 @@ export function StoreHeader({
   whatsappPhone?: string | null;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
   const cleanPhone = whatsappPhone?.replace(/\D/g, "");
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const productsHref = storeSlug ? `/store/${storeSlug}#products` : `${storeHref}#products`;
@@ -510,6 +511,25 @@ export function StoreHeader({
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousHtmlOverflow;
     };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
   }, [menuOpen]);
 
   const searchField = (
@@ -558,14 +578,18 @@ export function StoreHeader({
           type="button"
           aria-label="Close store menu"
           onClick={() => setMenuOpen(false)}
+          disabled={!menuOpen}
+          tabIndex={menuOpen ? 0 : -1}
           className={`fixed inset-0 z-[1000] bg-black/45 backdrop-blur-[2px] transition-opacity duration-300 ${
-            menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+            menuOpen ? "pointer-events-auto visible opacity-100" : "pointer-events-none invisible opacity-0"
           }`}
         />
         <aside
+          role="dialog"
+          aria-modal={menuOpen}
           aria-hidden={!menuOpen}
           className={`fixed inset-y-0 left-0 z-[1001] flex h-[100dvh] w-[min(90vw,380px)] max-w-full flex-col overflow-hidden border-r border-[#E5E7EB] bg-white text-[#0F172A] shadow-2xl transition-transform duration-300 ease-out ${
-            menuOpen ? "translate-x-0" : "-translate-x-full"
+            menuOpen ? "pointer-events-auto visible translate-x-0" : "pointer-events-none invisible -translate-x-full"
           }`}
         >
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#E5E7EB] p-4">
