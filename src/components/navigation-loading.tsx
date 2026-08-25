@@ -7,6 +7,7 @@ import GlobalPageLoader from "@/components/global-page-loader";
 export function NavigationLoading({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
+  const [loadingLabel, setLoadingLabel] = useState("Loading...");
 
   useEffect(() => {
     setLoading(false);
@@ -17,8 +18,13 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const timer = window.setTimeout(() => setLoading(false), 10000);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [loading]);
 
   useEffect(() => {
@@ -48,6 +54,7 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      setLoadingLabel(nextUrl.pathname.includes("/product/") ? "Loading product..." : "Loading...");
       setLoading(true);
     }
 
@@ -58,7 +65,7 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      {loading ? <GlobalPageLoader overlay /> : null}
+      {loading ? <GlobalPageLoader overlay label={loadingLabel} /> : null}
     </>
   );
 }

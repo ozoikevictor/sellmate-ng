@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import GlobalPageLoader from "@/components/global-page-loader";
 import { IconGlyph, PublicFooter, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { getCategoryMainLabel } from "@/lib/categories";
@@ -23,34 +24,66 @@ export default function ProductDetailsPage() {
   const [favorite, setFavorite] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
+    let isActive = true;
+
     async function load() {
       setLoading(true);
+      setMessage("");
       writeCurrentStoreHref(`/store/${slug}`);
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
       try {
         const nextProfile = await loadStoreBySlug(slug);
+        if (!isActive) {
+          return;
+        }
         if (!nextProfile) {
           setMessage("Store not found.");
+          setProfile(null);
+          setProduct(null);
           return;
         }
         const nextProduct = await loadLiveStoreProduct(nextProfile.user_id, productId);
+        if (!isActive) {
+          return;
+        }
         setProfile(nextProfile);
         setProduct(nextProduct);
         setFavorite(isWishlisted(productId, slug));
         if (!nextProduct) {
-          setMessage("This product is not available right now.");
+          setMessage("Unable to load this product. Please try again.");
         }
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Could not load this product.");
+        if (isActive) {
+          setMessage("Unable to load this product. Please try again.");
+          setProduct(null);
+        }
       } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
     load();
-  }, [productId, slug]);
+    return () => {
+      isActive = false;
+    };
+  }, [productId, retryKey, slug]);
+
+  useEffect(() => {
+    if (!loading) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [loading]);
 
   function addSelectedToCart(openCheckout = false) {
     if (!profile || !product) {
@@ -103,6 +136,10 @@ export default function ProductDetailsPage() {
   const cartHref = `/cart?store=${encodeURIComponent(slug)}`;
   const facts = product ? getProductFacts(product) : [];
 
+  if (loading) {
+    return <GlobalPageLoader overlay label="Loading product..." />;
+  }
+
   return (
     <main className="min-h-screen bg-[#f2f6fb]">
       <StoreHeader sellerName={sellerName} storeHref={storeHref} cartHref={cartHref} cartCount={cartCount} searchTerm={searchTerm} onSearchChange={setSearchTerm} whatsappPhone={profile?.whatsapp_phone} />
@@ -114,27 +151,11 @@ export default function ProductDetailsPage() {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[1fr_420px]">
-        {loading ? (
-          <>
-            <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-lg">
-              <div className="aspect-[4/3] animate-pulse rounded-lg bg-slate-200" />
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="aspect-video animate-pulse rounded-lg bg-slate-200" />
-                <div className="aspect-video animate-pulse rounded-lg bg-slate-200" />
-                <div className="aspect-video animate-pulse rounded-lg bg-slate-200" />
-              </div>
-            </div>
-            <aside className="h-fit rounded-xl border border-[#E5E7EB] bg-white p-5 shadow-lg lg:sticky lg:top-28">
-              <div className="h-8 w-32 animate-pulse rounded-full bg-slate-200" />
-              <div className="mt-5 h-10 w-4/5 animate-pulse rounded bg-slate-200" />
-              <div className="mt-4 h-4 w-full animate-pulse rounded bg-slate-200" />
-              <div className="mt-2 h-4 w-2/3 animate-pulse rounded bg-slate-200" />
-              <div className="mt-6 h-12 w-40 animate-pulse rounded bg-slate-200" />
-              <div className="mt-8 h-12 w-full animate-pulse rounded-lg bg-slate-200" />
-            </aside>
-          </>
-        ) : !product ? (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-800">{message}</div>
+        {!product ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-800">
+            <p>{message || "Unable to load this product. Please try again."}</p>
+            <button onClick={() => setRetryKey((current) => current + 1)} className="mt-4 rounded-lg bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D]">Retry</button>
+          </div>
         ) : (
           <>
             <div className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-lg">

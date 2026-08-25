@@ -1,14 +1,16 @@
 type GlobalPageLoaderProps = {
   overlay?: boolean;
+  label?: string;
 };
 
-export default function GlobalPageLoader({ overlay = false }: GlobalPageLoaderProps) {
+export default function GlobalPageLoader({ overlay = false, label = "Loading..." }: GlobalPageLoaderProps) {
   const wrapperClass = overlay
-    ? "fixed inset-0 z-[9999] overflow-hidden bg-white/80 px-5 backdrop-blur-sm"
+    ? "fixed inset-0 z-[9999] grid h-[100dvh] w-screen place-items-center overflow-hidden bg-white px-5"
     : "min-h-screen overflow-hidden bg-[#f3f4f6] px-5";
 
   return (
     <div className={wrapperClass} aria-live="polite" aria-busy="true">
+      {!overlay ? (
       <div className="absolute inset-0 opacity-80">
         <div className="mx-auto max-w-7xl px-4 py-5">
           <div className="mb-8 flex items-center justify-between gap-5">
@@ -37,11 +39,14 @@ export default function GlobalPageLoader({ overlay = false }: GlobalPageLoaderPr
           </div>
         </div>
       </div>
+      ) : null}
 
       <div className="relative z-10 grid min-h-screen place-items-center">
-        <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 shadow-xl">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-[#16A34A]" />
-          <p className="text-sm font-black text-slate-700">Loading...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="grid h-16 w-16 place-items-center rounded-2xl border border-emerald-100 bg-emerald-50 shadow-sm">
+            <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-emerald-100 border-t-[#16A34A]" />
+          </div>
+          <p className="text-sm font-black text-slate-700">{label}</p>
         </div>
       </div>
     </div>
