@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
+import { LoadingScreen } from "@/components/loading-screen";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -167,14 +168,7 @@ export default function DynamicStorefrontPage() {
   });
 
   if (loading && !profile) {
-    return (
-      <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
-        <div className="sellmate-card rounded-lg p-6 text-center">
-          <p className="text-sm font-black text-slate-950">Loading store...</p>
-          <p className="mt-2 text-xs font-semibold text-slate-500">Opening the correct seller shop.</p>
-        </div>
-      </main>
-    );
+    return <LoadingScreen />;
   }
 
   return (

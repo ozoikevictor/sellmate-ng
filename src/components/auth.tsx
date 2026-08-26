@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { VendoraqLogo } from "@/components/ui";
+import { LoadingScreen } from "@/components/loading-screen";
 
 type DemoUser = {
   id: string;
@@ -319,13 +320,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [logout, ready, router, user]);
 
   if (!ready || !user || !hasVerifiedLoginCode(user.id)) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-slate-50 px-5">
-        <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <p className="text-sm font-bold text-slate-700">Checking seller access...</p>
-        </div>
-      </main>
-    );
+    return <LoadingScreen />;
   }
 
   return children;
@@ -408,7 +403,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [pendingEmail, setPendingEmail] = useState("");
 
   useEffect(() => {
-    if (mode === "login") {
+    if (mode !== "login") {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
       const savedPendingEmail = getPendingLoginEmail();
       if (savedPendingEmail) {
         setPendingEmail(savedPendingEmail);
@@ -433,7 +432,9 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           setNotice(`Enter the login code sent to ${normalizedCodeEmail}.`);
         }
       }
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [logout, mode]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -467,7 +468,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         if (result.message) {
           setNotice(result.message);
         } else {
-          window.location.href = "/dashboard/account";
+          router.push("/dashboard/account");
         }
       } else {
         setError(result.message ?? "Registration failed. Please try again.");
@@ -489,7 +490,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         return;
       }
       setLoading(false);
-      window.location.href = "/dashboard/account";
+      router.push("/dashboard/account");
       return;
     }
 

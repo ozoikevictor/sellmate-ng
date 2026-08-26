@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
+import { LoadingScreen } from "@/components/loading-screen";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -159,14 +160,7 @@ export default function CheckoutPage() {
   }
 
   if (!mounted) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#f2f6fb] px-5">
-        <div className="rounded-lg border border-slate-200 bg-white p-6 text-center shadow-xl">
-          <p className="text-sm font-black text-slate-950">Loading checkout...</p>
-          <p className="mt-2 text-xs font-semibold text-slate-500">Getting your cart and seller details first.</p>
-        </div>
-      </main>
-    );
+    return <LoadingScreen />;
   }
 
   return (

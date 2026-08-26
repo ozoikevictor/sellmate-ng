@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { LoadingScreen } from "@/components/loading-screen";
 import { clearCart, readCurrentStoreHref } from "@/lib/cart";
 
 function PaymentCallbackContent() {
@@ -117,7 +118,7 @@ function normalizeWhatsAppPhone(phone: string) {
 
 export default function PaymentCallbackPage() {
   return (
-    <Suspense fallback={<main className="grid min-h-screen place-items-center bg-slate-100 px-5">Checking payment...</main>}>
+    <Suspense fallback={<LoadingScreen />}>
       <PaymentCallbackContent />
     </Suspense>
   );
