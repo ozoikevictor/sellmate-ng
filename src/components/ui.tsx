@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -86,6 +87,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [storeSlug, setStoreSlug] = useState("store");
   const [storeReady, setStoreReady] = useState(false);
+  const canOpenStore = Boolean(user?.id && storeReady);
   const storeHref = `/store/${storeSlug}`;
   const links = [
     { key: "overview", label: "Overview", href: "/dashboard", icon: "dashboard" },
@@ -101,7 +103,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user?.id) {
-      setStoreReady(false);
       return;
     }
     const timer = window.setTimeout(async () => {
@@ -177,7 +178,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <section className="lg:pl-72">
         <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
-            {storeReady ? (
+            {canOpenStore ? (
               <Link href={storeHref} className="lg:hidden"><VendoraqLogo compact /></Link>
             ) : (
               <span className="lg:hidden"><VendoraqLogo compact /></span>
@@ -190,7 +191,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <span className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-[#166534] sm:inline-flex">
                 Logged in
               </span>
-              {storeReady ? (
+              {canOpenStore ? (
                 <Link href={storeHref} className="rounded-full bg-[#16A34A] px-4 py-2.5 text-xs font-black text-white shadow-[0_10px_24px_rgba(22,163,74,0.22)] transition hover:bg-[#15803D]">
                   View store
                 </Link>
@@ -348,13 +349,13 @@ export function SellerLogo({
 
   return (
     <span className={`grid shrink-0 place-items-center overflow-hidden rounded-md bg-white font-black text-emerald-700 shadow-sm ring-1 ring-slate-300 ${boxSize}`}>
-      {logoUrl ? <img src={logoUrl} alt={`${name} logo`} className="h-full w-full object-contain p-1" /> : initials}
+      {logoUrl ? <Image src={logoUrl} alt={`${name} logo`} width={48} height={48} className="h-full w-full object-contain p-1" /> : initials}
     </span>
   );
 }
 
 
-export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock"; className?: string }) {
+export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock" | "x"; className?: string }) {
   const common = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   const icons: Record<string, ReactNode> = {
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
@@ -364,6 +365,7 @@ export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "h
     home: <><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></>,
     menu: <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>,
     lock: <><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
+    x: <><path d="M18 6 6 18" /><path d="m6 6 12 12" /></>,
   };
 
   return (
@@ -382,11 +384,9 @@ export function CartIconLink({ href, count, label = "View shopping cart" }: { hr
       className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
     >
       <IconGlyph name="cart" className="h-5 w-5" />
-      {count > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#16A34A] px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
-          {count > 99 ? "99+" : count}
-        </span>
-      ) : null}
+      <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#16A34A] px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+        {count > 99 ? "99+" : count}
+      </span>
     </Link>
   );
 }
@@ -481,38 +481,147 @@ export function StoreHeader({
   onSearchChange: (value: string) => void;
   whatsappPhone?: string | null;
 }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const productSectionHref = `${storeHref}#products`;
+  const categoriesHref = `${storeHref}#categories`;
+  const helpSectionHref = `${storeHref}#help`;
+  const drawerLinks: Array<{ label: string; href?: string; icon: "home" | "search" | "menu" | "heart" | "cart" | "user"; disabled?: boolean }> = [
+    { label: "Home", href: storeHref, icon: "home" },
+    { label: "All Products", href: productSectionHref, icon: "search" },
+    { label: "Categories", href: categoriesHref, icon: "menu" },
+    { label: "Wishlist", icon: "heart", disabled: true },
+    { label: "My Cart", href: cartHref, icon: "cart" },
+    { label: "My Orders", icon: "user", disabled: true },
+    { label: "Contact / Support", href: helpSectionHref, icon: "user" },
+  ];
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return;
+    }
+
+    function closeMenu() {
+      setIsMenuOpen(false);
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("scroll", closeMenu, { passive: true, once: true });
+
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("scroll", closeMenu);
+    };
+  }, [isMenuOpen]);
+
   return (
-    <header className="relative z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur sm:fixed sm:inset-x-0 sm:top-0">
+    <header className="relative z-50 border-b border-[#E5E7EB] bg-white shadow-sm sm:fixed sm:inset-x-0 sm:top-0">
       <div className="hidden border-b border-[#E5E7EB] bg-[#F3F4F6] text-[#0F172A] sm:block">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-5 text-xs font-bold">
           <span>Secure shopping powered by VENDORAQ</span>
           <span>{whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Search products, add to cart, checkout securely"}</span>
         </div>
       </div>
-      <nav className="mx-auto grid min-h-16 max-w-7xl gap-2 px-4 py-2 sm:min-h-[76px] sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3">
-        <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-[#0F172A] sm:gap-3 sm:text-lg">
-          <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
-          <span className="truncate capitalize">{sellerName}</span>
-        </Link>
+      <nav className="mx-auto grid max-w-7xl gap-2 px-3 py-2 sm:min-h-[76px] sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(true)}
+            aria-label="Open store menu"
+            aria-expanded={isMenuOpen}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-white text-[#1F2937] transition hover:bg-[#F3F4F6] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
+          >
+            <IconGlyph name="menu" className="h-5 w-5" />
+          </button>
+          <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-[#1F2937] sm:gap-3 sm:text-lg">
+            <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
+            <span className="truncate capitalize">{sellerName}</span>
+          </Link>
+        </div>
         <div className="order-3 sm:order-none">
           <label className="relative block">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
             <input
               value={searchTerm}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search products"
-              className="h-10 w-full rounded-full border border-[#E5E7EB] bg-[#F3F4F6] pl-9 pr-4 text-sm font-semibold text-[#0F172A] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:h-11"
+              placeholder="Search products, brands and categories"
+              className="h-12 w-full rounded-full border border-[#E5E7EB] bg-[#F5F5F5] pl-9 pr-4 text-sm font-semibold text-[#1F2937] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:h-11"
             />
           </label>
         </div>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-          <HeaderIconButton href={storeHref} icon="home" label="Store home" />
-          <HeaderIconButton href="#products" icon="menu" label="Categories" />
-          <HeaderIconButton href="#products" icon="heart" label="Wishlist" />
+          <HeaderIconButton href="/login" icon="user" label="Customer account" />
           <CartIconLink href={cartHref} count={cartCount} />
-          <HeaderIconButton href="/login" icon="user" label="Seller account" />
         </div>
       </nav>
+      {isMenuOpen ? (
+        <div className="fixed inset-0 z-[1000]">
+          <button
+            type="button"
+            className="absolute inset-0 h-full w-full bg-slate-950/35"
+            aria-label="Close store menu"
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <aside className="vendoraq-mobile-drawer relative z-[1001] flex h-[100dvh] w-[min(86vw,20rem)] flex-col overflow-y-auto border-r border-[#E5E7EB] bg-white shadow-xl">
+            <div className="flex items-center justify-between gap-3 border-b border-[#E5E7EB] px-4 py-4">
+              <Link href={storeHref} onClick={() => setIsMenuOpen(false)} className="flex min-w-0 items-center gap-3">
+                <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
+                <div className="min-w-0">
+                  <p className="truncate text-base font-black capitalize text-[#0F172A]">{sellerName}</p>
+                  <p className="text-xs font-bold text-slate-500">Customer store menu</p>
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen(false)}
+                aria-label="Close store menu"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#E5E7EB] bg-white text-[#0F172A] transition hover:bg-[#F3F4F6] focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
+              >
+                <IconGlyph name="x" className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="grid gap-1 px-3 py-4">
+              {drawerLinks.map((item) =>
+                item.disabled ? (
+                  <button
+                    key={item.label}
+                    type="button"
+                    disabled
+                    className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-black text-slate-400"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#F3F4F6] text-slate-400">
+                      <IconGlyph name={item.icon} className="h-5 w-5" />
+                    </span>
+                    <span>{item.label}</span>
+                  </button>
+                ) : (
+                  <Link
+                    key={item.label}
+                    href={item.href ?? storeHref}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-black text-[#1F2937] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#F3F4F6] text-[#16A34A]">
+                      <IconGlyph name={item.icon} className="h-5 w-5" />
+                    </span>
+                    <span>{item.label}</span>
+                  </Link>
+                ),
+              )}
+            </nav>
+            <div className="mt-auto border-t border-[#E5E7EB] p-4">
+              <p className="text-xs font-bold leading-5 text-slate-500">
+                {whatsappPhone ? `Need help? Contact this store on WhatsApp: ${whatsappPhone}` : "Browse products, add to cart, and checkout inside this store."}
+              </p>
+            </div>
+          </aside>
+        </div>
+      ) : null}
     </header>
   );
 }
@@ -567,7 +676,6 @@ export function PublicFooter({
 }) {
   const footerName = sellerName || "VENDORAQ";
   const isSellerFooter = Boolean(sellerName);
-  const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const productHref = storeHref;
   const categoryHref = storeHref === "/" ? "/#how-it-works" : `${storeHref}#products`;
   const [activeFooterModal, setActiveFooterModal] = useState<string | null>(null);

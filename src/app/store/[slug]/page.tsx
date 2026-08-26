@@ -96,10 +96,18 @@ export default function DynamicStorefrontPage() {
 
     loadStore();
     writeCurrentStoreHref(`/store/${slug}`);
-    const timer = window.setTimeout(() => {
+    function syncCartCount() {
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
-    }, 0);
-    return () => window.clearTimeout(timer);
+    }
+
+    syncCartCount();
+    window.addEventListener("sellmate-cart-updated", syncCartCount);
+    window.addEventListener("storage", syncCartCount);
+
+    return () => {
+      window.removeEventListener("sellmate-cart-updated", syncCartCount);
+      window.removeEventListener("storage", syncCartCount);
+    };
   }, [slug]);
 
   function handleAddToCart(product: StoreProduct) {
@@ -183,7 +191,7 @@ export default function DynamicStorefrontPage() {
       />
       <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#fff7ed_0%,#eff6ff_48%,#dcfce7_100%)]">
         <div className="mx-auto grid max-w-7xl gap-5 px-5 py-6 lg:grid-cols-[220px_1fr_320px] lg:py-8">
-          <aside className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:block">
+          <aside id="categories" className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:block">
             <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Categories</p>
             <div className="grid gap-2 text-sm font-bold text-slate-700">
               {(categories.length ? categories : ["Products", "New arrivals", "Best sellers", "Deals"]).map((category) => (
