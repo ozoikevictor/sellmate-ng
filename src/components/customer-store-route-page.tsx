@@ -312,7 +312,7 @@ function ProductsView({
     <>
       <SectionTitle eyebrow="All products" title="Products you can order now" action={<CartIconLink href={cartHref} count={cartCount} />} />
       {products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="-mx-5 grid grid-cols-[repeat(6,minmax(10.5rem,44vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
         {products.map((product) => (
           <ProductTile key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} />
         ))}
@@ -324,7 +324,7 @@ function ProductsView({
 function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite }: { product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void }) {
   const rating = productRating(product);
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="group flex h-full scroll-ml-5 snap-start flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
         <div className="h-36 bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center sm:h-48 lg:h-44 xl:h-48" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
         <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-lg bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-600 hover:text-rose-600"}`}>
@@ -353,9 +353,9 @@ function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite }: { p
 function CategoriesView({ categories, products, storeHref }: { categories: string[]; products: StoreProduct[]; storeHref: string }) {
   if (categories.length === 0) return <EmptyPanel title="No categories yet" text="This seller has not added product categories yet." />;
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="-mx-5 grid grid-cols-[repeat(3,minmax(13rem,70vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
       {categories.map((category) => (
-        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
+        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="scroll-ml-5 snap-start rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
           <p className="text-lg font-black text-slate-950">{category}</p>
           <p className="mt-2 text-sm font-semibold text-slate-500">{products.filter((product) => product.category === category).length} product(s)</p>
         </Link>
