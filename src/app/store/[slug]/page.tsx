@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
+import { CartIconLink, IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
 import { addToCart, readCart, readWishlist, toggleWishlistItem, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -94,6 +94,7 @@ export default function DynamicStorefrontPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [heroIndex, setHeroIndex] = useState(0);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<StoreProduct | null>(null);
 
   useEffect(() => {
     const cachedStore = readStoreCache(slug);
@@ -348,7 +349,10 @@ export default function DynamicStorefrontPage() {
                 return (
                   <article key={product.id} className="group flex h-full scroll-ml-5 snap-start flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
                 <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProduct(product)}
+                    aria-label={`View details for ${product.name}`}
                     className="h-36 bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
                     style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
                   />
@@ -373,10 +377,12 @@ export default function DynamicStorefrontPage() {
                     </span>
                     <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
                   </div>
-                  <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] sm:text-lg">{product.name}</h3>
-                  <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">
-                    {product.variant_options || `SKU: ${product.sku}`}
-                  </p>
+                  <button type="button" onClick={() => setSelectedProduct(product)} className="text-left">
+                    <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] transition hover:text-[#16A34A] sm:text-lg">{product.name}</h3>
+                    <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">
+                      {product.variant_options || `SKU: ${product.sku}`}
+                    </p>
+                  </button>
                   <p className="mt-2 text-xs font-black text-[#166534]">{rating.label}</p>
                   <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">{formatNaira(product.price)}</p>
                   <button onClick={() => handleAddToCart(product)} className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">
@@ -407,6 +413,15 @@ export default function DynamicStorefrontPage() {
             </Link>
           </div>
         </div>
+      ) : null}
+      {selectedProduct ? (
+        <ProductDetailsModal
+          product={selectedProduct}
+          isFavorite={favoriteIds.includes(selectedProduct.id)}
+          onClose={() => setSelectedProduct(null)}
+          onAddToCart={handleAddToCart}
+          onToggleFavorite={toggleFavorite}
+        />
       ) : null}
       <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={storeHomeHref} />
     </main>

@@ -677,6 +677,78 @@ export function CheckoutHeader({
   );
 }
 
+export type CustomerProductDetails = {
+  id: string;
+  name: string;
+  sku?: string | null;
+  category: string;
+  variant_options?: string | null;
+  price: number;
+  stock: number;
+  image_url?: string | null;
+};
+
+export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
+  product,
+  isFavorite,
+  onClose,
+  onAddToCart,
+  onToggleFavorite,
+}: {
+  product: TProduct;
+  isFavorite: boolean;
+  onClose: () => void;
+  onAddToCart: (product: TProduct) => void;
+  onToggleFavorite: (product: TProduct) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[1100] grid place-items-end bg-slate-950/55 px-0 pt-10 backdrop-blur-sm sm:place-items-center sm:px-4 sm:py-6">
+      <button type="button" className="absolute inset-0 h-full w-full" aria-label="Close product details" onClick={onClose} />
+      <section className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:max-w-4xl sm:rounded-2xl">
+        <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_minmax(20rem,0.9fr)]">
+          <div className="relative bg-slate-100">
+            <div className="aspect-square bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center md:min-h-[34rem]" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
+            <span className="absolute left-4 top-4 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#166534]">{product.category}</span>
+          </div>
+          <div className="flex flex-col p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Product details</p>
+                <h2 className="mt-2 text-2xl font-black leading-tight text-slate-950 sm:text-4xl">{product.name}</h2>
+              </div>
+              <button type="button" onClick={onClose} aria-label="Close product details" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100">
+                <IconGlyph name="x" className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="mt-5 text-3xl font-black text-[#16A34A]">{formatNaira(product.price)}</p>
+            <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-600">
+              <div className="flex justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3"><span>Stock available</span><strong className="text-slate-950">{product.stock}</strong></div>
+              <div className="flex justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3"><span>Category</span><strong className="text-right text-slate-950">{product.category}</strong></div>
+              {product.sku ? <div className="flex justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3"><span>SKU</span><strong className="text-right text-slate-950">{product.sku}</strong></div> : null}
+            </div>
+            {product.variant_options ? (
+              <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Options / description</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">{product.variant_options}</p>
+              </div>
+            ) : null}
+            <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+              <button type="button" onClick={() => onAddToCart(product)} className="flex items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">
+                <IconGlyph name="cart" className="h-4 w-4" />
+                Add to Cart
+              </button>
+              <button type="button" onClick={() => onToggleFavorite(product)} className={`flex items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-black transition ${isFavorite ? "border-rose-200 bg-rose-50 text-rose-700" : "border-slate-200 bg-white text-slate-700 hover:border-rose-200 hover:text-rose-700"}`}>
+                <IconGlyph name="heart" className="h-4 w-4" />
+                {isFavorite ? "Saved" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export function PublicFooter({
   sellerName,
   sellerLogoUrl,

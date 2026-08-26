@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
-import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
+import { CartIconLink, IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, CustomerOrder, readCart, readCustomerOrders, readWishlist, toggleWishlistItem, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -91,6 +91,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<StoreProduct | null>(null);
 
   useEffect(() => {
     const cachedStore = readStoreCache(slug);
@@ -259,9 +260,9 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
 
       <section className="mx-auto max-w-7xl px-5 py-8 sm:py-12">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
-        {view === "products" ? <ProductsView products={filteredProducts} favoriteIds={favoriteIds} cartHref={cartHref} cartCount={cartCount} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} /> : null}
+        {view === "products" ? <ProductsView products={filteredProducts} favoriteIds={favoriteIds} cartHref={cartHref} cartCount={cartCount} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}
-        {view === "wishlist" ? <WishlistView products={products.filter((product) => favoriteIds.includes(product.id))} cartHref={cartHref} cartCount={cartCount} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} /> : null}
+        {view === "wishlist" ? <WishlistView products={products.filter((product) => favoriteIds.includes(product.id))} cartHref={cartHref} cartCount={cartCount} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "orders" ? <OrdersView orders={customerOrders} /> : null}
         {view === "support" ? <SupportView sellerName={sellerName} whatsappPhone={profile?.whatsapp_phone} storeHref={storeHref} /> : null}
       </section>
@@ -273,6 +274,15 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
             <Link href={cartHref} className="shrink-0 rounded-md bg-[#16A34A] px-4 py-2 text-xs font-black text-white">View cart</Link>
           </div>
         </div>
+      ) : null}
+      {selectedProduct ? (
+        <ProductDetailsModal
+          product={selectedProduct}
+          isFavorite={favoriteIds.includes(selectedProduct.id)}
+          onClose={() => setSelectedProduct(null)}
+          onAddToCart={handleAddToCart}
+          onToggleFavorite={toggleFavorite}
+        />
       ) : null}
       <PublicFooter sellerName={sellerName} sellerLogoUrl={profile?.logo_url} storeHref={storeHref} />
     </main>
@@ -308,6 +318,7 @@ function ProductsView({
   cartCount,
   onAddToCart,
   onToggleFavorite,
+  onViewDetails,
 }: {
   products: StoreProduct[];
   favoriteIds: string[];
@@ -315,6 +326,7 @@ function ProductsView({
   cartCount: number;
   onAddToCart: (product: StoreProduct) => void;
   onToggleFavorite: (product: StoreProduct) => void;
+  onViewDetails: (product: StoreProduct) => void;
 }) {
   return (
     <>
@@ -324,7 +336,7 @@ function ProductsView({
         {productRows(products).map((row, rowIndex) => (
           <div key={`product-row-${rowIndex}`} className="-mx-5 grid grid-cols-[repeat(6,minmax(10.5rem,44vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
             {row.map((product) => (
-              <ProductTile key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} />
+              <ProductTile key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
             ))}
           </div>
         ))}
@@ -333,12 +345,12 @@ function ProductsView({
   );
 }
 
-function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite }: { product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void }) {
+function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite, onViewDetails }: { product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   const rating = productRating(product);
   return (
     <article className="group flex h-full scroll-ml-5 snap-start flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
-        <div className="h-36 bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center sm:h-48 lg:h-44 xl:h-48" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
+        <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="h-36 w-full bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center sm:h-48 lg:h-44 xl:h-48" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
         <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-lg bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-600 hover:text-rose-600"}`}>
           <IconGlyph name="heart" className="h-4 w-4" />
         </button>
@@ -349,8 +361,10 @@ function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite }: { p
           <span className="rounded-full bg-[#F3F4F6] px-2 py-1 text-[10px] font-black text-[#166534] ring-1 ring-[#E5E7EB]">{"★".repeat(rating.stars)}{"☆".repeat(5 - rating.stars)}</span>
           <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
         </div>
-        <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] sm:text-lg">{product.name}</h3>
-        <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">{product.variant_options || `SKU: ${product.sku}`}</p>
+        <button type="button" onClick={() => onViewDetails(product)} className="text-left">
+          <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] transition hover:text-[#16A34A] sm:text-lg">{product.name}</h3>
+          <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">{product.variant_options || `SKU: ${product.sku}`}</p>
+        </button>
         <p className="mt-2 text-xs font-black text-[#166534]">{rating.label}</p>
         <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">{formatNaira(product.price)}</p>
         <button type="button" onClick={() => onAddToCart(product)} className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">
@@ -376,7 +390,7 @@ function CategoriesView({ categories, products, storeHref }: { categories: strin
   );
 }
 
-function WishlistView(props: { products: StoreProduct[]; cartHref: string; cartCount: number; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void }) {
+function WishlistView(props: { products: StoreProduct[]; cartHref: string; cartCount: number; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   if (props.products.length === 0) return <EmptyPanel title="No wishlist items yet" text="Tap the heart on a product to save it while shopping this store." />;
   return <ProductsView {...props} favoriteIds={props.products.map((product) => product.id)} />;
 }
