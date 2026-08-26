@@ -2,34 +2,52 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { PlatformHeader, PublicFooter, SectionTitle, StatCard, VendoraqLogo } from "@/components/ui";
+import { CartIconLink, IconGlyph, VendoraqLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { readCart } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
+import { productPlans } from "@/lib/plans";
 import { supabase } from "@/lib/supabase";
 
 type SellerSummary = {
   businessName: string;
   storeSlug: string;
-  productCount: number;
-  lowStockCount: number;
-  products: Array<{
-    id: string;
-    name: string;
-    category: string;
-    price: number;
-    stock: number;
-    image_url: string | null;
-  }>;
 };
 
-function makeStoreSlug(businessName: string, userId: string) {
-  const baseSlug = businessName
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+type FaqItem = {
+  question: string;
+  answer: string;
+};
 
+const trustItems = ["Professional Storefront", "Secure Checkout", "Order Management", "WhatsApp Friendly"];
+const steps = [
+  { number: "01", title: "Create your store", text: "Add your business name, logo and details." },
+  { number: "02", title: "Add your products", text: "Upload product photos, prices and stock." },
+  { number: "03", title: "Share your link", text: "Share your VENDORAQ store through WhatsApp, Instagram, TikTok and anywhere else." },
+  { number: "04", title: "Start receiving orders", text: "Customers browse, add to cart, checkout and pay." },
+];
+const features = [
+  { title: "Beautiful Storefront", text: "Give customers a professional mobile-friendly shopping experience." },
+  { title: "Product Management", text: "Manage products, categories, prices, variants and stock." },
+  { title: "Secure Payments", text: "Accept supported online payments securely." },
+  { title: "Orders & Delivery", text: "Manage orders and delivery status." },
+  { title: "WhatsApp Selling", text: "Share products and your store through WhatsApp." },
+  { title: "Business Analytics", text: "Understand orders, products and sales." },
+];
+const businessCategories = ["Fashion", "Beauty", "Electronics", "Food & Groceries", "Home & Kitchen", "Building Materials", "Auto Parts", "Books", "Accessories", "Other Products"];
+const faqs: FaqItem[] = [
+  { question: "What is VENDORAQ?", answer: "VENDORAQ helps Nigerian sellers create a public online store, upload products, receive orders, and manage business activity from a seller dashboard." },
+  { question: "Do I need coding knowledge?", answer: "No. Sellers can create a store, add products, and share a store link without writing code." },
+  { question: "Can I use VENDORAQ with WhatsApp?", answer: "Yes. You can keep selling through WhatsApp while giving customers a professional store to browse before they message or checkout." },
+  { question: "Do I get my own store link?", answer: "Yes. Each seller gets a store link that can be shared on WhatsApp, Instagram, TikTok, and other channels." },
+  { question: "How do customers place orders?", answer: "Customers open your store, search products, add items to cart, enter delivery details, and continue through checkout." },
+  { question: "How do customers pay?", answer: "Customer checkout uses the existing secure payment flow already configured in the application." },
+  { question: "Can I manage my store from my phone?", answer: "Yes. The dashboard and public store are designed for mobile users as well as desktop users." },
+  { question: "Can I sell different types of products?", answer: "Yes. Fashion, beauty, electronics, food items, accessories, tools, books, and many other product types can be listed." },
+];
+
+function makeStoreSlug(businessName: string, userId: string) {
+  const baseSlug = businessName.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   return `${baseSlug || "store"}-${userId.slice(0, 6)}`;
 }
 
@@ -38,40 +56,21 @@ export default function LandingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
   const [accountChecked, setAccountChecked] = useState(false);
-  const [supportOpen, setSupportOpen] = useState(false);
-  const [activeStep, setActiveStep] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState(0);
 
   useEffect(() => {
     async function loadSellerSummary() {
-      if (!ready) {
-        return;
-      }
+      if (!ready) return;
       if (!user?.id) {
         setSellerSummary(null);
         setAccountChecked(true);
         return;
       }
 
-      const { data: profileData } = await supabase
-        .from("seller_profiles")
-        .select("business_name,store_slug")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      const { data: productData } = await supabase
-        .from("products")
-        .select("id,name,category,price,stock,status,image_url")
-        .eq("user_id", user.id)
-        .eq("status", "Live")
-        .order("created_at", { ascending: false });
-
-      setSellerSummary({
-        businessName: profileData?.business_name || "Your store",
-        storeSlug: profileData?.store_slug || makeStoreSlug(profileData?.business_name || "Your store", user.id),
-        productCount: productData?.length ?? 0,
-        lowStockCount: productData?.filter((product) => Number(product.stock) <= 3).length ?? 0,
-        products: (productData ?? []).slice(0, 3),
-      });
+      const { data: profileData } = await supabase.from("seller_profiles").select("business_name,store_slug").eq("user_id", user.id).maybeSingle();
+      const businessName = profileData?.business_name || user.business || "Your store";
+      setSellerSummary({ businessName, storeSlug: profileData?.store_slug || makeStoreSlug(businessName, user.id) });
       setAccountChecked(true);
     }
 
@@ -94,269 +93,295 @@ export default function LandingPage() {
     };
   }, [ready, user]);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveStep((step) => (step + 1) % 3);
-    }, 3200);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
   const demoStoreHref = "/store/ada-fashion";
   const storeHref = sellerSummary ? `/store/${sellerSummary.storeSlug}` : demoStoreHref;
-  const isLoggedInSeller = Boolean(sellerSummary);
-
-  const publicMetrics = useMemo(() => {
-    if (sellerSummary) {
-      return [
-        { label: "Your store", value: sellerSummary.businessName, change: "Logged in", tone: "green" },
-        { label: "Live products", value: String(sellerSummary.productCount), change: "Available", tone: "blue" },
-        { label: "Items in your cart", value: String(cartCount), change: cartCount > 0 ? "Ready" : "Empty", tone: "slate" },
-        { label: "Low stock", value: String(sellerSummary.lowStockCount), change: sellerSummary.lowStockCount > 0 ? "Check stock" : "Healthy", tone: sellerSummary.lowStockCount > 0 ? "amber" : "green" },
-      ];
-    }
-
-    return [
-      { label: "Seller dashboard", value: "Ready", change: "Manage shop", tone: "blue" },
-      { label: "Items in your cart", value: String(cartCount), change: cartCount > 0 ? "Ready to checkout" : "Start shopping", tone: "green" },
-      { label: "Storefronts", value: "Public", change: "Share links", tone: "slate" },
-      { label: "Payments", value: "Paystack", change: "Test mode", tone: "amber" },
-    ];
-  }, [cartCount, sellerSummary]);
-
-  const liveActivities = [
-    "New product added to public shop",
-    "Customer cart updated",
-    "Receipt ready for WhatsApp follow-up",
-  ];
-
-  const howItWorks = [
-    {
-      title: "Seller creates store",
-      text: "Register, add business details, logo, delivery fee, WhatsApp number, and product photos.",
-      badge: "Store setup",
-      stat: "10 min",
-    },
-    {
-      title: "Customer shops",
-      text: "Visitors search the store, compare products, add items to cart, and review their order.",
-      badge: "Public store",
-      stat: "Live cart",
-    },
-    {
-      title: "Payment and receipt",
-      text: "Checkout collects delivery details, Paystack handles payment, and WhatsApp gets the receipt.",
-      badge: "Checkout",
-      stat: "Paid order",
-    },
-  ];
+  const navLinks = useMemo(
+    () => [
+      { label: "Home", href: "/" },
+      { label: "Features", href: "#features" },
+      { label: "How It Works", href: "#how-it-works" },
+      { label: "Pricing", href: "#pricing" },
+      { label: "Marketplace", href: "#marketplace" },
+      { label: "FAQ", href: "#faq" },
+    ],
+    [],
+  );
 
   if (!accountChecked) {
     return (
-      <main className="grid min-h-screen place-items-center sellmate-page-bg px-5">
-        <div className="rounded-lg border border-slate-300 bg-white/90 p-6 text-center shadow-lg">
+      <main className="grid min-h-screen place-items-center bg-[#F8FAFC] px-5">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 text-center shadow-lg">
           <div className="flex justify-center"><VendoraqLogo /></div>
-          <p className="mt-4 text-sm font-black text-slate-950">Opening your VENDORAQ page...</p>
+          <p className="mt-4 text-sm font-black text-[#111827]">Opening your VENDORAQ page...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen sellmate-page-bg pt-28 sm:pt-20">
-      <PlatformHeader cartCount={cartCount} storeHref={storeHref} isLoggedInSeller={isLoggedInSeller} onHelpClick={() => setSupportOpen(true)} />
-      <section className="border-b border-slate-300 sellmate-hero-bg">
-        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 lg:min-h-[calc(100vh-5rem)] lg:grid-cols-[1fr_0.92fr] lg:items-center">
-          <div className="landing-fade-up">
-            <p className="landing-fade-up w-fit rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">WhatsApp commerce for Nigerian sellers</p>
-            <h1 className="landing-fade-up landing-delay-1 mt-5 max-w-3xl text-4xl font-black capitalize leading-[1.02] text-slate-950 sm:text-5xl lg:text-6xl">
-              {isLoggedInSeller ? `${sellerSummary?.businessName} store control.` : "Create your online store and manage WhatsApp orders."}
+    <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-[#111827]">
+      <LandingHeader cartCount={cartCount} storeHref={storeHref} navLinks={navLinks} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+
+      <section id="home" className="border-b border-[#E2E8F0] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_58%,#F0FDF4_100%)] pt-24 sm:pt-28">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-8 sm:px-6 lg:min-h-[calc(100vh-7rem)] lg:grid-cols-[minmax(0,1fr)_minmax(23rem,0.86fr)] lg:items-center lg:py-14">
+          <div className="max-w-3xl">
+            <p className="inline-flex rounded-full border border-emerald-200 bg-[#F0FDF4] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Built for Nigerian sellers</p>
+            <h1 className="mt-5 text-[2.15rem] font-black leading-[1.03] text-[#0F172A] sm:text-5xl lg:text-6xl">
+              Turn Your WhatsApp Business Into a <span className="text-[#22C55E]">Real Online Store.</span>
             </h1>
-            <p className="landing-fade-up landing-delay-2 mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              {isLoggedInSeller
-                ? "You are logged in. Open your store to see your public products, pictures, available stock, cart, and checkout flow."
-                : "VENDORAQ helps sellers create a public shop, add products, collect customer orders, receive Paystack payments, and manage everything from a private dashboard."}
+            <p className="mt-5 max-w-2xl text-[15px] font-semibold leading-7 text-[#475569] sm:text-lg">
+              Create your store, upload products, receive orders and payments, and give your customers a professional place to shop, all from one simple link.
             </p>
-            <div className="landing-fade-up landing-delay-3 mt-8 flex flex-wrap gap-3">
-              {isLoggedInSeller ? (
-                <Link href={storeHref} className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-700">Open my store</Link>
-              ) : (
-                <>
-                  <Link href="/register" className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white">Create seller account</Link>
-                  <Link href="/login" className="rounded-md border border-slate-400 bg-slate-100 px-5 py-3 text-sm font-black text-slate-800">Seller login</Link>
-                  <button type="button" onClick={() => setSupportOpen(true)} className="rounded-md border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50">Need help?</button>
-                </>
-              )}
+            <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
+              <Link href="/register" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#22C55E] px-6 py-3 text-sm font-black text-white shadow-lg shadow-emerald-500/20 transition hover:bg-[#16A34A] focus:outline-none focus:ring-4 focus:ring-emerald-200">Start Selling Free</Link>
+              <Link href={storeHref} className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-[#E2E8F0] bg-white px-6 py-3 text-sm font-black text-[#0F172A] shadow-sm transition hover:border-emerald-200 hover:bg-[#F0FDF4] focus:outline-none focus:ring-4 focus:ring-emerald-100">View Demo Store</Link>
             </div>
-            <div className="landing-fade-up landing-delay-3 mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
-              {liveActivities.map((activity, index) => (
-                <div key={activity} className={`rounded-xl border bg-white/80 p-3 shadow-sm transition duration-300 ${activeStep === index ? "border-emerald-300 ring-4 ring-emerald-100" : "border-slate-200"}`}>
-                  <span className={`mb-2 block h-2 w-2 rounded-full ${activeStep === index ? "landing-pulse-dot bg-emerald-500" : "bg-slate-300"}`} />
-                  <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">Live flow</p>
-                  <p className="mt-1 text-sm font-bold leading-5 text-slate-800">{activity}</p>
-                </div>
+            <div className="mt-6 grid gap-2 text-sm font-bold text-[#475569] sm:flex sm:flex-wrap sm:gap-4">
+              {["No coding required", "Mobile friendly", "Secure payments"].map((item) => (
+                <span key={item} className="inline-flex items-center gap-2"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#DCFCE7] text-xs text-emerald-700">✓</span>{item}</span>
               ))}
             </div>
           </div>
-          <div className="landing-float rounded-lg border border-slate-700 bg-[#0b1728] p-3 shadow-2xl shadow-emerald-900/10">
-            <div className="rounded-md bg-slate-100 p-4 shadow-inner">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {publicMetrics.map((metric) => <StatCard key={metric.label} {...metric} />)}
-              </div>
-              <div className="mt-4 rounded-lg border border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5,#e2e8f0)] p-5">
-                <p className="text-sm font-black text-emerald-800">Customer shopping flow</p>
-                <p className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Browse - Cart - Checkout</p>
-                <p className="mt-2 text-sm text-slate-600">Public visitors see products and their own cart only. Seller revenue stays inside the dashboard.</p>
-                <div className="mt-4 space-y-2">
-                  {["Store link opened", "Item added to cart", "Payment receipt sent"].map((item, index) => (
-                    <div key={item} className={`flex items-center justify-between rounded-md border bg-white/80 px-3 py-2 text-xs font-black text-slate-700 transition ${activeStep === index ? "border-emerald-300 shadow-sm" : "border-slate-200"}`}>
-                      <span>{item}</span>
-                      <span className={activeStep === index ? "text-emerald-700" : "text-slate-400"}>{activeStep === index ? "Active" : "Ready"}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="relative mx-auto w-full max-w-[25rem] lg:max-w-none">
+            <PhoneStoreMockup />
+            <FloatingCard className="-left-1 top-10 sm:-left-8" title="New order" value="₦24,500" />
+            <FloatingCard className="-right-1 bottom-16 sm:-right-8" title="Payment successful" value="₦24,500" />
           </div>
         </div>
       </section>
-      <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-14">
-        {isLoggedInSeller ? (
-          <>
-            <SectionTitle
-              eyebrow="Your products"
-              title="Products available in your store"
-              action={<Link href={storeHref} className="rounded-md bg-slate-950 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-emerald-700">View my store</Link>}
-            />
-            {sellerSummary?.products.length ? (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {sellerSummary.products.map((product) => (
-                  <article key={product.id} className="group overflow-hidden rounded-lg border border-slate-300 bg-white shadow-md transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-2xl">
-                    <div className="relative bg-slate-200 p-3">
-                      <div
-                        className="h-56 rounded-md bg-[linear-gradient(135deg,#334155,#94a3b8_55%,#475569)] bg-cover bg-center shadow-inner transition duration-300 group-hover:scale-[1.02]"
-                        style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
-                      />
-                      <span className="absolute right-6 top-6 rounded-full bg-white/95 px-3 py-1 text-xs font-black text-emerald-700 shadow-md ring-1 ring-emerald-100">
-                        {product.stock} left
-                      </span>
-                      <span className="absolute bottom-6 left-6 rounded-full bg-slate-950/90 px-3 py-1 text-xs font-black text-white shadow-md">
-                        Live product
-                      </span>
-                    </div>
-                    <div className="p-5">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{product.category}</span>
-                        <span className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">In store</span>
-                      </div>
-                      <h2 className="mt-3 line-clamp-2 text-xl font-black leading-tight text-slate-950">{product.name}</h2>
-                      <p className="mt-2 text-2xl font-black text-emerald-700">
-                        {formatNaira(product.price)}
-                      </p>
-                      <Link href={storeHref} className="mt-5 block rounded-md bg-slate-950 px-4 py-3 text-center text-sm font-black text-white shadow-sm transition hover:bg-emerald-700">
-                        View product
-                      </Link>
-                    </div>
-                  </article>
-                ))}
+
+      <section className="bg-white py-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="grid gap-3 rounded-[1.25rem] border border-[#E2E8F0] bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+            {trustItems.map((item) => (
+              <div key={item} className="flex items-center gap-3 rounded-2xl bg-[#F8FAFC] p-4">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#F0FDF4] text-[#22C55E]">✓</span>
+                <p className="text-sm font-black text-[#0F172A]">{item}</p>
               </div>
-            ) : (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-5">
-                <h2 className="text-lg font-black text-slate-950">No live products yet</h2>
-                <p className="mt-2 text-sm leading-6 text-amber-800">Add products in your dashboard and set them to Live so they can appear here.</p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <SectionTitle eyebrow="How it works" title="One platform for sellers and customers" action={<Link href={storeHref} className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-50">View demo store</Link>} />
-            <div className="grid gap-4 md:grid-cols-3">
-              {howItWorks.map((step, index) => (
-                <button
-                  key={step.title}
-                  type="button"
-                  onClick={() => setActiveStep(index)}
-                  className={`landing-fade-up ${index === 1 ? "landing-delay-1" : index === 2 ? "landing-delay-2" : ""} group rounded-2xl border bg-white p-5 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${activeStep === index ? "border-emerald-300 ring-4 ring-emerald-100" : "border-slate-300"}`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-950 text-lg font-black text-white shadow-lg shadow-slate-900/15 transition group-hover:bg-emerald-700">
-                      {index + 1}
-                    </div>
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-200">{step.badge}</span>
-                  </div>
-                  <h2 className="mt-5 text-xl font-black text-slate-950">{step.title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{step.text}</p>
-                  <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                    <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Step {index + 1}</span>
-                    <span className="text-sm font-black text-slate-950">{step.stat}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+            ))}
+          </div>
+        </div>
       </section>
-      {supportOpen ? <LandingSupportModal onClose={() => setSupportOpen(false)} storeHref={storeHref} /> : null}
-      <PublicFooter storeHref={storeHref} />
+
+      <LandingSection id="how-it-works" eyebrow="HOW IT WORKS" title="From WhatsApp seller to online store in minutes.">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {steps.map((step) => (
+            <article key={step.title} className="rounded-[1.25rem] border border-[#E2E8F0] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+              <p className="text-sm font-black text-[#22C55E]">{step.number}</p>
+              <h3 className="mt-4 text-xl font-black text-[#0F172A]">{step.title}</h3>
+              <p className="mt-3 text-sm font-semibold leading-6 text-[#475569]">{step.text}</p>
+            </article>
+          ))}
+        </div>
+      </LandingSection>
+
+      <LandingSection eyebrow="ONE PLATFORM" title="Your store. Your customers. Your business." text="Manage your business while your customers enjoy a simple shopping experience.">
+        <div className="grid gap-5 lg:grid-cols-2">
+          <SellerDashboardPreview />
+          <CustomerStorePreview />
+        </div>
+      </LandingSection>
+
+      <LandingSection id="features" eyebrow="POWERFUL BUT SIMPLE" title="Everything you need to run your online store.">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, index) => (
+            <article key={feature.title} className="rounded-[1.25rem] border border-[#E2E8F0] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#F0FDF4] text-sm font-black text-[#16A34A]">{index + 1}</span>
+              <h3 className="mt-5 text-lg font-black text-[#0F172A]">{feature.title}</h3>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[#475569]">{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </LandingSection>
+
+      <section className="bg-[#F0FDF4] py-14 sm:py-18">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">BUILT FOR SOCIAL SELLERS</p>
+            <h2 className="mt-3 text-[1.8rem] font-black leading-tight text-[#0F172A] sm:text-4xl">Keep WhatsApp. Upgrade how you sell.</h2>
+            <p className="mt-4 text-[15px] font-semibold leading-7 text-[#475569]">You don&apos;t need to stop selling through WhatsApp. VENDORAQ gives your customers a professional store to browse before they message you.</p>
+            <Link href="/register" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#22C55E] px-6 py-3 text-sm font-black text-white shadow-lg shadow-emerald-500/20 transition hover:bg-[#16A34A]">Start Selling Free</Link>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 rounded-[1.25rem] border border-emerald-200 bg-white p-4 shadow-sm">
+            {["WhatsApp", "VENDORAQ Store", "Cart", "Payment", "Order"].map((item, index) => (
+              <div key={item} className="flex items-center gap-3">
+                <span className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 text-sm font-black text-[#0F172A]">{item}</span>
+                {index < 4 ? <span className="hidden text-xl font-black text-[#22C55E] sm:inline">→</span> : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <LandingSection title="Whatever you sell, there's a place for it.">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {businessCategories.map((category) => (
+            <div key={category} className="rounded-2xl border border-[#E2E8F0] bg-white p-4 text-sm font-black text-[#0F172A] shadow-sm">
+              <span className="mb-3 block h-2 w-10 rounded-full bg-[#22C55E]" />
+              {category}
+            </div>
+          ))}
+        </div>
+      </LandingSection>
+
+      <LandingSection id="marketplace" eyebrow="DISCOVER" title="More than just your own store." text="Build your own storefront today. As VENDORAQ grows, customers can also discover products and businesses across the platform.">
+        <div className="overflow-hidden rounded-[1.25rem] border border-[#E2E8F0] bg-white shadow-xl">
+          <div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="rounded-full bg-[#F8FAFC] px-4 py-3 text-sm font-bold text-[#475569]">Search fashion, gadgets, beauty...</div>
+            <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-100">Coming Soon</span>
+          </div>
+          <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[["Amaka Styles", "Ankara Dress", 18500], ["Gadget Plug", "Wireless Earbuds", 14500], ["Glow Beauty", "Lip Gloss Set", 6500], ["Home Picks", "Kitchen Blender", 42000]].map(([store, product, price]) => (
+              <article key={`${store}-${product}`} className="rounded-2xl bg-[#F8FAFC] p-4">
+                <div className="h-28 rounded-xl bg-[linear-gradient(135deg,#E2E8F0,#F0FDF4)]" />
+                <p className="mt-3 text-xs font-black uppercase tracking-wide text-[#22C55E]">{store}</p>
+                <h3 className="mt-1 text-base font-black text-[#0F172A]">{product}</h3>
+                <p className="mt-1 text-sm font-black text-[#16A34A]">{formatNaira(Number(price))}</p>
+              </article>
+            ))}
+          </div>
+          <div className="border-t border-[#E2E8F0] p-4">
+            <Link href={storeHref} className="inline-flex min-h-11 items-center rounded-2xl bg-[#0F172A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">Explore Marketplace</Link>
+          </div>
+        </div>
+      </LandingSection>
+
+      <LandingSection id="pricing" eyebrow="PRICING" title="Choose the plan that fits your business.">
+        <div className="grid gap-5 lg:grid-cols-3">
+          {productPlans.map((plan) => {
+            const highlighted = plan.badge.toLowerCase().includes("popular");
+            return (
+              <article key={plan.name} className={`rounded-[1.25rem] border bg-white p-5 shadow-sm ${highlighted ? "border-[#22C55E] ring-4 ring-emerald-100" : "border-[#E2E8F0]"}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-2xl font-black text-[#0F172A]">{plan.name}</h3>
+                  <span className={`rounded-full px-3 py-1 text-xs font-black ${highlighted ? "bg-[#22C55E] text-white" : "bg-[#F8FAFC] text-[#475569]"}`}>{plan.badge}</span>
+                </div>
+                <p className="mt-6 text-4xl font-black text-[#0F172A]">{formatNaira(plan.price)}<span className="text-sm font-bold text-[#475569]"> / month</span></p>
+                <ul className="mt-6 grid gap-3">
+                  {plan.features.map((feature) => <li key={feature} className="flex gap-3 text-sm font-semibold text-[#475569]"><span className="text-[#22C55E]">✓</span>{feature}</li>)}
+                </ul>
+                <Link href="/register" className={`mt-7 flex min-h-12 items-center justify-center rounded-2xl px-5 py-3 text-sm font-black transition ${highlighted ? "bg-[#22C55E] text-white hover:bg-[#16A34A]" : "border border-[#E2E8F0] bg-white text-[#0F172A] hover:bg-[#F0FDF4]"}`}>Get Started</Link>
+              </article>
+            );
+          })}
+        </div>
+      </LandingSection>
+
+      <LandingSection id="faq" title="Everything you need to know about VENDORAQ.">
+        <div className="grid gap-3 lg:grid-cols-2">
+          {faqs.map((faq, index) => (
+            <div key={faq.question} className="rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
+              <button type="button" onClick={() => setOpenFaq(openFaq === index ? -1 : index)} className="flex min-h-14 w-full items-center justify-between gap-4 px-4 py-4 text-left text-sm font-black text-[#0F172A]">
+                {faq.question}
+                <span className="shrink-0 text-xl text-[#22C55E]">{openFaq === index ? "-" : "+"}</span>
+              </button>
+              {openFaq === index ? <p className="border-t border-[#E2E8F0] px-4 py-4 text-sm font-semibold leading-6 text-[#475569]">{faq.answer}</p> : null}
+            </div>
+          ))}
+        </div>
+      </LandingSection>
+
+      <section className="bg-[#0F172A] py-14 text-white sm:py-18">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_24rem] lg:items-center">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#22C55E]">YOUR STORE IS WAITING</p>
+            <h2 className="mt-3 text-[2rem] font-black leading-tight text-white sm:text-5xl">Start selling smarter today.</h2>
+            <p className="mt-4 max-w-2xl text-[15px] font-semibold leading-7 text-slate-300">Create your VENDORAQ store, add your products and give your customers a professional way to shop.</p>
+            <div className="mt-7 grid gap-3 sm:flex">
+              <Link href="/register" className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-[#22C55E] px-6 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">Start Selling Free</Link>
+              <Link href={storeHref} className="inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-black text-white transition hover:bg-white/15">View Demo Store</Link>
+            </div>
+          </div>
+          <div className="rounded-[1.25rem] border border-white/10 bg-white/10 p-5">
+            <p className="text-sm font-bold text-slate-300">Latest order preview</p>
+            <p className="mt-3 text-3xl font-black text-white">₦24,500</p>
+            <p className="mt-2 text-sm font-semibold text-slate-300">Paid order from Amaka Styles storefront.</p>
+          </div>
+        </div>
+      </section>
+
+      <LandingFooter storeHref={storeHref} />
     </main>
   );
 }
 
-function LandingSupportModal({ onClose, storeHref }: { onClose: () => void; storeHref: string }) {
-  const guides = [
-    {
-      title: "Create a seller account",
-      text: "Click Start Selling, enter your name, business name, email, and password. After that you can open the dashboard and add products.",
-    },
-    {
-      title: "Log in as a seller",
-      text: "Click Seller Login, enter the same email and password you used to register, then you will enter your private dashboard.",
-    },
-    {
-      title: "How customers shop",
-      text: "Customers open your store link, search for goods, add products to cart, review the order, and continue to checkout.",
-    },
-    {
-      title: "Payment and support flow",
-      text: "Customers fill delivery details, pay through Paystack when connected, then send a clean receipt-style WhatsApp message to the seller.",
-    },
-  ];
-
+function LandingHeader({ cartCount, storeHref, navLinks, menuOpen, setMenuOpen }: { cartCount: number; storeHref: string; navLinks: Array<{ label: string; href: string }>; menuOpen: boolean; setMenuOpen: (open: boolean) => void }) {
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="support-title">
-      <div className="landing-fade-up max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50 p-5 sm:p-6">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Help and support</p>
-            <h2 id="support-title" className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Learn how VENDORAQ works</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">This quick guide helps sellers and customers understand registration, login, shopping, checkout, and payment follow-up.</p>
-          </div>
-          <button type="button" onClick={onClose} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm hover:bg-slate-100" aria-label="Close help">
-            Close
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E2E8F0] bg-white/95 shadow-sm backdrop-blur">
+      <nav className="mx-auto flex min-h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+        <Link href="/" className="min-w-0 shrink-0" aria-label="VENDORAQ home"><VendoraqLogo compact /></Link>
+        <div className="hidden items-center gap-1 rounded-full bg-[#F8FAFC] p-1 lg:flex">
+          {navLinks.map((link) => <Link key={link.label} href={link.href} className="rounded-full px-3 py-2 text-sm font-bold text-[#475569] transition hover:bg-white hover:text-[#16A34A] hover:shadow-sm">{link.label}</Link>)}
+        </div>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <CartIconLink href="/cart" count={cartCount} />
+          <Link href="/register" className="hidden rounded-full bg-[#22C55E] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#16A34A] sm:inline-flex">Start Selling</Link>
+          <button type="button" onClick={() => setMenuOpen(true)} className="grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F8FAFC] lg:hidden" aria-label="Open menu" aria-expanded={menuOpen}>
+            <IconGlyph name="menu" className="h-5 w-5" />
           </button>
         </div>
-        <div className="grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
-          {guides.map((guide, index) => (
-            <article key={guide.title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-sm font-black text-emerald-700 ring-1 ring-emerald-200">
-                {index + 1}
-              </div>
-              <h3 className="mt-4 text-lg font-black text-slate-950">{guide.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{guide.text}</p>
-            </article>
-          ))}
+      </nav>
+      {menuOpen ? (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <button type="button" className="absolute inset-0 bg-[#0F172A]/45" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
+          <aside className="relative ml-auto flex h-[100dvh] w-[min(88vw,22rem)] flex-col bg-white p-5 shadow-2xl">
+            <div className="flex items-center justify-between gap-3">
+              <VendoraqLogo compact />
+              <button type="button" onClick={() => setMenuOpen(false)} className="grid h-10 w-10 place-items-center rounded-full border border-[#E2E8F0]" aria-label="Close menu"><IconGlyph name="x" className="h-5 w-5" /></button>
+            </div>
+            <nav className="mt-8 grid gap-2">
+              {navLinks.map((link) => <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-3 text-sm font-black text-[#0F172A] hover:bg-[#F0FDF4]">{link.label}</Link>)}
+              <Link href={storeHref} onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-3 text-sm font-black text-[#0F172A] hover:bg-[#F0FDF4]">View Demo Store</Link>
+              <Link href="/login" onClick={() => setMenuOpen(false)} className="rounded-2xl px-4 py-3 text-sm font-black text-[#0F172A] hover:bg-[#F0FDF4]">Seller Login</Link>
+            </nav>
+            <Link href="/register" onClick={() => setMenuOpen(false)} className="mt-auto flex min-h-12 items-center justify-center rounded-2xl bg-[#22C55E] px-5 py-3 text-sm font-black text-white">Start Selling Free</Link>
+          </aside>
         </div>
-        <div className="border-t border-slate-200 bg-[#0F172A] p-5 text-white sm:p-6">
-          <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-            <div>
-              <h3 className="text-xl font-black">Need to test it now?</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-300">Use the buttons to register, log in, or open the public store flow.</p>
+      ) : null}
+    </header>
+  );
+}
+
+function LandingSection({ id, eyebrow, title, text, children }: { id?: string; eyebrow?: string; title: string; text?: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="py-14 sm:py-18">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mb-8 max-w-3xl">
+          {eyebrow ? <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{eyebrow}</p> : null}
+          <h2 className="mt-3 text-[1.8rem] font-black leading-tight text-[#0F172A] sm:text-4xl">{title}</h2>
+          {text ? <p className="mt-4 text-[15px] font-semibold leading-7 text-[#475569] sm:text-base">{text}</p> : null}
+        </div>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function PhoneStoreMockup() {
+  const products = [["Ankara Dress", "₦18,500", "Fashion"], ["Classic Sneakers", "₦32,000", "Shoes"], ["Leather Handbag", "₦24,500", "Bags"], ["Sunglasses", "₦6,000", "Style"]];
+  return (
+    <div className="mx-auto max-w-[22rem] rounded-[2.3rem] border-[10px] border-[#0F172A] bg-[#0F172A] shadow-2xl">
+      <div className="overflow-hidden rounded-[1.55rem] bg-white">
+        <div className="bg-[#0F172A] px-5 py-4 text-white">
+          <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-white/20" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#22C55E] text-sm font-black">AS</span>
+              <div><p className="text-sm font-black text-white">Amaka Styles</p><p className="text-xs font-semibold text-slate-300">Lagos storefront</p></div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/register" onClick={onClose} className="rounded-md bg-[#16A34A] px-4 py-3 text-sm font-black text-white hover:bg-[#15803D]">Start selling</Link>
-              <Link href="/login" onClick={onClose} className="rounded-md bg-white px-4 py-3 text-sm font-black text-slate-950 hover:bg-slate-100">Seller login</Link>
-              <Link href={storeHref} onClick={onClose} className="rounded-md border border-white/20 px-4 py-3 text-sm font-black text-white hover:bg-white/10">Open store</Link>
-            </div>
+            <span className="text-xl">♡</span>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="rounded-full bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#94A3B8] ring-1 ring-[#E2E8F0]">Search products</div>
+          <div className="mt-3 flex gap-2 overflow-hidden">{["All", "Dresses", "Shoes"].map((item) => <span key={item} className="shrink-0 rounded-full bg-[#F0FDF4] px-3 py-1 text-xs font-black text-emerald-700">{item}</span>)}</div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {products.map(([name, price, category]) => (
+              <article key={name} className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
+                <div className="relative h-24 bg-[linear-gradient(135deg,#E2E8F0,#F0FDF4)]"><span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-white text-xs text-rose-500 shadow-sm">♡</span></div>
+                <div className="p-3"><p className="text-[10px] font-black uppercase tracking-wide text-[#22C55E]">{category}</p><h3 className="mt-1 truncate text-xs font-black text-[#0F172A]">{name}</h3><p className="mt-1 text-xs font-black text-[#16A34A]">{price}</p><button type="button" className="mt-2 w-full rounded-full bg-[#22C55E] px-2 py-1.5 text-[10px] font-black text-white">Add to cart</button></div>
+              </article>
+            ))}
           </div>
         </div>
       </div>
@@ -364,3 +389,45 @@ function LandingSupportModal({ onClose, storeHref }: { onClose: () => void; stor
   );
 }
 
+function FloatingCard({ title, value, className }: { title: string; value: string; className: string }) {
+  return <div className={`absolute hidden rounded-2xl border border-[#E2E8F0] bg-white/95 p-4 shadow-xl sm:block ${className}`}><p className="text-xs font-black uppercase tracking-wide text-[#22C55E]">{title}</p><p className="mt-1 text-xl font-black text-[#0F172A]">{value}</p></div>;
+}
+
+function SellerDashboardPreview() {
+  return (
+    <article className="rounded-[1.25rem] border border-[#E2E8F0] bg-white p-4 shadow-xl">
+      <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wide text-[#22C55E]">Seller dashboard</p><h3 className="mt-1 text-xl font-black text-[#0F172A]">Today&apos;s Sales</h3></div><p className="text-2xl font-black text-[#16A34A]">₦185,400</p></div>
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">{[["Orders", "24"], ["Products", "68"], ["Customers", "142"], ["Paid", "18"]].map(([label, value]) => <div key={label} className="rounded-2xl bg-[#F8FAFC] p-3"><p className="text-xs font-bold text-[#475569]">{label}</p><p className="mt-1 text-xl font-black text-[#0F172A]">{value}</p></div>)}</div>
+      <div className="mt-5 rounded-2xl border border-[#E2E8F0]">{[["#VN1024", "₦24,500", "Paid"], ["#VN1023", "₦18,000", "Processing"], ["#VN1022", "₦32,000", "Shipped"]].map(([id, amount, status]) => <div key={id} className="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-4 py-3 last:border-b-0"><span className="text-sm font-black text-[#0F172A]">{id}</span><span className="text-sm font-bold text-[#475569]">{amount}</span><span className="rounded-full bg-[#F0FDF4] px-3 py-1 text-xs font-black text-emerald-700">{status}</span></div>)}</div>
+    </article>
+  );
+}
+
+function CustomerStorePreview() {
+  return (
+    <article className="rounded-[1.25rem] border border-[#E2E8F0] bg-white p-4 shadow-xl">
+      <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0F172A] text-sm font-black text-white">AS</span><div><h3 className="text-xl font-black text-[#0F172A]">Amaka Styles</h3><p className="text-xs font-bold text-[#475569]">Customer storefront</p></div></div><span className="rounded-full bg-[#F0FDF4] px-3 py-1 text-xs font-black text-emerald-700">Cart 3</span></div>
+      <div className="mt-4 rounded-full bg-[#F8FAFC] px-4 py-3 text-sm font-bold text-[#94A3B8] ring-1 ring-[#E2E8F0]">Search</div>
+      <div className="mt-3 flex flex-wrap gap-2">{["Categories", "Products", "Wishlist", "Cart"].map((item) => <span key={item} className="rounded-full border border-[#E2E8F0] px-3 py-1 text-xs font-black text-[#475569]">{item}</span>)}</div>
+      <div className="mt-4 grid grid-cols-2 gap-3">{[["Leather Handbag", "₦24,500"], ["Classic Sneakers", "₦32,000"]].map(([name, price]) => <div key={name} className="rounded-2xl bg-[#F8FAFC] p-3"><div className="h-24 rounded-xl bg-[linear-gradient(135deg,#E2E8F0,#F0FDF4)]" /><p className="mt-3 truncate text-sm font-black text-[#0F172A]">{name}</p><p className="mt-1 text-sm font-black text-[#16A34A]">{price}</p></div>)}</div>
+    </article>
+  );
+}
+
+function LandingFooter({ storeHref }: { storeHref: string }) {
+  const columns = [
+    { title: "Product", links: [{ label: "Features", href: "#features" }, { label: "Pricing", href: "#pricing" }, { label: "Marketplace", href: "#marketplace" }, { label: "Demo Store", href: storeHref }] },
+    { title: "Company", links: [{ label: "About", href: "#home" }, { label: "Contact", href: "#faq" }, { label: "Support", href: "#faq" }, { label: "Help Center", href: "#faq" }] },
+    { title: "Legal", links: [{ label: "Privacy Policy", href: "#faq" }, { label: "Terms", href: "#faq" }] },
+  ];
+
+  return (
+    <footer className="bg-[#0F172A] text-white">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
+        <div><VendoraqLogo tone="light" /><p className="mt-4 text-xs font-black uppercase tracking-[0.18em] text-[#22C55E]">Sell. Connect. Grow.</p><p className="mt-4 max-w-md text-sm font-semibold leading-6 text-[#CBD5E1]">A modern commerce platform for Nigerian sellers to launch online stores, manage orders, receive payments and grow their businesses.</p></div>
+        {columns.map((column) => <div key={column.title}><h3 className="text-sm font-black text-white">{column.title}</h3><nav className="mt-4 grid gap-3">{column.links.map((link) => <Link key={link.label} href={link.href} className="text-sm font-semibold text-[#CBD5E1] transition hover:text-[#22C55E]">{link.label}</Link>)}</nav></div>)}
+      </div>
+      <div className="border-t border-white/10 px-4 py-5 text-center text-xs font-semibold text-[#CBD5E1]">© 2026 VENDORAQ. All rights reserved.</div>
+    </footer>
+  );
+}
