@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { CartIconLink, IconGlyph, VendoraqLogo } from "@/components/ui";
+import { IconGlyph, VendoraqLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
-import { readCart } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { productPlans } from "@/lib/plans";
 import { supabase } from "@/lib/supabase";
@@ -53,11 +52,11 @@ function makeStoreSlug(businessName: string, userId: string) {
 
 export default function LandingPage() {
   const { ready, user } = useAuth();
-  const [cartCount, setCartCount] = useState(0);
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
   const [accountChecked, setAccountChecked] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
+  const [demoCartOpen, setDemoCartOpen] = useState(false);
 
   useEffect(() => {
     async function loadSellerSummary() {
@@ -74,22 +73,13 @@ export default function LandingPage() {
       setAccountChecked(true);
     }
 
-    function syncCartCount() {
-      setCartCount(readCart().reduce((sum, item) => sum + item.qty, 0));
-    }
-
     const timer = window.setTimeout(() => {
       setAccountChecked(false);
       loadSellerSummary();
-      syncCartCount();
     }, 0);
-    window.addEventListener("sellmate-cart-updated", syncCartCount);
-    window.addEventListener("storage", syncCartCount);
 
     return () => {
       window.clearTimeout(timer);
-      window.removeEventListener("sellmate-cart-updated", syncCartCount);
-      window.removeEventListener("storage", syncCartCount);
     };
   }, [ready, user]);
 
@@ -120,7 +110,8 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-[#111827]">
-      <LandingHeader cartCount={cartCount} storeHref={storeHref} navLinks={navLinks} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <LandingHeader storeHref={storeHref} navLinks={navLinks} menuOpen={menuOpen} setMenuOpen={setMenuOpen} onDemoCartOpen={() => setDemoCartOpen(true)} />
+      {demoCartOpen ? <DemoCartModal onClose={() => setDemoCartOpen(false)} /> : null}
 
       <section id="home" className="border-b border-[#E2E8F0] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_58%,#F0FDF4_100%)] pt-24 sm:pt-28">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-8 sm:px-6 lg:min-h-[calc(100vh-7rem)] lg:grid-cols-[minmax(0,1fr)_minmax(23rem,0.86fr)] lg:items-center lg:py-14">
@@ -305,7 +296,7 @@ export default function LandingPage() {
   );
 }
 
-function LandingHeader({ cartCount, storeHref, navLinks, menuOpen, setMenuOpen }: { cartCount: number; storeHref: string; navLinks: Array<{ label: string; href: string }>; menuOpen: boolean; setMenuOpen: (open: boolean) => void }) {
+function LandingHeader({ storeHref, navLinks, menuOpen, setMenuOpen, onDemoCartOpen }: { storeHref: string; navLinks: Array<{ label: string; href: string }>; menuOpen: boolean; setMenuOpen: (open: boolean) => void; onDemoCartOpen: () => void }) {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E2E8F0] bg-white/95 shadow-sm backdrop-blur">
       <nav className="mx-auto flex min-h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
@@ -314,7 +305,18 @@ function LandingHeader({ cartCount, storeHref, navLinks, menuOpen, setMenuOpen }
           {navLinks.map((link) => <Link key={link.label} href={link.href} className="rounded-full px-3 py-2 text-sm font-bold text-[#475569] transition hover:bg-white hover:text-[#16A34A] hover:shadow-sm">{link.label}</Link>)}
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <CartIconLink href="/cart" count={cartCount} />
+          <button
+            type="button"
+            onClick={onDemoCartOpen}
+            aria-label="Open demo cart preview"
+            title="Open demo cart preview"
+            className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
+          >
+            <IconGlyph name="cart" className="h-5 w-5" />
+            <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#16A34A] px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+              3
+            </span>
+          </button>
           <Link href="/register" className="hidden rounded-full bg-[#22C55E] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#16A34A] sm:inline-flex">Start Selling</Link>
           <button type="button" onClick={() => setMenuOpen(true)} className="grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F8FAFC] lg:hidden" aria-label="Open menu" aria-expanded={menuOpen}>
             <IconGlyph name="menu" className="h-5 w-5" />
@@ -391,6 +393,59 @@ function PhoneStoreMockup() {
 
 function FloatingCard({ title, value, className }: { title: string; value: string; className: string }) {
   return <div className={`absolute hidden rounded-2xl border border-[#E2E8F0] bg-white/95 p-4 shadow-xl sm:block ${className}`}><p className="text-xs font-black uppercase tracking-wide text-[#22C55E]">{title}</p><p className="mt-1 text-xl font-black text-[#0F172A]">{value}</p></div>;
+}
+
+function DemoCartModal({ onClose }: { onClose: () => void }) {
+  const items = [
+    ["Ankara Dress", "Fashion", 18500, "0% 0%"],
+    ["Classic Sneakers", "Shoes", 32000, "100% 0%"],
+    ["Leather Handbag", "Bags", 24500, "0% 100%"],
+  ];
+  const total = items.reduce((sum, [, , price]) => sum + Number(price), 0);
+
+  return (
+    <div className="fixed inset-0 z-[80] grid place-items-end bg-[#0F172A]/50 p-3 backdrop-blur-sm sm:place-items-center sm:p-6" role="dialog" aria-modal="true" aria-label="Demo cart preview">
+      <button type="button" className="absolute inset-0" aria-label="Close demo cart preview" onClick={onClose} />
+      <aside className="relative w-full max-w-md overflow-hidden rounded-[1.25rem] bg-white shadow-2xl">
+        <div className="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Demo cart</p>
+            <h2 className="mt-1 text-xl font-black text-[#0F172A]">How customer checkout looks</h2>
+          </div>
+          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-full border border-[#E2E8F0] text-[#0F172A]" aria-label="Close demo cart preview">
+            <IconGlyph name="x" className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="grid gap-3 p-5">
+          {items.map(([name, category, price, position]) => (
+            <div key={name} className="flex gap-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+              <div className="h-20 w-20 shrink-0 rounded-xl bg-cover bg-no-repeat" style={{ backgroundImage: "url('/landing/amaka-products.png')", backgroundPosition: String(position), backgroundSize: "200% 200%" }} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-black text-[#0F172A]">{name}</p>
+                <p className="mt-1 text-xs font-black uppercase tracking-wide text-[#16A34A]">{category}</p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#475569] ring-1 ring-[#E2E8F0]">Qty 1</span>
+                  <span className="text-sm font-black text-[#0F172A]">{formatNaira(Number(price))}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-[#E2E8F0] bg-white p-5">
+          <div className="flex items-center justify-between text-sm font-black text-[#0F172A]">
+            <span>Sample total</span>
+            <span>{formatNaira(total)}</span>
+          </div>
+          <p className="mt-3 rounded-2xl bg-[#F0FDF4] px-4 py-3 text-sm font-bold leading-6 text-emerald-800">
+            This is only a demo preview. Real customers open a seller&apos;s shared store link before adding products to cart.
+          </p>
+          <Link href="/register" onClick={onClose} className="mt-4 flex min-h-12 items-center justify-center rounded-2xl bg-[#22C55E] px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
+            Start Selling Free
+          </Link>
+        </div>
+      </aside>
+    </div>
+  );
 }
 
 function SellerDashboardPreview() {
