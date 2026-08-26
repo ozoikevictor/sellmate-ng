@@ -115,7 +115,7 @@ export default function LandingPage() {
 
       <section id="home" className="border-b border-[#E2E8F0] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_58%,#F0FDF4_100%)] pt-24 sm:pt-28">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-14 pt-8 sm:px-6 lg:min-h-[calc(100vh-7rem)] lg:grid-cols-[minmax(0,1fr)_minmax(23rem,0.86fr)] lg:items-center lg:py-14">
-          <div className="max-w-3xl">
+          <div className="landing-fade-up max-w-3xl">
             <p className="inline-flex rounded-full border border-emerald-200 bg-[#F0FDF4] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Built for Nigerian sellers</p>
             <h1 className="mt-5 text-[2.15rem] font-black leading-[1.03] text-[#0F172A] sm:text-5xl lg:text-6xl">
               Turn Your WhatsApp Business Into a <span className="text-[#22C55E]">Real Online Store.</span>
@@ -133,7 +133,7 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <div className="relative mx-auto w-full max-w-[25rem] lg:max-w-none">
+          <div className="landing-float relative mx-auto w-full max-w-[25rem] lg:max-w-none">
             <PhoneStoreMockup />
             <FloatingCard className="-left-1 top-10 sm:-left-8" title="New order" value="₦24,500" />
             <FloatingCard className="-right-1 bottom-16 sm:-right-8" title="Payment successful" value="₦24,500" />
@@ -144,9 +144,9 @@ export default function LandingPage() {
       <section className="bg-white py-6">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid gap-3 rounded-[1.25rem] border border-[#E2E8F0] bg-white p-3 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-            {trustItems.map((item) => (
-              <div key={item} className="flex items-center gap-3 rounded-2xl bg-[#F8FAFC] p-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#F0FDF4] text-[#22C55E]">✓</span>
+            {trustItems.map((item, index) => (
+              <div key={item} className={`landing-fade-up flex items-center gap-3 rounded-2xl bg-[#F8FAFC] p-4 ${index === 1 ? "landing-delay-1" : index === 2 ? "landing-delay-2" : index === 3 ? "landing-delay-3" : ""}`}>
+                <span className="landing-pulse-dot grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#F0FDF4] text-[#22C55E]">✓</span>
                 <p className="text-sm font-black text-[#0F172A]">{item}</p>
               </div>
             ))}
@@ -157,7 +157,7 @@ export default function LandingPage() {
       <LandingSection id="how-it-works" eyebrow="HOW IT WORKS" title="From WhatsApp seller to online store in minutes.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {steps.map((step) => (
-            <article key={step.title} className="rounded-[1.25rem] border border-[#E2E8F0] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <article key={step.title} className="landing-fade-up rounded-[1.25rem] border border-[#E2E8F0] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
               <p className="text-sm font-black text-[#22C55E]">{step.number}</p>
               <h3 className="mt-4 text-xl font-black text-[#0F172A]">{step.title}</h3>
               <p className="mt-3 text-sm font-semibold leading-6 text-[#475569]">{step.text}</p>
@@ -176,7 +176,7 @@ export default function LandingPage() {
       <LandingSection id="features" eyebrow="POWERFUL BUT SIMPLE" title="Everything you need to run your online store.">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <article key={feature.title} className="rounded-[1.25rem] border border-[#E2E8F0] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <article key={feature.title} className={`landing-fade-up rounded-[1.25rem] border border-[#E2E8F0] bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${index % 3 === 1 ? "landing-delay-1" : index % 3 === 2 ? "landing-delay-2" : ""}`}>
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#F0FDF4] text-sm font-black text-[#16A34A]">{index + 1}</span>
               <h3 className="mt-5 text-lg font-black text-[#0F172A]">{feature.title}</h3>
               <p className="mt-2 text-sm font-semibold leading-6 text-[#475569]">{feature.text}</p>
@@ -207,7 +207,7 @@ export default function LandingPage() {
       <LandingSection title="Whatever you sell, there's a place for it.">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {businessCategories.map((category) => (
-            <div key={category} className="rounded-2xl border border-[#E2E8F0] bg-white p-4 text-sm font-black text-[#0F172A] shadow-sm">
+            <div key={category} className="landing-fade-up rounded-2xl border border-[#E2E8F0] bg-white p-4 text-sm font-black text-[#0F172A] shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg">
               <span className="mb-3 block h-2 w-10 rounded-full bg-[#22C55E]" />
               {category}
             </div>
@@ -223,7 +223,7 @@ export default function LandingPage() {
           </div>
           <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
             {[["Amaka Styles", "Ankara Dress", 18500, "0% 0%"], ["Gadget Plug", "Classic Sneakers", 32000, "100% 0%"], ["Glow Beauty", "Leather Handbag", 24500, "0% 100%"], ["Home Picks", "Sunglasses", 6000, "100% 100%"]].map(([store, product, price, position]) => (
-              <article key={`${store}-${product}`} className="rounded-2xl bg-[#F8FAFC] p-4">
+              <article key={`${store}-${product}`} className="landing-fade-up rounded-2xl bg-[#F8FAFC] p-4 transition hover:-translate-y-1 hover:shadow-lg">
                 <div className="h-28 rounded-xl bg-cover bg-no-repeat" style={{ backgroundImage: "url('/landing/amaka-products.png')", backgroundPosition: String(position), backgroundSize: "200% 200%" }} />
                 <p className="mt-3 text-xs font-black uppercase tracking-wide text-[#22C55E]">{store}</p>
                 <h3 className="mt-1 text-base font-black text-[#0F172A]">{product}</h3>
@@ -474,17 +474,39 @@ function CustomerStorePreview() {
 function LandingFooter({ storeHref }: { storeHref: string }) {
   const columns = [
     { title: "Product", links: [{ label: "Features", href: "#features" }, { label: "Pricing", href: "#pricing" }, { label: "Marketplace", href: "#marketplace" }, { label: "Demo Store", href: storeHref }] },
+    { title: "Account", links: [{ label: "Login", href: "/login" }, { label: "Create Seller Account", href: "/register" }, { label: "Demo Store", href: storeHref }] },
     { title: "Company", links: [{ label: "About", href: "#home" }, { label: "Contact", href: "#faq" }, { label: "Support", href: "#faq" }, { label: "Help Center", href: "#faq" }] },
     { title: "Legal", links: [{ label: "Privacy Policy", href: "#faq" }, { label: "Terms", href: "#faq" }] },
   ];
 
   return (
-    <footer className="bg-[#0F172A] text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
-        <div><VendoraqLogo tone="light" /><p className="mt-4 text-xs font-black uppercase tracking-[0.18em] text-[#22C55E]">Sell. Connect. Grow.</p><p className="mt-4 max-w-md text-sm font-semibold leading-6 text-[#CBD5E1]">A modern commerce platform for Nigerian sellers to launch online stores, manage orders, receive payments and grow their businesses.</p></div>
-        {columns.map((column) => <div key={column.title}><h3 className="text-sm font-black text-white">{column.title}</h3><nav className="mt-4 grid gap-3">{column.links.map((link) => <Link key={link.label} href={link.href} className="text-sm font-semibold text-[#CBD5E1] transition hover:text-[#22C55E]">{link.label}</Link>)}</nav></div>)}
+    <footer className="bg-[#07111F] text-white">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.25fr_0.75fr_0.75fr_0.75fr_0.75fr]">
+        <div className="landing-fade-up">
+          <VendoraqLogo tone="light" />
+          <p className="mt-4 text-xs font-black uppercase tracking-[0.18em] text-[#4ADE80]">Sell. Connect. Grow.</p>
+          <p className="mt-4 max-w-md text-sm font-semibold leading-7 text-slate-100">
+            A modern commerce platform for Nigerian sellers to launch online stores, manage orders, receive payments and grow their businesses.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link href="/login" className="rounded-full border border-white/20 bg-white px-4 py-2 text-xs font-black text-[#07111F] transition hover:bg-[#DCFCE7]">Login</Link>
+            <Link href="/register" className="rounded-full bg-[#22C55E] px-4 py-2 text-xs font-black text-white transition hover:bg-[#16A34A]">Start Selling</Link>
+          </div>
+        </div>
+        {columns.map((column, index) => (
+          <div key={column.title} className={`landing-fade-up ${index === 1 ? "landing-delay-1" : index === 2 ? "landing-delay-2" : index === 3 ? "landing-delay-3" : ""}`}>
+            <h3 className="text-sm font-black text-white">{column.title}</h3>
+            <nav className="mt-4 grid gap-3">
+              {column.links.map((link) => (
+                <Link key={`${column.title}-${link.label}`} href={link.href} className="text-sm font-bold text-slate-100 transition hover:text-[#4ADE80]">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        ))}
       </div>
-      <div className="border-t border-white/10 px-4 py-5 text-center text-xs font-semibold text-[#CBD5E1]">© 2026 VENDORAQ. All rights reserved.</div>
+      <div className="border-t border-white/15 px-4 py-5 text-center text-xs font-bold text-slate-200">© 2026 VENDORAQ. All rights reserved.</div>
     </footer>
   );
 }
