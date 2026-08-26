@@ -520,7 +520,7 @@ export function StoreHeader({
   }, [isMenuOpen]);
 
   return (
-    <header className="relative z-50 border-b border-[#E5E7EB] bg-white shadow-sm sm:fixed sm:inset-x-0 sm:top-0">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white shadow-sm">
       <div className="hidden border-b border-[#E5E7EB] bg-[#F3F4F6] text-[#0F172A] sm:block">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-5 text-xs font-bold">
           <span>Secure shopping powered by VENDORAQ</span>
