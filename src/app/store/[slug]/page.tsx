@@ -33,6 +33,25 @@ type StoreProduct = {
 };
 
 const STORE_CACHE_PREFIX = "vendoraq-customer-store-cache:";
+const STORE_CACHE_TTL = 1000 * 60 * 5;
+
+type StoreCache = {
+  profile: StoreProfile;
+  products: StoreProduct[];
+  savedAt: number;
+};
+
+function readStoreCache(slug: string): StoreCache | null {
+  try {
+    const raw = sessionStorage.getItem(`${STORE_CACHE_PREFIX}${slug}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoreCache;
+    if (Date.now() - parsed.savedAt > STORE_CACHE_TTL) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 function writeStoreCache(slug: string, profile: StoreProfile, products: StoreProduct[]) {
   try {
@@ -69,8 +88,18 @@ export default function DynamicStorefrontPage() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   useEffect(() => {
+    const cachedStore = readStoreCache(slug);
+    let hydrateTimer: number | null = null;
+    if (cachedStore) {
+      hydrateTimer = window.setTimeout(() => {
+        setProfile(cachedStore.profile);
+        setProducts(cachedStore.products);
+        setLoading(false);
+      }, 0);
+    }
+
     async function loadStore() {
-      setLoading(true);
+      setLoading(!cachedStore);
       const { data: profileData, error: profileError } = await supabase
         .from("seller_profiles")
         .select("user_id,business_name,whatsapp_phone,city,store_slug,logo_url,logo_text")
@@ -117,6 +146,9 @@ export default function DynamicStorefrontPage() {
     window.addEventListener("storage", syncCartCount);
 
     return () => {
+      if (hydrateTimer !== null) {
+        window.clearTimeout(hydrateTimer);
+      }
       window.removeEventListener("sellmate-cart-updated", syncCartCount);
       window.removeEventListener("storage", syncCartCount);
     };
