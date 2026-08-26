@@ -44,7 +44,7 @@ export function StatCard({ label, value, change, tone }: { label: string; value:
   );
 }
 
-export function VendoraqLogo({ compact = false, tone = "dark" }: { compact?: boolean; tone?: "dark" | "light" }) {
+export function VendoraqLogo({ compact = false, tone = "dark", iconOnly = false }: { compact?: boolean; tone?: "dark" | "light"; iconOnly?: boolean }) {
   const textColor = tone === "light" ? "text-white" : "text-[#0F172A]";
   const mutedColor = tone === "light" ? "text-slate-300" : "text-slate-500";
 
@@ -63,12 +63,12 @@ export function VendoraqLogo({ compact = false, tone = "dark" }: { compact?: boo
           <circle cx="36" cy="39" r="3.2" fill="#16A34A" />
         </svg>
       </span>
-      <span className="leading-none">
+      {!iconOnly ? <span className="leading-none">
         <span className={`block font-black tracking-tight ${textColor} ${compact ? "text-xl" : "text-2xl sm:text-3xl"}`}>
           VENDOR<span className="text-[#16A34A]">AQ</span>
         </span>
         {!compact ? <span className={`mt-1 hidden text-[10px] font-black uppercase tracking-[0.32em] sm:block ${mutedColor}`}>Sell. Connect. Grow.</span> : null}
-      </span>
+      </span> : null}
     </span>
   );
 }
@@ -87,7 +87,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [storeSlug, setStoreSlug] = useState("store");
   const [storeReady, setStoreReady] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const canOpenStore = Boolean(user?.id && storeReady);
   const storeHref = `/store/${storeSlug}`;
   const links = [
@@ -137,65 +137,66 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#F6F8FB]">
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden w-72 overflow-hidden border-r border-slate-200/80 bg-white p-5 shadow-[18px_0_60px_rgba(15,23,42,0.06)] transition-transform duration-300 lg:block ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-slate-200/80 bg-white shadow-[18px_0_60px_rgba(15,23,42,0.06)] transition-[width] duration-300 lg:block ${sidebarCollapsed ? "w-20 p-3" : "w-72 p-5"}`}>
         <div className="flex h-full min-h-0 flex-col">
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard" className="min-w-0 flex-1 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-              <VendoraqLogo compact />
+          <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3"}`}>
+            <Link href="/dashboard" className={`min-w-0 rounded-2xl border border-slate-100 bg-white shadow-sm ${sidebarCollapsed ? "p-2" : "flex-1 p-3"}`} title="Dashboard home">
+              <VendoraqLogo compact iconOnly={sidebarCollapsed} />
             </Link>
             <button
               type="button"
-              onClick={() => setSidebarOpen(false)}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-              aria-label="Close dashboard sidebar"
-              title="Close sidebar"
+              onClick={() => setSidebarCollapsed(true)}
+              className={`h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 ${sidebarCollapsed ? "hidden" : "grid"}`}
+              aria-label="Collapse dashboard sidebar"
+              title="Collapse sidebar"
             >
               <IconGlyph name="x" className="h-5 w-5" />
             </button>
           </div>
-          <div className="mt-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4">
+          <div className={`mt-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white transition ${sidebarCollapsed ? "p-2" : "p-4"}`}>
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0F172A] text-lg font-black text-white shadow-sm">{sellerInitial}</span>
-              <div className="min-w-0">
+              <div className={`min-w-0 ${sidebarCollapsed ? "hidden" : "block"}`}>
                 <p className="truncate text-sm font-black text-[#0F172A]">{user?.business ?? "Seller workspace"}</p>
                 <p className="text-xs font-bold text-slate-500">Vendor control center</p>
               </div>
             </div>
-            <div className="mt-4 flex items-center justify-between rounded-xl bg-white/80 px-3 py-2 text-xs font-black text-slate-600 ring-1 ring-emerald-100">
+            <div className={`mt-4 items-center justify-between rounded-xl bg-white/80 px-3 py-2 text-xs font-black text-slate-600 ring-1 ring-emerald-100 ${sidebarCollapsed ? "hidden" : "flex"}`}>
               <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#16A34A]" /> Store status</span>
               <span className="text-[#16A34A]">Live</span>
             </div>
           </div>
-          <nav className="mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
+          <nav className={`mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-auto ${sidebarCollapsed ? "" : "pr-1"}`}>
             {links.map((link) => {
               const active = link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.key}
                   href={link.href}
-                  className={`flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-black transition ${
+                  title={link.label}
+                  className={`flex items-center rounded-2xl py-3 text-sm font-black transition ${sidebarCollapsed ? "justify-center px-2" : "gap-3 px-3.5"} ${
                     active ? "bg-[#0F172A] text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]" : "text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0F172A]"
                   }`}
                 >
                   <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "bg-white/10 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
                     <MenuIcon name={link.icon} />
                   </span>
-                  <span>{link.label}</span>
+                  <span className={sidebarCollapsed ? "sr-only" : ""}>{link.label}</span>
                 </Link>
               );
             })}
           </nav>
         </div>
       </aside>
-      <section className={`min-w-0 transition-[padding] duration-300 ${sidebarOpen ? "lg:pl-72" : "lg:pl-0"}`}>
-        <header className={`fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-xl transition-[left] duration-300 sm:px-6 ${sidebarOpen ? "lg:left-72" : "lg:left-0"}`}>
+      <section className={`min-w-0 transition-[padding] duration-300 ${sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"}`}>
+        <header className={`fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-xl transition-[left] duration-300 sm:px-6 ${sidebarCollapsed ? "lg:left-20" : "lg:left-72"}`}>
           <div className="flex min-w-0 items-center justify-between gap-3 sm:gap-4">
             <button
               type="button"
-              onClick={() => setSidebarOpen((open) => !open)}
+              onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}
               className="hidden h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 lg:grid"
-              aria-label={sidebarOpen ? "Close dashboard sidebar" : "Open dashboard sidebar"}
-              title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+              aria-label={sidebarCollapsed ? "Expand dashboard sidebar" : "Collapse dashboard sidebar"}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <IconGlyph name="menu" className="h-5 w-5" />
             </button>
