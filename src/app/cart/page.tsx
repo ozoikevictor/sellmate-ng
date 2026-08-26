@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CheckoutHeader, PublicFooter } from "@/components/ui";
+import { PublicFooter, StoreHeader } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -25,10 +25,12 @@ export default function CartPage() {
   const [sellerName, setSellerName] = useState("Store");
   const [sellerLogoUrl, setSellerLogoUrl] = useState("");
   const [storeHref, setStoreHref] = useState("/");
+  const [searchTerm, setSearchTerm] = useState("");
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
+  const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
   const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   useEffect(() => {
@@ -55,8 +57,16 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[72px]">
-      <CheckoutHeader sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} mode="cart" />
+    <main className="min-h-screen bg-[#f2f6fb] pt-[112px] sm:pt-[116px]">
+      <StoreHeader
+        sellerName={sellerName}
+        sellerLogoUrl={sellerLogoUrl}
+        storeHref={storeHref}
+        cartHref={cartHref}
+        cartCount={itemCount}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
 
       <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#f8fafc_0%,#e7f8ef_55%,#fff4df_100%)]">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_430px] lg:items-center">

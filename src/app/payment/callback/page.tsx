@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
+import { StoreHeader } from "@/components/ui";
 import { clearCart, readCurrentStoreHref, updateCustomerOrder } from "@/lib/cart";
 
 function PaymentCallbackContent() {
@@ -14,6 +15,9 @@ function PaymentCallbackContent() {
   const [message, setMessage] = useState("Confirming your payment...");
   const [whatsappUrl, setWhatsappUrl] = useState("");
   const [storeHref, setStoreHref] = useState("/");
+  const [searchTerm, setSearchTerm] = useState("");
+  const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
+  const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
 
   useEffect(() => {
     async function verifyPayment() {
@@ -47,8 +51,16 @@ function PaymentCallbackContent() {
   }, [order, reference]);
 
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-100 px-5">
-      <section className={`w-full max-w-xl rounded-lg border bg-white p-6 shadow-sm ${status === "error" ? "border-rose-200" : "border-emerald-200"}`}>
+    <main className="min-h-screen bg-slate-100 pt-[112px] sm:pt-[116px]">
+      <StoreHeader
+        sellerName="Store"
+        storeHref={storeHref}
+        cartHref={cartHref}
+        cartCount={0}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
+      <section className={`mx-auto mt-8 w-[calc(100%-2rem)] max-w-xl rounded-lg border bg-white p-6 shadow-sm ${status === "error" ? "border-rose-200" : "border-emerald-200"}`}>
         <p className={`text-xs font-black uppercase tracking-[0.18em] ${status === "error" ? "text-rose-700" : "text-emerald-700"}`}>
           {status === "checking" ? "Checking payment" : status === "success" ? "Payment successful" : "Payment issue"}
         </p>
