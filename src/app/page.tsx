@@ -231,9 +231,9 @@ export default function LandingPage() {
             <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-100">Coming Soon</span>
           </div>
           <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[["Amaka Styles", "Ankara Dress", 18500], ["Gadget Plug", "Wireless Earbuds", 14500], ["Glow Beauty", "Lip Gloss Set", 6500], ["Home Picks", "Kitchen Blender", 42000]].map(([store, product, price]) => (
+            {[["Amaka Styles", "Ankara Dress", 18500, "0% 0%"], ["Gadget Plug", "Classic Sneakers", 32000, "100% 0%"], ["Glow Beauty", "Leather Handbag", 24500, "0% 100%"], ["Home Picks", "Sunglasses", 6000, "100% 100%"]].map(([store, product, price, position]) => (
               <article key={`${store}-${product}`} className="rounded-2xl bg-[#F8FAFC] p-4">
-                <div className="h-28 rounded-xl bg-[linear-gradient(135deg,#E2E8F0,#F0FDF4)]" />
+                <div className="h-28 rounded-xl bg-cover bg-no-repeat" style={{ backgroundImage: "url('/landing/amaka-products.png')", backgroundPosition: String(position), backgroundSize: "200% 200%" }} />
                 <p className="mt-3 text-xs font-black uppercase tracking-wide text-[#22C55E]">{store}</p>
                 <h3 className="mt-1 text-base font-black text-[#0F172A]">{product}</h3>
                 <p className="mt-1 text-sm font-black text-[#16A34A]">{formatNaira(Number(price))}</p>
@@ -358,7 +358,7 @@ function LandingSection({ id, eyebrow, title, text, children }: { id?: string; e
 }
 
 function PhoneStoreMockup() {
-  const products = [["Ankara Dress", "₦18,500", "Fashion"], ["Classic Sneakers", "₦32,000", "Shoes"], ["Leather Handbag", "₦24,500", "Bags"], ["Sunglasses", "₦6,000", "Style"]];
+  const products = [["Ankara Dress", "₦18,500", "Fashion", "0% 0%"], ["Classic Sneakers", "₦32,000", "Shoes", "100% 0%"], ["Leather Handbag", "₦24,500", "Bags", "0% 100%"], ["Sunglasses", "₦6,000", "Style", "100% 100%"]];
   return (
     <div className="mx-auto max-w-[22rem] rounded-[2.3rem] border-[10px] border-[#0F172A] bg-[#0F172A] shadow-2xl">
       <div className="overflow-hidden rounded-[1.55rem] bg-white">
@@ -376,9 +376,9 @@ function PhoneStoreMockup() {
           <div className="rounded-full bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#94A3B8] ring-1 ring-[#E2E8F0]">Search products</div>
           <div className="mt-3 flex gap-2 overflow-hidden">{["All", "Dresses", "Shoes"].map((item) => <span key={item} className="shrink-0 rounded-full bg-[#F0FDF4] px-3 py-1 text-xs font-black text-emerald-700">{item}</span>)}</div>
           <div className="mt-4 grid grid-cols-2 gap-3">
-            {products.map(([name, price, category]) => (
+            {products.map(([name, price, category, position]) => (
               <article key={name} className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
-                <div className="relative h-24 bg-[linear-gradient(135deg,#E2E8F0,#F0FDF4)]"><span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-white text-xs text-rose-500 shadow-sm">♡</span></div>
+                <div className="relative h-24 bg-cover bg-no-repeat" style={{ backgroundImage: "url('/landing/amaka-products.png')", backgroundPosition: position, backgroundSize: "200% 200%" }}><span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-white text-xs text-rose-500 shadow-sm">♡</span></div>
                 <div className="p-3"><p className="text-[10px] font-black uppercase tracking-wide text-[#22C55E]">{category}</p><h3 className="mt-1 truncate text-xs font-black text-[#0F172A]">{name}</h3><p className="mt-1 text-xs font-black text-[#16A34A]">{price}</p><button type="button" className="mt-2 w-full rounded-full bg-[#22C55E] px-2 py-1.5 text-[10px] font-black text-white">Add to cart</button></div>
               </article>
             ))}
@@ -409,7 +409,7 @@ function CustomerStorePreview() {
       <div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0F172A] text-sm font-black text-white">AS</span><div><h3 className="text-xl font-black text-[#0F172A]">Amaka Styles</h3><p className="text-xs font-bold text-[#475569]">Customer storefront</p></div></div><span className="rounded-full bg-[#F0FDF4] px-3 py-1 text-xs font-black text-emerald-700">Cart 3</span></div>
       <div className="mt-4 rounded-full bg-[#F8FAFC] px-4 py-3 text-sm font-bold text-[#94A3B8] ring-1 ring-[#E2E8F0]">Search</div>
       <div className="mt-3 flex flex-wrap gap-2">{["Categories", "Products", "Wishlist", "Cart"].map((item) => <span key={item} className="rounded-full border border-[#E2E8F0] px-3 py-1 text-xs font-black text-[#475569]">{item}</span>)}</div>
-      <div className="mt-4 grid grid-cols-2 gap-3">{[["Leather Handbag", "₦24,500"], ["Classic Sneakers", "₦32,000"]].map(([name, price]) => <div key={name} className="rounded-2xl bg-[#F8FAFC] p-3"><div className="h-24 rounded-xl bg-[linear-gradient(135deg,#E2E8F0,#F0FDF4)]" /><p className="mt-3 truncate text-sm font-black text-[#0F172A]">{name}</p><p className="mt-1 text-sm font-black text-[#16A34A]">{price}</p></div>)}</div>
+      <div className="mt-4 grid grid-cols-2 gap-3">{[["Leather Handbag", "₦24,500", "0% 100%"], ["Classic Sneakers", "₦32,000", "100% 0%"]].map(([name, price, position]) => <div key={name} className="rounded-2xl bg-[#F8FAFC] p-3"><div className="h-24 rounded-xl bg-cover bg-no-repeat" style={{ backgroundImage: "url('/landing/amaka-products.png')", backgroundPosition: position, backgroundSize: "200% 200%" }} /><p className="mt-3 truncate text-sm font-black text-[#0F172A]">{name}</p><p className="mt-1 text-sm font-black text-[#16A34A]">{price}</p></div>)}</div>
     </article>
   );
 }
