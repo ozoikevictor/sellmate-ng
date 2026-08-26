@@ -495,6 +495,7 @@ export function StoreHeader({
     { label: "Wishlist", href: wishlistHref, icon: "heart" },
     { label: "My Cart", href: cartHref, icon: "cart" },
     { label: "My Orders", href: ordersHref, icon: "user" },
+    { label: "Login / Account", href: "/login", icon: "user" },
     { label: "Contact / Support", href: supportHref, icon: "user" },
   ];
 
@@ -567,7 +568,6 @@ export function StoreHeader({
           </label>
         </form>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-          <HeaderIconButton href="/login" icon="user" label="Customer account" />
           <CartIconLink href={cartHref} count={cartCount} />
         </div>
       </nav>
