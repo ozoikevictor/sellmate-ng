@@ -87,6 +87,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [storeSlug, setStoreSlug] = useState("store");
   const [storeReady, setStoreReady] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const canOpenStore = Boolean(user?.id && storeReady);
   const storeHref = `/store/${storeSlug}`;
   const links = [
@@ -135,12 +136,23 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const sellerInitial = (user?.business || user?.name || "V").trim().charAt(0).toUpperCase();
 
   return (
-    <main className="min-h-screen bg-[#F6F8FB]">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 overflow-hidden border-r border-slate-200/80 bg-white p-5 shadow-[18px_0_60px_rgba(15,23,42,0.06)] lg:block">
+    <main className="min-h-screen overflow-x-hidden bg-[#F6F8FB]">
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden w-72 overflow-hidden border-r border-slate-200/80 bg-white p-5 shadow-[18px_0_60px_rgba(15,23,42,0.06)] transition-transform duration-300 lg:block ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-full min-h-0 flex-col">
-          <Link href="/dashboard" className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-            <VendoraqLogo compact />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="min-w-0 flex-1 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+              <VendoraqLogo compact />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(false)}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+              aria-label="Close dashboard sidebar"
+              title="Close sidebar"
+            >
+              <IconGlyph name="x" className="h-5 w-5" />
+            </button>
+          </div>
           <div className="mt-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4">
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0F172A] text-lg font-black text-white shadow-sm">{sellerInitial}</span>
@@ -175,9 +187,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </aside>
-      <section className="lg:pl-72">
+      <section className={`min-w-0 transition-[padding] duration-300 ${sidebarOpen ? "lg:pl-72" : "lg:pl-0"}`}>
         <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((open) => !open)}
+              className="hidden h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 lg:grid"
+              aria-label={sidebarOpen ? "Close dashboard sidebar" : "Open dashboard sidebar"}
+              title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            >
+              <IconGlyph name="menu" className="h-5 w-5" />
+            </button>
             {canOpenStore ? (
               <Link href={storeHref} className="lg:hidden"><VendoraqLogo compact /></Link>
             ) : (

@@ -196,7 +196,7 @@ export default function ProductsPage() {
     <>
       <SectionTitle eyebrow="Catalog" title="Products" />
 
-      <form onSubmit={saveProduct} className="sellmate-card mb-6 rounded-lg p-5">
+      <form onSubmit={saveProduct} className="sellmate-card mb-6 overflow-hidden rounded-lg p-4 sm:p-5">
         <div className={`mb-5 rounded-lg border p-4 text-sm font-semibold ${limitReached ? "border-amber-200 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span>
@@ -210,21 +210,21 @@ export default function ProductsPage() {
             ) : null}
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid min-w-0 gap-4 md:grid-cols-3">
           <Field label="Product name" name="name" value={form.name} onChange={updateForm} placeholder="Blue Jeans, Cement, Lip Gloss, Human Hair Wig" />
           <Field label="SKU" name="sku" value={form.sku} onChange={updateForm} placeholder="SKU-001" />
           <Field label="Category" name="category" value={form.category} onChange={updateForm} placeholder="Clothing, Shoes, Makeup, Building Materials" />
           <Field label="Options / variants" name="variant_options" value={form.variant_options} onChange={updateForm} placeholder="Blue, Brown, Black / Size 40, 41, 42 / 50kg" required={false} />
           <Field label="Price" name="price" value={form.price} onChange={updateForm} placeholder="38500" type="number" />
           <Field label="Stock" name="stock" value={form.stock} onChange={updateForm} placeholder="18" type="number" />
-          <label className="grid gap-2 text-sm font-bold text-slate-700">
+          <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
             Product image
-            <input name="image_upload" type="file" accept="image/*" onChange={handleImageUpload} className="rounded-md border border-slate-300 bg-white px-3 py-3 text-sm font-normal outline-none file:mr-4 file:rounded-md file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white focus:border-emerald-600" />
+            <input name="image_upload" type="file" accept="image/*" onChange={handleImageUpload} className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-3 text-sm font-normal outline-none file:mr-3 file:rounded-md file:border-0 file:bg-slate-950 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white focus:border-emerald-600 sm:file:px-4 sm:file:text-sm" />
             <input type="hidden" name="image_url" value={form.image_url} />
           </label>
-          <label className="grid gap-2 text-sm font-bold text-slate-700">
+          <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
             Status
-            <select name="status" value={form.status} onChange={(event) => updateForm("status", event.target.value)} className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600">
+            <select name="status" value={form.status} onChange={(event) => updateForm("status", event.target.value)} className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600">
               <option>Live</option>
               <option>Low stock</option>
               <option>Sold out</option>
@@ -254,9 +254,45 @@ export default function ProductsPage() {
         {message ? <p className="mt-4 rounded-md bg-slate-100 p-3 text-sm font-semibold text-slate-700">{message}</p> : null}
       </form>
 
-      <div className="sellmate-card overflow-hidden rounded-lg">
+      <div className="grid gap-3 md:hidden">
+        {loading ? (
+          <p className="rounded-lg border border-slate-200 bg-white p-5 text-center font-semibold text-slate-500">Loading products...</p>
+        ) : products.length === 0 ? (
+          <p className="rounded-lg border border-slate-200 bg-white p-5 text-center font-semibold text-slate-500">No products yet. Add your first product above.</p>
+        ) : (
+          products.map((product) => (
+            <article key={product.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex gap-3">
+                <div
+                  className="h-20 w-20 shrink-0 rounded-md border border-slate-200 bg-slate-100 bg-cover bg-center"
+                  style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
+                />
+                <div className="min-w-0 flex-1">
+                  <h3 className="break-words text-base font-black leading-tight text-slate-950">{product.name}</h3>
+                  <p className="mt-1 break-words text-xs font-bold text-slate-500">{product.sku}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Badge tone={product.status === "Low stock" ? "amber" : product.status === "Sold out" ? "red" : "green"}>{product.status}</Badge>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">{product.stock} left</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-600">
+                <div className="flex justify-between gap-3"><span>Category</span><strong className="break-words text-right text-slate-950">{product.category}</strong></div>
+                <div className="flex justify-between gap-3"><span>Price</span><strong className="text-slate-950">{formatNaira(product.price)}</strong></div>
+                {product.variant_options ? <p className="break-words text-xs leading-5 text-slate-500">{product.variant_options}</p> : null}
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button onClick={() => startEdit(product)} className="rounded-md border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700">Edit</button>
+                <button onClick={() => deleteProduct(product.id)} className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700">Delete</button>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="sellmate-card hidden overflow-hidden rounded-lg md:block">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[860px] text-left text-sm">
+          <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="bg-slate-100 text-xs uppercase text-slate-500">
               <tr>
                 {["Product", "SKU", "Category", "Options", "Price", "Stock", "Status", "Actions"].map((header) => (
@@ -278,7 +314,7 @@ export default function ProductsPage() {
                           className="h-12 w-12 shrink-0 rounded-md border border-slate-200 bg-slate-100 bg-cover bg-center"
                           style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
                         />
-                        <strong className="text-slate-950">{product.name}</strong>
+                        <strong className="max-w-[180px] break-words text-slate-950">{product.name}</strong>
                       </div>
                     </td>
                     <td className="px-4 py-4">{product.sku}</td>
@@ -322,7 +358,7 @@ function Field({
   required?: boolean;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-bold text-slate-700">
+    <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
       {label}
       <input
         name={name}
@@ -331,7 +367,7 @@ function Field({
         required={required}
         type={type}
         min={type === "number" ? 0 : undefined}
-        className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600"
+        className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600"
         placeholder={placeholder}
       />
     </label>
