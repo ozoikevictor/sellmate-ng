@@ -482,17 +482,19 @@ export function StoreHeader({
   whatsappPhone?: string | null;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const productSectionHref = `${storeHref}#products`;
-  const categoriesHref = `${storeHref}#categories`;
-  const helpSectionHref = `${storeHref}#help`;
+  const productPageHref = `${storeHref}/products`;
+  const categoriesHref = `${storeHref}/categories`;
+  const wishlistHref = `${storeHref}/wishlist`;
+  const ordersHref = `${storeHref}/orders`;
+  const supportHref = `${storeHref}/support`;
   const drawerLinks: Array<{ label: string; href?: string; icon: "home" | "search" | "menu" | "heart" | "cart" | "user"; disabled?: boolean }> = [
     { label: "Home", href: storeHref, icon: "home" },
-    { label: "All Products", href: productSectionHref, icon: "search" },
+    { label: "All Products", href: productPageHref, icon: "search" },
     { label: "Categories", href: categoriesHref, icon: "menu" },
-    { label: "Wishlist", icon: "heart", disabled: true },
+    { label: "Wishlist", href: wishlistHref, icon: "heart" },
     { label: "My Cart", href: cartHref, icon: "cart" },
-    { label: "My Orders", icon: "user", disabled: true },
-    { label: "Contact / Support", href: helpSectionHref, icon: "user" },
+    { label: "My Orders", href: ordersHref, icon: "user" },
+    { label: "Contact / Support", href: supportHref, icon: "user" },
   ];
 
   useEffect(() => {

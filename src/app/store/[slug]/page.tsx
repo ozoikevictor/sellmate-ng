@@ -32,6 +32,16 @@ type StoreProduct = {
   image_url: string | null;
 };
 
+const STORE_CACHE_PREFIX = "vendoraq-customer-store-cache:";
+
+function writeStoreCache(slug: string, profile: StoreProfile, products: StoreProduct[]) {
+  try {
+    sessionStorage.setItem(`${STORE_CACHE_PREFIX}${slug}`, JSON.stringify({ profile, products, savedAt: Date.now() }));
+  } catch {
+    // Ignore storage limits; the live Supabase fetch still works.
+  }
+}
+
 function getProductRating(product: StoreProduct) {
   if (product.stock <= 3) {
     return { stars: 5, label: "Selling fast" };
@@ -91,6 +101,7 @@ export default function DynamicStorefrontPage() {
       } else {
         setProfile(profileData);
         setProducts(productData ?? []);
+        writeStoreCache(slug, profileData, productData ?? []);
       }
       setLoading(false);
     }
