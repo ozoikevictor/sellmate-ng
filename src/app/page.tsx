@@ -79,13 +79,16 @@ export default function LandingPage() {
       setCartCount(readCart().reduce((sum, item) => sum + item.qty, 0));
     }
 
-    setAccountChecked(false);
-    loadSellerSummary();
-    syncCartCount();
+    const timer = window.setTimeout(() => {
+      setAccountChecked(false);
+      loadSellerSummary();
+      syncCartCount();
+    }, 0);
     window.addEventListener("sellmate-cart-updated", syncCartCount);
     window.addEventListener("storage", syncCartCount);
 
     return () => {
+      window.clearTimeout(timer);
       window.removeEventListener("sellmate-cart-updated", syncCartCount);
       window.removeEventListener("storage", syncCartCount);
     };

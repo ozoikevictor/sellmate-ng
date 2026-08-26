@@ -51,7 +51,7 @@ function PaymentCallbackContent() {
   }, [order, reference]);
 
   return (
-    <main className="min-h-screen bg-slate-100 pt-[136px] sm:pt-[128px]">
+    <main className="min-h-screen bg-slate-100 pt-[176px] sm:pt-[128px]">
       <StoreHeader
         sellerName="Store"
         storeHref={storeHref}

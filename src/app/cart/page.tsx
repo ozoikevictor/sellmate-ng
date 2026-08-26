@@ -57,7 +57,7 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[136px] sm:pt-[128px]">
+    <main className="min-h-screen bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
       <StoreHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
