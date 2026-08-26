@@ -353,7 +353,7 @@ export default function DynamicStorefrontPage() {
                     type="button"
                     onClick={() => setSelectedProduct(product)}
                     aria-label={`View details for ${product.name}`}
-                    className="h-36 bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
+                    className="h-36 w-full bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
                     style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
                   />
                   <button
