@@ -44,6 +44,17 @@ type StoreCache = {
 
 const STORE_CACHE_PREFIX = "vendoraq-customer-store-cache:";
 const STORE_CACHE_TTL = 1000 * 60 * 5;
+const DEMO_STORE_SLUG = "ada-fashion";
+
+const demoProfile: StoreProfile = {
+  user_id: "demo-store",
+  business_name: "Demo Store",
+  whatsapp_phone: "",
+  city: "Sample",
+  store_slug: DEMO_STORE_SLUG,
+  logo_url: null,
+  logo_text: "Demo Store",
+};
 
 function readStoreCache(slug: string): StoreCache | null {
   try {
@@ -112,7 +123,8 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   useEffect(() => {
-    const cachedStore = readStoreCache(slug);
+    const isDemoStore = slug === DEMO_STORE_SLUG;
+    const cachedStore = isDemoStore ? null : readStoreCache(slug);
     const savedWishlist = readWishlist(slug);
     const shouldLoadProducts = view === "products" || view === "categories" || (view === "wishlist" && savedWishlist.length > 0);
     let hydrateTimer: number | null = null;
@@ -125,6 +137,14 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
     }
 
     async function loadStore() {
+      if (isDemoStore) {
+        setProfile(demoProfile);
+        setProducts([]);
+        setMessage("");
+        setLoading(false);
+        return;
+      }
+
       setLoading(!cachedStore);
       const { data: profileData, error: profileError } = await supabase
         .from("seller_profiles")
