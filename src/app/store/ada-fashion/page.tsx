@@ -102,7 +102,7 @@ export default function StorefrontPage() {
   });
 
   return (
-    <main className="min-h-screen sellmate-page-bg sm:pt-20">
+    <main className="min-h-screen sellmate-page-bg pt-[136px] sm:pt-[128px]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}

@@ -258,7 +258,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   if (loading && !profile) return <LoadingScreen />;
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[112px] sm:pt-[116px]">
+    <main className="min-h-screen bg-[#f2f6fb] pt-[136px] sm:pt-[128px]">
       <StoreHeader
         sellerName={sellerName}
         sellerLogoUrl={profile?.logo_url}
