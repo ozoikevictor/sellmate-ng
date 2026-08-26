@@ -474,7 +474,7 @@ function CustomerStorePreview() {
 function LandingFooter({ storeHref }: { storeHref: string }) {
   const columns = [
     { title: "Product", links: [{ label: "Features", href: "#features" }, { label: "Pricing", href: "#pricing" }, { label: "Marketplace", href: "#marketplace" }, { label: "Demo Store", href: storeHref }] },
-    { title: "Account", links: [{ label: "Login", href: "/login" }, { label: "Create Seller Account", href: "/register" }, { label: "Demo Store", href: storeHref }] },
+    { title: "Account", links: [{ label: "Login", href: "/login" }, { label: "Create Seller Account", href: "/register" }] },
     { title: "Company", links: [{ label: "About", href: "#home" }, { label: "Contact", href: "#faq" }, { label: "Support", href: "#faq" }, { label: "Help Center", href: "#faq" }] },
     { title: "Legal", links: [{ label: "Privacy Policy", href: "#faq" }, { label: "Terms", href: "#faq" }] },
   ];
