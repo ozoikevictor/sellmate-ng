@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
-import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
+import { addToCart, readCart, readWishlist, toggleWishlistItem, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -140,17 +140,25 @@ export default function DynamicStorefrontPage() {
     function syncCartCount() {
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
     }
+    function syncWishlist() {
+      setFavoriteIds(readWishlist(slug).map((item) => item.id));
+    }
 
     syncCartCount();
+    syncWishlist();
     window.addEventListener("sellmate-cart-updated", syncCartCount);
+    window.addEventListener("sellmate-wishlist-updated", syncWishlist);
     window.addEventListener("storage", syncCartCount);
+    window.addEventListener("storage", syncWishlist);
 
     return () => {
       if (hydrateTimer !== null) {
         window.clearTimeout(hydrateTimer);
       }
       window.removeEventListener("sellmate-cart-updated", syncCartCount);
+      window.removeEventListener("sellmate-wishlist-updated", syncWishlist);
       window.removeEventListener("storage", syncCartCount);
+      window.removeEventListener("storage", syncWishlist);
     };
   }, [slug]);
 
@@ -171,10 +179,19 @@ export default function DynamicStorefrontPage() {
     window.setTimeout(() => setCartNotice(""), 2600);
   }
 
-  function toggleFavorite(productId: string) {
-    setFavoriteIds((current) =>
-      current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId],
-    );
+  function toggleFavorite(product: StoreProduct) {
+    const nextWishlist = toggleWishlistItem({
+      id: product.id,
+      user_id: product.user_id,
+      store_slug: profile?.store_slug || slug,
+      name: product.name,
+      category: product.category,
+      variant_options: product.variant_options,
+      price: product.price,
+      stock: product.stock,
+      image_url: product.image_url,
+    });
+    setFavoriteIds(nextWishlist.filter((item) => item.store_slug === (profile?.store_slug || slug)).map((item) => item.id));
   }
 
   const businessName = profile?.business_name || "Store";
@@ -327,7 +344,7 @@ export default function DynamicStorefrontPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => toggleFavorite(product.id)}
+                    onClick={() => toggleFavorite(product)}
                     aria-label={isFavorite ? "Remove from favourites" : "Add to favourites"}
                     className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-lg bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] transition hover:bg-white ${isFavorite ? "text-rose-600" : "text-slate-600 hover:text-rose-600"}`}
                   >

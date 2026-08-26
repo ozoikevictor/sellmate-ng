@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
-import { CartItem, cartTotal, readCart, readCurrentStoreHref, writeCart, writeCurrentStoreHref } from "@/lib/cart";
+import { CartItem, cartTotal, readCart, readCurrentStoreHref, saveCustomerOrder, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -136,6 +136,25 @@ export default function CheckoutPage() {
       deliveryAddress,
       total: Number(orderData.total ?? total),
       items: validatedItems,
+    });
+    saveCustomerOrder({
+      orderId: orderData.orderId,
+      store_slug: storeSlug,
+      seller_id: sellerId,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      city,
+      delivery_address: deliveryAddress,
+      total: Number(orderData.total ?? total),
+      status: "New",
+      payment_status: "Pending",
+      created_at: new Date().toISOString(),
+      items: validatedItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+      })),
     });
 
     const paymentResult = await fetch("/api/paystack/initialize", {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { LogoutButton, useAuth } from "@/components/auth";
@@ -481,6 +481,7 @@ export function StoreHeader({
   onSearchChange: (value: string) => void;
   whatsappPhone?: string | null;
 }) {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const productPageHref = `${storeHref}/products`;
   const categoriesHref = `${storeHref}/categories`;
@@ -521,6 +522,12 @@ export function StoreHeader({
     };
   }, [isMenuOpen]);
 
+  function submitSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = searchTerm.trim();
+    router.push(query ? `${productPageHref}?q=${encodeURIComponent(query)}` : productPageHref);
+  }
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white shadow-sm">
       <div className="hidden border-b border-[#E5E7EB] bg-[#F3F4F6] text-[#0F172A] sm:block">
@@ -545,17 +552,20 @@ export function StoreHeader({
             <span className="truncate capitalize">{sellerName}</span>
           </Link>
         </div>
-        <div className="order-3 sm:order-none">
+        <form onSubmit={submitSearch} className="order-3 sm:order-none">
           <label className="relative block">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
             <input
               value={searchTerm}
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search products, brands and categories"
-              className="h-12 w-full rounded-full border border-[#E5E7EB] bg-[#F5F5F5] pl-9 pr-4 text-sm font-semibold text-[#1F2937] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:h-11"
+              className="h-12 w-full rounded-full border border-[#E5E7EB] bg-[#F5F5F5] pl-9 pr-14 text-sm font-semibold text-[#1F2937] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:h-11"
             />
+            <button type="submit" aria-label="Search products" className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-[#16A34A] text-white transition hover:bg-[#15803D]">
+              <IconGlyph name="search" className="h-4 w-4" />
+            </button>
           </label>
-        </div>
+        </form>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <HeaderIconButton href="/login" icon="user" label="Customer account" />
           <CartIconLink href={cartHref} count={cartCount} />
