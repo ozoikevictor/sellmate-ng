@@ -70,6 +70,14 @@ function productRating(product: StoreProduct) {
   return { stars: 2, label: "New in store" };
 }
 
+function productRows(products: StoreProduct[]) {
+  const rows: StoreProduct[][] = [];
+  for (let index = 0; index < products.length; index += 6) {
+    rows.push(products.slice(index, index + 6));
+  }
+  return rows;
+}
+
 export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -312,9 +320,13 @@ function ProductsView({
     <>
       <SectionTitle eyebrow="All products" title="Products you can order now" action={<CartIconLink href={cartHref} count={cartCount} />} />
       {products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
-      <div className="-mx-5 grid grid-cols-[repeat(6,minmax(10.5rem,44vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
-        {products.map((product) => (
-          <ProductTile key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} />
+      <div className="grid gap-4">
+        {productRows(products).map((row, rowIndex) => (
+          <div key={`product-row-${rowIndex}`} className="-mx-5 grid grid-cols-[repeat(6,minmax(10.5rem,44vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
+            {row.map((product) => (
+              <ProductTile key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} />
+            ))}
+          </div>
         ))}
       </div>
     </>
