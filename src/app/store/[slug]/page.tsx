@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { CartIconLink, IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
+import { IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
 import { addToCart, readCart, readWishlist, toggleWishlistItem, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -31,6 +31,8 @@ type StoreProduct = {
   status: string;
   image_url: string | null;
 };
+
+type SortOption = "newest" | "price-low" | "price-high" | "low-stock";
 
 const STORE_CACHE_PREFIX = "vendoraq-customer-store-cache:";
 const STORE_CACHE_TTL = 1000 * 60 * 5;
@@ -82,6 +84,21 @@ function productRows(products: StoreProduct[]) {
   return rows;
 }
 
+function sortProducts(products: StoreProduct[], sortBy: SortOption) {
+  return [...products].sort((first, second) => {
+    if (sortBy === "price-low") return first.price - second.price;
+    if (sortBy === "price-high") return second.price - first.price;
+    if (sortBy === "low-stock") return first.stock - second.stock;
+    return 0;
+  });
+}
+
+function productBadge(product: StoreProduct) {
+  if (product.stock <= 3) return { label: "Low stock", className: "bg-rose-50 text-rose-700 ring-rose-100" };
+  if (product.stock <= 10) return { label: "Selling fast", className: "bg-orange-50 text-orange-700 ring-orange-100" };
+  return { label: "In stock", className: "bg-emerald-50 text-emerald-700 ring-emerald-100" };
+}
+
 export default function DynamicStorefrontPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
@@ -95,6 +112,8 @@ export default function DynamicStorefrontPage() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<StoreProduct | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   useEffect(() => {
     const cachedStore = readStoreCache(slug);
@@ -207,7 +226,7 @@ export default function DynamicStorefrontPage() {
   const brandName = profile?.logo_text || businessName;
   const logoUrl = profile?.logo_url || "";
   const city = profile?.city || "Nigeria";
-  const categories = Array.from(new Set(products.map((product) => product.category).filter(Boolean))).slice(0, 8);
+  const categories = Array.from(new Set(products.map((product) => product.category).filter(Boolean))).slice(0, 10);
   const heroProducts = products.length > 0 ? products.slice(0, 6) : [];
   const featuredProduct = heroProducts[heroIndex % Math.max(heroProducts.length, 1)];
   const lowStockCount = products.filter((product) => product.stock <= 5).length;
@@ -229,12 +248,11 @@ export default function DynamicStorefrontPage() {
 
   const filteredProducts = products.filter((product) => {
     const query = searchTerm.trim().toLowerCase();
-    if (!query) {
-      return true;
-    }
-
-    return [product.name, product.category, product.sku, product.variant_options ?? ""].some((value) => value.toLowerCase().includes(query));
+    const matchesSearch = !query || [product.name, product.category, product.sku, product.variant_options ?? ""].some((value) => value.toLowerCase().includes(query));
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
+  const displayProducts = sortProducts(filteredProducts, sortBy);
 
   if (loading && !profile) {
     return <LoadingScreen />;
@@ -257,8 +275,8 @@ export default function DynamicStorefrontPage() {
           <aside id="categories" className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:block">
             <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Categories</p>
             <div className="grid gap-2 text-sm font-bold text-slate-700">
-              {(categories.length ? categories : ["Products", "New arrivals", "Best sellers", "Deals"]).map((category) => (
-                <a key={category} href="#products" className="rounded-md px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700">{category}</a>
+              {["All", ...(categories.length ? categories : ["Products"])].map((category) => (
+                <a key={category} href="#products" onClick={() => setSelectedCategory(category)} className={`rounded-md px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700 ${selectedCategory === category ? "bg-emerald-50 text-emerald-700" : ""}`}>{category}</a>
               ))}
             </div>
           </aside>
@@ -267,10 +285,10 @@ export default function DynamicStorefrontPage() {
               <div>
                 <p className="w-fit rounded-full bg-[#16A34A] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-white">{city} storefront</p>
                 <h1 className="mt-4 max-w-3xl text-4xl font-black capitalize leading-[1.02] sm:text-5xl lg:text-6xl">
-                  {businessName} deals and latest products
+                  Shop products from {businessName}
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-100 sm:text-lg">
-                  Search products, compare stock, add to cart, pay securely, then send your receipt to the seller on WhatsApp.
+                  Browse anything this seller offers, from beauty and fashion to gadgets, food items, tools, accessories, and everyday essentials.
                 </p>
                 {featuredProduct ? (
                   <div className="mt-4 flex w-fit flex-wrap items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-black ring-1 ring-white/20">
@@ -322,30 +340,38 @@ export default function DynamicStorefrontPage() {
       <section id="products" className="mx-auto max-w-7xl px-5 py-8 sm:py-12">
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
-          {(categories.length ? categories : ["All products"]).map((category) => (
-            <button key={category} onClick={() => setSearchTerm(category)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 shadow-sm hover:border-emerald-300 hover:text-emerald-700">{category}</button>
+          {["All", ...(categories.length ? categories : ["Products"])].map((category) => (
+            <button key={category} onClick={() => setSelectedCategory(category)} className={`rounded-full border px-3 py-1.5 text-xs font-black shadow-sm ${selectedCategory === category ? "border-emerald-700 bg-emerald-700 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:text-emerald-700"}`}>{category}</button>
           ))}
-          {searchTerm ? <button onClick={() => setSearchTerm("")} className="rounded-full px-3 py-1.5 text-xs font-black text-emerald-700">Clear search</button> : null}
+          {searchTerm || selectedCategory !== "All" ? <button onClick={() => { setSearchTerm(""); setSelectedCategory("All"); }} className="rounded-full px-3 py-1.5 text-xs font-black text-emerald-700">Clear filters</button> : null}
         </div>
-        <SectionTitle
-          eyebrow="Latest deals"
-          title="Products you can order now"
-          action={<CartIconLink href={storeCartHref} count={cartCount} />}
-        />
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <SectionTitle eyebrow="Marketplace shelf" title="Products you can order now" />
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm font-bold text-slate-500">{displayProducts.length} of {products.length} product(s){searchTerm ? ` for "${searchTerm}"` : ""}</p>
+            <select value={sortBy} onChange={(event) => setSortBy(event.target.value as SortOption)} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-700 shadow-sm outline-none focus:border-[#16A34A] focus:ring-4 focus:ring-emerald-100">
+              <option value="newest">Newest</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+              <option value="low-stock">Low stock first</option>
+            </select>
+          </div>
+        </div>
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
         {loading ? <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">Loading products...</p> : null}
         {!loading && !message && products.length === 0 ? (
           <p className="rounded-md bg-amber-50 p-4 text-sm font-semibold text-amber-800">No live products yet. Add a product in the seller dashboard and set its status to Live.</p>
         ) : null}
-        {!loading && !message && products.length > 0 && filteredProducts.length === 0 ? (
+        {!loading && !message && products.length > 0 && displayProducts.length === 0 ? (
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
         ) : null}
         <div className="grid gap-4">
-          {productRows(filteredProducts).map((row, rowIndex) => (
+          {productRows(displayProducts).map((row, rowIndex) => (
             <div key={`product-row-${rowIndex}`} className="-mx-5 grid grid-cols-[repeat(6,minmax(10.5rem,44vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
               {row.map((product) => {
                 const rating = getProductRating(product);
                 const isFavorite = favoriteIds.includes(product.id);
+                const badge = productBadge(product);
                 return (
                   <article key={product.id} className="group flex h-full scroll-ml-5 snap-start flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
                 <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
@@ -377,6 +403,7 @@ export default function DynamicStorefrontPage() {
                     </span>
                     <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
                   </div>
+                  <span className={`mt-3 w-fit rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ring-1 ${badge.className}`}>{badge.label}</span>
                   <button type="button" onClick={() => setSelectedProduct(product)} className="text-left">
                     <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] transition hover:text-[#16A34A] sm:text-lg">{product.name}</h3>
                     <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">

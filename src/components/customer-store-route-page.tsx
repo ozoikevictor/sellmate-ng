@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
-import { CartIconLink, IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
+import { IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, CustomerOrder, readCart, readCustomerOrders, readWishlist, toggleWishlistItem, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -33,6 +33,8 @@ type StoreProduct = {
   status: string;
   image_url: string | null;
 };
+
+type SortOption = "newest" | "price-low" | "price-high" | "low-stock";
 
 type StoreCache = {
   profile: StoreProfile;
@@ -78,6 +80,21 @@ function productRows(products: StoreProduct[]) {
   return rows;
 }
 
+function sortProducts(products: StoreProduct[], sortBy: SortOption) {
+  return [...products].sort((first, second) => {
+    if (sortBy === "price-low") return first.price - second.price;
+    if (sortBy === "price-high") return second.price - first.price;
+    if (sortBy === "low-stock") return first.stock - second.stock;
+    return 0;
+  });
+}
+
+function productBadge(product: StoreProduct) {
+  if (product.stock <= 3) return { label: "Low stock", className: "bg-rose-50 text-rose-700 ring-rose-100" };
+  if (product.stock <= 10) return { label: "Selling fast", className: "bg-orange-50 text-orange-700 ring-orange-100" };
+  return { label: "In stock", className: "bg-emerald-50 text-emerald-700 ring-emerald-100" };
+}
+
 export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -92,6 +109,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [customerOrders, setCustomerOrders] = useState<CustomerOrder[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<StoreProduct | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   useEffect(() => {
     const cachedStore = readStoreCache(slug);
@@ -203,6 +221,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+  const displayProducts = sortProducts(filteredProducts, sortBy);
 
   function handleAddToCart(product: StoreProduct) {
     const nextCart = addToCart({
@@ -260,9 +279,9 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
 
       <section className="mx-auto max-w-7xl px-5 py-8 sm:py-12">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
-        {view === "products" ? <ProductsView products={filteredProducts} favoriteIds={favoriteIds} cartHref={cartHref} cartCount={cartCount} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
+        {view === "products" ? <ProductsView products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}
-        {view === "wishlist" ? <WishlistView products={products.filter((product) => favoriteIds.includes(product.id))} cartHref={cartHref} cartCount={cartCount} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
+        {view === "wishlist" ? <WishlistView products={sortProducts(products.filter((product) => favoriteIds.includes(product.id)), sortBy)} totalProducts={favoriteIds.length} searchTerm="" selectedCategory="" sortBy={sortBy} onSortChange={setSortBy} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "orders" ? <OrdersView orders={customerOrders} /> : null}
         {view === "support" ? <SupportView sellerName={sellerName} whatsappPhone={profile?.whatsapp_phone} storeHref={storeHref} /> : null}
       </section>
@@ -313,24 +332,41 @@ function pageDescription(view: CustomerStoreView, sellerName: string) {
 
 function ProductsView({
   products,
+  totalProducts,
+  searchTerm,
+  selectedCategory,
+  sortBy,
+  onSortChange,
   favoriteIds,
-  cartHref,
-  cartCount,
   onAddToCart,
   onToggleFavorite,
   onViewDetails,
 }: {
   products: StoreProduct[];
+  totalProducts: number;
+  searchTerm: string;
+  selectedCategory: string;
+  sortBy: SortOption;
+  onSortChange: (value: SortOption) => void;
   favoriteIds: string[];
-  cartHref: string;
-  cartCount: number;
   onAddToCart: (product: StoreProduct) => void;
   onToggleFavorite: (product: StoreProduct) => void;
   onViewDetails: (product: StoreProduct) => void;
 }) {
   return (
     <>
-      <SectionTitle eyebrow="All products" title="Products you can order now" action={<CartIconLink href={cartHref} count={cartCount} />} />
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <SectionTitle eyebrow="Marketplace shelf" title="Products you can order now" />
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm font-bold text-slate-500">{products.length} of {totalProducts} product(s){searchTerm ? ` for "${searchTerm}"` : ""}{selectedCategory ? ` in ${selectedCategory}` : ""}</p>
+          <select value={sortBy} onChange={(event) => onSortChange(event.target.value as SortOption)} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-700 shadow-sm outline-none focus:border-[#16A34A] focus:ring-4 focus:ring-emerald-100">
+            <option value="newest">Newest</option>
+            <option value="price-low">Price: low to high</option>
+            <option value="price-high">Price: high to low</option>
+            <option value="low-stock">Low stock first</option>
+          </select>
+        </div>
+      </div>
       {products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
       <div className="grid gap-4">
         {productRows(products).map((row, rowIndex) => (
@@ -347,6 +383,7 @@ function ProductsView({
 
 function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite, onViewDetails }: { product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   const rating = productRating(product);
+  const badge = productBadge(product);
   return (
     <article className="group flex h-full scroll-ml-5 snap-start flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
       <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
@@ -361,6 +398,7 @@ function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite, onVie
           <span className="rounded-full bg-[#F3F4F6] px-2 py-1 text-[10px] font-black text-[#166534] ring-1 ring-[#E5E7EB]">{"★".repeat(rating.stars)}{"☆".repeat(5 - rating.stars)}</span>
           <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
         </div>
+        <span className={`mt-3 w-fit rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ring-1 ${badge.className}`}>{badge.label}</span>
         <button type="button" onClick={() => onViewDetails(product)} className="text-left">
           <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] transition hover:text-[#16A34A] sm:text-lg">{product.name}</h3>
           <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">{product.variant_options || `SKU: ${product.sku}`}</p>
@@ -390,7 +428,7 @@ function CategoriesView({ categories, products, storeHref }: { categories: strin
   );
 }
 
-function WishlistView(props: { products: StoreProduct[]; cartHref: string; cartCount: number; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function WishlistView(props: { products: StoreProduct[]; totalProducts: number; searchTerm: string; selectedCategory: string; sortBy: SortOption; onSortChange: (value: SortOption) => void; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   if (props.products.length === 0) return <EmptyPanel title="No wishlist items yet" text="Tap the heart on a product to save it while shopping this store." />;
   return <ProductsView {...props} favoriteIds={props.products.map((product) => product.id)} />;
 }
