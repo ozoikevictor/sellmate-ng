@@ -188,8 +188,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <section className={`min-w-0 transition-[padding] duration-300 ${sidebarOpen ? "lg:pl-72" : "lg:pl-0"}`}>
-        <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6">
-          <div className="flex items-center justify-between gap-4">
+        <header className={`fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-xl transition-[left] duration-300 sm:px-6 ${sidebarOpen ? "lg:left-72" : "lg:left-0"}`}>
+          <div className="flex min-w-0 items-center justify-between gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => setSidebarOpen((open) => !open)}
@@ -200,15 +200,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <IconGlyph name="menu" className="h-5 w-5" />
             </button>
             {canOpenStore ? (
-              <Link href={storeHref} className="lg:hidden"><VendoraqLogo compact /></Link>
+              <Link href={storeHref} className="min-w-0 lg:hidden"><VendoraqLogo compact /></Link>
             ) : (
-              <span className="lg:hidden"><VendoraqLogo compact /></span>
+              <span className="min-w-0 lg:hidden"><VendoraqLogo compact /></span>
             )}
-            <div className="hidden min-w-0 lg:block">
+            <div className="hidden min-w-0 flex-1 lg:block">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Vendor dashboard</p>
               <p className="truncate text-sm font-bold text-slate-500">{user?.business ?? "Seller workspace"} · Manage products, orders, payments and delivery</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <span className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-[#166534] sm:inline-flex">
                 Logged in
               </span>
@@ -244,7 +244,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </header>
-        <div className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:py-8">{children}</div>
+        <div className="mx-auto max-w-[1500px] px-4 pb-6 pt-32 sm:px-6 lg:pb-8 lg:pt-28">{children}</div>
       </section>
     </main>
   );
