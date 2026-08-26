@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
@@ -35,6 +35,7 @@ const emptyForm = {
 
 export default function ProductsPage() {
   const { user } = useAuth();
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -126,6 +127,9 @@ export default function ProductsPage() {
       image_url: product.image_url ?? "",
       status: product.status,
     });
+    window.setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   }
 
   function resetForm() {
@@ -196,7 +200,7 @@ export default function ProductsPage() {
     <>
       <SectionTitle eyebrow="Catalog" title="Products" />
 
-      <form onSubmit={saveProduct} className="sellmate-card mb-6 overflow-hidden rounded-lg p-4 sm:p-5">
+      <form ref={formRef} onSubmit={saveProduct} className="sellmate-card scroll-mt-28 mb-6 overflow-hidden rounded-lg p-4 sm:scroll-mt-24 sm:p-5">
         <div className={`mb-5 rounded-lg border p-4 text-sm font-semibold ${limitReached ? "border-amber-200 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span>
