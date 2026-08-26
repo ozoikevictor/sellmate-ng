@@ -404,44 +404,46 @@ function DemoCartModal({ onClose }: { onClose: () => void }) {
   const total = items.reduce((sum, [, , price]) => sum + Number(price), 0);
 
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-end bg-[#0F172A]/50 p-3 backdrop-blur-sm sm:place-items-center sm:p-6" role="dialog" aria-modal="true" aria-label="Demo cart preview">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-y-auto bg-[#0F172A]/50 p-3 backdrop-blur-sm sm:items-start sm:p-6 sm:pt-8" role="dialog" aria-modal="true" aria-label="Demo cart preview">
       <button type="button" className="absolute inset-0" aria-label="Close demo cart preview" onClick={onClose} />
-      <aside className="relative w-full max-w-md overflow-hidden rounded-[1.25rem] bg-white shadow-2xl">
-        <div className="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
-          <div>
+      <aside className="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-[1.25rem] bg-white shadow-2xl sm:max-h-[calc(100dvh-4rem)]">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
+          <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Demo cart</p>
-            <h2 className="mt-1 text-xl font-black text-[#0F172A]">How customer checkout looks</h2>
+            <h2 className="mt-1 text-lg font-black leading-tight text-[#0F172A] sm:text-xl">How customer checkout looks</h2>
           </div>
-          <button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-full border border-[#E2E8F0] text-[#0F172A]" aria-label="Close demo cart preview">
+          <button type="button" onClick={onClose} className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#E2E8F0] text-[#0F172A]" aria-label="Close demo cart preview">
             <IconGlyph name="x" className="h-5 w-5" />
           </button>
         </div>
-        <div className="grid gap-3 p-5">
-          {items.map(([name, category, price, position]) => (
-            <div key={name} className="flex gap-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-              <div className="h-20 w-20 shrink-0 rounded-xl bg-cover bg-no-repeat" style={{ backgroundImage: "url('/landing/amaka-products.png')", backgroundPosition: String(position), backgroundSize: "200% 200%" }} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-black text-[#0F172A]">{name}</p>
-                <p className="mt-1 text-xs font-black uppercase tracking-wide text-[#16A34A]">{category}</p>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#475569] ring-1 ring-[#E2E8F0]">Qty 1</span>
-                  <span className="text-sm font-black text-[#0F172A]">{formatNaira(Number(price))}</span>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="grid gap-3 p-5">
+            {items.map(([name, category, price, position]) => (
+              <div key={name} className="flex gap-3 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                <div className="h-20 w-20 shrink-0 rounded-xl bg-cover bg-no-repeat" style={{ backgroundImage: "url('/landing/amaka-products.png')", backgroundPosition: String(position), backgroundSize: "200% 200%" }} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-black text-[#0F172A]">{name}</p>
+                  <p className="mt-1 text-xs font-black uppercase tracking-wide text-[#16A34A]">{category}</p>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-[#475569] ring-1 ring-[#E2E8F0]">Qty 1</span>
+                    <span className="text-sm font-black text-[#0F172A]">{formatNaira(Number(price))}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="border-t border-[#E2E8F0] bg-white p-5">
-          <div className="flex items-center justify-between text-sm font-black text-[#0F172A]">
-            <span>Sample total</span>
-            <span>{formatNaira(total)}</span>
+            ))}
           </div>
-          <p className="mt-3 rounded-2xl bg-[#F0FDF4] px-4 py-3 text-sm font-bold leading-6 text-emerald-800">
-            This is only a demo preview. Real customers open a seller&apos;s shared store link before adding products to cart.
-          </p>
-          <Link href="/register" onClick={onClose} className="mt-4 flex min-h-12 items-center justify-center rounded-2xl bg-[#22C55E] px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
-            Start Selling Free
-          </Link>
+          <div className="border-t border-[#E2E8F0] bg-white p-5">
+            <div className="flex items-center justify-between text-sm font-black text-[#0F172A]">
+              <span>Sample total</span>
+              <span>{formatNaira(total)}</span>
+            </div>
+            <p className="mt-3 rounded-2xl bg-[#F0FDF4] px-4 py-3 text-sm font-bold leading-6 text-emerald-800">
+              This is only a demo preview. Real customers open a seller&apos;s shared store link before adding products to cart.
+            </p>
+            <Link href="/register" onClick={onClose} className="mt-4 flex min-h-12 items-center justify-center rounded-2xl bg-[#22C55E] px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
+              Start Selling Free
+            </Link>
+          </div>
         </div>
       </aside>
     </div>
