@@ -51,6 +51,9 @@ export default function ProductsPage() {
   const limitReached = !editingId && productLimit !== null && usedProducts >= productLimit;
   const businessExpired = billingPlan === "Business" && billingStatus === "Active" && isPlanExpired(billingRenewsAt, nowMs);
   const planLabel = billingStatus === "Active" && !businessExpired ? billingPlan : "Free trial";
+  const liveProducts = products.filter((product) => product.status === "Live").length;
+  const lowStockProducts = products.filter((product) => product.status === "Low stock" || product.stock <= 5).length;
+  const catalogValue = products.reduce((sum, product) => sum + product.price * product.stock, 0);
 
   const loadProducts = useCallback(async () => {
     const userId = user?.id;
@@ -199,6 +202,23 @@ export default function ProductsPage() {
   return (
     <>
       <SectionTitle eyebrow="Catalog" title="Products" />
+
+      <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="grid gap-5 bg-[linear-gradient(135deg,#F8FAFC_0%,#ECFDF5_58%,#FFF7ED_100%)] p-5 lg:grid-cols-[1fr_360px] lg:items-center lg:p-6">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Catalog control center</p>
+            <h2 className="mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">Keep your storefront stocked, priced, and ready for buyers.</h2>
+            <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+              Add products, upload clear photos, manage stock, and decide which items should appear live in the customer store.
+            </p>
+          </div>
+          <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <ProductMetric label="Live products" value={loading ? "..." : String(liveProducts)} tone="green" />
+            <ProductMetric label="Low stock" value={loading ? "..." : String(lowStockProducts)} tone="amber" />
+            <ProductMetric label="Stock value" value={loading ? "..." : formatNaira(catalogValue)} tone="dark" />
+          </div>
+        </div>
+      </section>
 
       <form ref={formRef} onSubmit={saveProduct} className="sellmate-card scroll-mt-28 mb-6 overflow-hidden rounded-lg p-4 sm:scroll-mt-24 sm:p-5">
         <div className={`mb-5 rounded-lg border p-4 text-sm font-semibold ${limitReached ? "border-amber-200 bg-amber-50 text-amber-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
@@ -375,6 +395,21 @@ function Field({
         placeholder={placeholder}
       />
     </label>
+  );
+}
+
+function ProductMetric({ label, value, tone }: { label: string; value: string; tone: "green" | "amber" | "dark" }) {
+  const styles = {
+    green: "bg-emerald-50 text-emerald-900",
+    amber: "bg-amber-50 text-amber-900",
+    dark: "bg-slate-950 text-white",
+  };
+
+  return (
+    <div className={`flex items-center justify-between rounded-md px-3 py-2 ${styles[tone]}`}>
+      <span className="text-xs font-black uppercase tracking-wide opacity-75">{label}</span>
+      <strong className="text-sm font-black">{value}</strong>
+    </div>
   );
 }
 
