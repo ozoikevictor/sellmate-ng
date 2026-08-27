@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { LoadingScreen } from "@/components/loading-screen";
 import { IconGlyph, VendoraqLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
@@ -98,14 +99,7 @@ export default function LandingPage() {
   );
 
   if (!accountChecked) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#F8FAFC] px-5">
-        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 text-center shadow-lg">
-          <div className="flex justify-center"><VendoraqLogo /></div>
-          <p className="mt-4 text-sm font-black text-[#111827]">Opening your VENDORAQ page...</p>
-        </div>
-      </main>
-    );
+    return <LoadingScreen label="Opening VENDORAQ..." />;
   }
 
   return (
