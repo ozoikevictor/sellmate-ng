@@ -12,6 +12,7 @@ type DemoUser = {
   name: string;
   business: string;
   email: string;
+  whatsapp: string;
 };
 
 type AuthResult = Promise<{ ok: boolean; message?: string }>;
@@ -41,6 +42,7 @@ function toDemoUser(sessionUser: { id?: string; email?: string; user_metadata?: 
     email: sessionUser.email,
     name: String(sessionUser.user_metadata?.name ?? "Seller"),
     business: String(sessionUser.user_metadata?.business ?? "My Store"),
+    whatsapp: String(sessionUser.user_metadata?.whatsapp ?? ""),
   };
 }
 
@@ -70,6 +72,22 @@ function validatePassword(password: string) {
 
 function isGmailAddress(email: string) {
   return email.trim().toLowerCase().endsWith("@gmail.com");
+}
+
+function normalizeWhatsAppPhone(phone: string) {
+  return phone.replace(/[^\d+]/g, "").trim();
+}
+
+function validateWhatsAppPhone(phone: string) {
+  const normalizedPhone = normalizeWhatsAppPhone(phone);
+  const digits = normalizedPhone.replace(/\D/g, "");
+  if (!digits) {
+    return "Enter your WhatsApp Business number.";
+  }
+  if (digits.length < 10 || digits.length > 15) {
+    return "Enter a valid WhatsApp Business number with country code, like +2348012345678.";
+  }
+  return "";
 }
 
 function markLoginCodeVerified(userId: string) {
@@ -240,6 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: {
           name: newUser.name,
           business: newUser.business,
+          whatsapp: newUser.whatsapp,
         },
       },
     });
@@ -380,14 +399,38 @@ function PasswordField({
   );
 }
 
-function AuthShell({ children }: { children: React.ReactNode }) {
+function AuthShell({ children, mode }: { children: React.ReactNode; mode: "login" | "register" | "recovery" | "reset" }) {
+  const headline = mode === "register" ? "Launch your store with checkout, orders, and WhatsApp support." : "Welcome back to your seller workspace.";
+  const points = mode === "register"
+    ? ["Create your public store link", "Add WhatsApp Business contact", "Manage products and paid orders"]
+    : ["Secure email code login", "Dashboard, products, orders", "Storefront stays connected"];
+
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#ecfdf5_0,#f8fafc_34%,#eef2f7_100%)] px-5 py-8">
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col items-center justify-center">
-        <Link href="/" className="mb-8 rounded-2xl bg-white/80 px-5 py-3 shadow-sm ring-1 ring-slate-200 backdrop-blur">
-          <VendoraqLogo />
-        </Link>
+    <main className="min-h-screen bg-[#F6F8FB] px-4 py-6 sm:px-6 lg:px-8">
+      <section className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <aside className="hidden overflow-hidden rounded-[1.35rem] bg-[#07111F] p-8 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)] lg:block">
+          <Link href="/" className="inline-flex rounded-2xl bg-white px-4 py-3">
+            <VendoraqLogo />
+          </Link>
+          <h1 className="mt-12 text-5xl font-black leading-tight">{headline}</h1>
+          <div className="mt-8 grid gap-3">
+            {points.map((point) => (
+              <div key={point} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-slate-100">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#16A34A] text-xs text-white">✓</span>
+                {point}
+              </div>
+            ))}
+          </div>
+          <p className="mt-10 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-5 text-sm font-semibold leading-6 text-emerald-50">
+            Built for sellers who share products through WhatsApp, Instagram, and direct store links.
+          </p>
+        </aside>
+        <div className="mx-auto w-full max-w-xl">
+          <Link href="/" className="mb-5 inline-flex rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200 lg:hidden">
+            <VendoraqLogo />
+          </Link>
         {children}
+        </div>
       </section>
     </main>
   );
@@ -429,7 +472,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           const normalizedCodeEmail = codeEmail.trim().toLowerCase();
           savePendingLoginEmail(normalizedCodeEmail);
           setPendingEmail(normalizedCodeEmail);
-          setNotice(`Enter the login code sent to ${normalizedCodeEmail}.`);
+          setNotice("Enter the login code sent to your email.");
         }
       }
     }, 0);
@@ -448,6 +491,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     const loginCode = String(formData.get("login_code") ?? "").trim();
     const name = String(formData.get("name") ?? "Ada Seller").trim();
     const business = String(formData.get("business") ?? "My Store").trim();
+    const whatsapp = normalizeWhatsAppPhone(String(formData.get("whatsapp") ?? ""));
 
     if (mode === "register") {
       if (!isGmailAddress(email)) {
@@ -463,7 +507,14 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         return;
       }
 
-      const result = await register({ name, business, email, password });
+      const phoneMessage = validateWhatsAppPhone(whatsapp);
+      if (phoneMessage) {
+        setError(phoneMessage);
+        setLoading(false);
+        return;
+      }
+
+      const result = await register({ name, business, email, whatsapp, password });
       if (result.ok) {
         if (result.message) {
           setNotice(result.message);
@@ -506,8 +557,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <AuthShell>
-      <form onSubmit={handleSubmit} className="w-full max-w-xl rounded-[1.35rem] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.10)] sm:p-10">
+    <AuthShell mode={mode}>
+      <form onSubmit={handleSubmit} className="w-full rounded-[1.35rem] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.10)] sm:p-10">
         <div className="text-center">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[#16A34A]">{mode === "login" ? "Seller login" : "Create seller account"}</p>
           <h2 className="mt-4 text-4xl font-black leading-tight text-[#0F172A] sm:text-5xl">
@@ -516,7 +567,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-600">
             {mode === "login"
               ? pendingEmail
-                ? `We sent a one-time login code to ${pendingEmail}. Enter it here to open your dashboard.`
+                ? "We sent a one-time login code to your email. Enter it here to open your dashboard."
                 : "Sign in to your VENDORAQ seller dashboard."
               : "Create your VENDORAQ seller account and start setting up your store."}
           </p>
@@ -546,6 +597,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             <>
               <label className="grid gap-2 text-sm font-black text-[#0F172A]">Your name<input name="name" required className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder="Ada Okafor" /></label>
               <label className="grid gap-2 text-sm font-black text-[#0F172A]">Business name<input name="business" required className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder="Victor Stores, Beauty Hub, Builders Mart" /></label>
+              <label className="grid gap-2 text-sm font-black text-[#0F172A]">WhatsApp Business number<input name="whatsapp" type="tel" required inputMode="tel" autoComplete="tel" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder="+234 801 234 5678" /></label>
             </>
           ) : null}
           <label className="grid gap-2 text-sm font-black text-[#0F172A]">Email<input name="email" type="email" required autoComplete="username" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder={mode === "register" ? "seller@gmail.com" : "seller@example.com"} /></label>
@@ -642,16 +694,15 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <AuthShell>
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">VENDORAQ</Link>
-        <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Account recovery</p>
+    <AuthShell mode="recovery">
+      <form onSubmit={handleSubmit} className="w-full rounded-[1.35rem] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.10)] sm:p-10">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Account recovery</p>
         <h2 className="mt-2 text-3xl font-black text-slate-950">Reset your password</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">Enter your seller email. We will send a secure reset link if the account exists.</p>
-        <label className="mt-6 grid gap-2 text-sm font-bold text-slate-700">Email<input name="email" type="email" required autoComplete="username" className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600" placeholder="seller@example.com" /></label>
-        {error ? <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p> : null}
-        {message ? <p className="mt-4 rounded-md bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{message}</p> : null}
-        <button type="submit" disabled={loading} className="mt-6 w-full rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">
+        <label className="mt-6 grid gap-2 text-sm font-black text-[#0F172A]">Email<input name="email" type="email" required autoComplete="username" className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 font-normal outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10" placeholder="seller@example.com" /></label>
+        {error ? <p className="mt-5 rounded-2xl bg-rose-50 p-4 text-sm font-bold text-rose-700">{error}</p> : null}
+        {message ? <p className="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-800">{message}</p> : null}
+        <button type="submit" disabled={loading} className="mt-7 w-full rounded-2xl bg-[#16A34A] px-5 py-4 text-base font-black text-white shadow-[0_14px_30px_rgba(22,163,74,0.22)] transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none">
           {loading ? "Sending..." : "Send reset link"}
         </button>
         <Link href="/login" className="mt-5 block text-center text-sm font-bold text-emerald-700 hover:text-emerald-900">Back to login</Link>
@@ -689,19 +740,18 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <AuthShell>
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <Link href="/" className="text-xl font-black text-slate-950 lg:hidden">VENDORAQ</Link>
-        <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">New password</p>
+    <AuthShell mode="reset">
+      <form onSubmit={handleSubmit} className="w-full rounded-[1.35rem] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.10)] sm:p-10">
+        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">New password</p>
         <h2 className="mt-2 text-3xl font-black text-slate-950">Create a new password</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">Use a strong password with uppercase, lowercase, and a number.</p>
         <div className="mt-6 grid gap-4">
           <PasswordField name="password" label="New password" minLength={8} autoComplete="new-password" placeholder="8+ characters, uppercase, lowercase, number" />
           <PasswordField name="confirm_password" label="Confirm password" minLength={8} autoComplete="new-password" placeholder="Repeat new password" />
         </div>
-        {error ? <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{error}</p> : null}
-        {message ? <p className="mt-4 rounded-md bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{message}</p> : null}
-        <button type="submit" disabled={loading || Boolean(message)} className="mt-6 w-full rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400">
+        {error ? <p className="mt-5 rounded-2xl bg-rose-50 p-4 text-sm font-bold text-rose-700">{error}</p> : null}
+        {message ? <p className="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-800">{message}</p> : null}
+        <button type="submit" disabled={loading || Boolean(message)} className="mt-7 w-full rounded-2xl bg-[#16A34A] px-5 py-4 text-base font-black text-white shadow-[0_14px_30px_rgba(22,163,74,0.22)] transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400 disabled:shadow-none">
           {loading ? "Updating..." : "Update password"}
         </button>
         <Link href="/login" className="mt-5 block text-center text-sm font-bold text-emerald-700 hover:text-emerald-900">Back to login</Link>

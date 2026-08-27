@@ -30,7 +30,7 @@ export default function AccountPage() {
   const [productCount, setProductCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const [message, setMessage] = useState("");
-  const [siteOrigin, setSiteOrigin] = useState("");
+  const [siteOrigin] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
 
   const loadAccount = useCallback(async () => {
     const userId = user?.id;
@@ -56,7 +56,7 @@ export default function AccountPage() {
     const nextProfile = {
       owner_name: profileData?.owner_name || user.name,
       business_name: profileData?.business_name || user.business,
-      whatsapp_phone: profileData?.whatsapp_phone || "Not set",
+      whatsapp_phone: profileData?.whatsapp_phone || user.whatsapp || "Not set",
       city: profileData?.city || "Not set",
       store_slug: profileData?.store_slug || makeStoreSlug(user.business, userId),
     };
@@ -67,7 +67,7 @@ export default function AccountPage() {
           user_id: userId,
           owner_name: nextProfile.owner_name,
           business_name: nextProfile.business_name,
-          whatsapp_phone: "",
+          whatsapp_phone: user.whatsapp,
           city: "",
           store_slug: nextProfile.store_slug,
         },
@@ -84,7 +84,6 @@ export default function AccountPage() {
     const timer = window.setTimeout(() => {
       loadAccount();
     }, 0);
-    setSiteOrigin(window.location.origin);
     return () => window.clearTimeout(timer);
   }, [loadAccount]);
 

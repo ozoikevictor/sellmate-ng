@@ -64,7 +64,7 @@ function makeStoreSlug(businessName: string, userId: string) {
 export default function SettingsPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<SellerProfile>(emptyProfile);
-  const [siteOrigin, setSiteOrigin] = useState("");
+  const [siteOrigin] = useState(() => (typeof window === "undefined" ? "" : window.location.origin));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [connectingPayout, setConnectingPayout] = useState(false);
@@ -92,7 +92,7 @@ export default function SettingsPage() {
       setProfile({
         owner_name: data?.owner_name || user.name || "",
         business_name: data?.business_name || user.business || "",
-        whatsapp_phone: data?.whatsapp_phone || "",
+        whatsapp_phone: data?.whatsapp_phone || user.whatsapp || "",
         city: data?.city || "Lagos",
         store_slug: data?.store_slug || makeStoreSlug(data?.business_name || user.business || "store", userId),
         logo_url: data?.logo_url || "",
@@ -112,7 +112,6 @@ export default function SettingsPage() {
     const timer = window.setTimeout(() => {
       loadProfile();
     }, 0);
-    setSiteOrigin(window.location.origin);
     return () => window.clearTimeout(timer);
   }, [loadProfile]);
 

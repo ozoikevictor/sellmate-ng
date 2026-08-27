@@ -123,7 +123,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           user_id: user.id,
           owner_name: user.name,
           business_name: user.business,
-          whatsapp_phone: "",
+          whatsapp_phone: user.whatsapp,
           city: "",
           store_slug: fallbackSlug,
         },
@@ -132,7 +132,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       setStoreReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [user?.business, user?.id, user?.name]);
+  }, [user?.business, user?.id, user?.name, user?.whatsapp]);
 
   const sellerInitial = (user?.business || user?.name || "V").trim().charAt(0).toUpperCase();
 
