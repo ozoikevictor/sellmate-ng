@@ -99,6 +99,26 @@ export default function OrdersPage() {
       <SectionTitle eyebrow="Fulfilment" title="Orders" />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
 
+      <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="grid gap-5 bg-[linear-gradient(135deg,#F8FAFC_0%,#ECFDF5_62%,#FFF7ED_100%)] p-5 lg:grid-cols-[1fr_320px] lg:items-center lg:p-6">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Order control center</p>
+            <h2 className="mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">Track every customer order from payment to delivery.</h2>
+            <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
+              Use the status controls to confirm payment, prepare items, dispatch delivery, and keep the customer order record up to date.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-sm font-black text-slate-950">Today focus</p>
+            <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-600">
+              <div className="flex justify-between rounded-md bg-amber-50 px-3 py-2 text-amber-900"><span>Open orders</span><strong>{stats[0].value}</strong></div>
+              <div className="flex justify-between rounded-md bg-rose-50 px-3 py-2 text-rose-900"><span>Pending payment</span><strong>{stats[1].value}</strong></div>
+              <div className="flex justify-between rounded-md bg-emerald-50 px-3 py-2 text-emerald-900"><span>Paid revenue</span><strong>{stats[2].value}</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         {stats.map((stat) => <StatCard key={stat.label} {...stat} />)}
       </div>
@@ -116,12 +136,12 @@ export default function OrdersPage() {
         <div className="grid gap-4">
           {orders.map((order) => (
             <article key={order.id} className="sellmate-card overflow-hidden rounded-lg">
-              <div className="flex flex-col gap-4 border-b border-slate-100 bg-slate-50 p-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-4 border-b border-slate-100 bg-white p-5 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Order {order.id.slice(0, 8).toUpperCase()}</p>
                   <h2 className="mt-2 text-xl font-black text-slate-950">{order.customer_name}</h2>
-                  <p className="mt-1 text-sm font-semibold text-slate-600">{order.customer_phone} · {order.city}</p>
-                  <p className="mt-1 text-sm text-slate-500">{order.delivery_address}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-600">{order.customer_phone} - {order.city}</p>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">{order.delivery_address}</p>
                 </div>
                 <div className="grid gap-2 text-left lg:text-right">
                   <p className="text-2xl font-black text-slate-950">{formatNaira(order.total)}</p>
@@ -133,9 +153,12 @@ export default function OrdersPage() {
                 </div>
               </div>
 
-              <div className="grid gap-5 p-5 lg:grid-cols-[1fr_280px]">
+              <div className="grid gap-5 p-5 lg:grid-cols-[1fr_300px]">
                 <div>
-                  <h3 className="text-sm font-black text-slate-950">Items</h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-black text-slate-950">Items ordered</h3>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">{order.order_items?.length ?? 0} line(s)</span>
+                  </div>
                   <div className="mt-3 divide-y divide-slate-100 rounded-md border border-slate-100">
                     {(order.order_items ?? []).length === 0 ? (
                       <p className="p-4 text-sm font-semibold text-slate-500">No item details saved for this order.</p>
@@ -177,9 +200,10 @@ export default function OrdersPage() {
                       {paymentStatuses.map((status) => <option key={status}>{status}</option>)}
                     </select>
                   </label>
-                  <div className="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-600">
-                    <div className="flex justify-between"><span>Subtotal</span><strong>{formatNaira(order.subtotal)}</strong></div>
-                    <div className="mt-2 flex justify-between"><span>Delivery</span><strong>{formatNaira(order.delivery_fee)}</strong></div>
+                  <div className="mt-4 rounded-md bg-white p-3 text-sm text-slate-600 ring-1 ring-slate-200">
+                    <div className="flex justify-between"><span>Subtotal</span><strong className="text-slate-950">{formatNaira(order.subtotal)}</strong></div>
+                    <div className="mt-2 flex justify-between"><span>Delivery</span><strong className="text-slate-950">{formatNaira(order.delivery_fee)}</strong></div>
+                    <div className="mt-3 flex justify-between border-t border-slate-100 pt-3 text-base font-black text-slate-950"><span>Total</span><strong>{formatNaira(order.total)}</strong></div>
                   </div>
                 </div>
               </div>

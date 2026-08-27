@@ -190,6 +190,35 @@ export default function BillingPage() {
     <>
       <SectionTitle eyebrow="Subscription" title="Billing" />
 
+      <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="grid gap-5 bg-[linear-gradient(135deg,#0F172A_0%,#14532D_58%,#16A34A_100%)] p-5 text-white lg:grid-cols-[1fr_340px] lg:items-center lg:p-7">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-100">Seller subscription</p>
+            <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">{loading ? "Loading your billing account..." : `${selected.name} plan`}</h2>
+            <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-emerald-50">
+              Manage the product limit, renewal status, and Paystack subscription used to keep your vendor dashboard active.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2 text-xs font-black">
+              <span className="rounded-full bg-white/15 px-3 py-2 ring-1 ring-white/20">{billingStatus}</span>
+              <span className="rounded-full bg-white/15 px-3 py-2 ring-1 ring-white/20">{formatProductLimit(activeLimit)} products</span>
+              <span className="rounded-full bg-white/15 px-3 py-2 ring-1 ring-white/20">{billingStatus === "Active" && !businessExpired ? renewalText : trialText}</span>
+            </div>
+          </div>
+          <div className="rounded-lg border border-white/15 bg-white p-5 text-slate-950 shadow-xl">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Amount due</p>
+            <p className="mt-2 text-4xl font-black">{formatNaira(selected.price)}</p>
+            <p className="mt-2 text-sm font-semibold text-slate-500">{selected.name === "Business" ? "Monthly renewal" : selected.billing}</p>
+            <button
+              onClick={() => payForPlan(selected.name)}
+              disabled={payingPlan === selected.name || loading}
+              className="mt-5 w-full rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              {payingPlan === selected.name ? "Opening payment..." : "Pay current plan"}
+            </button>
+          </div>
+        </div>
+      </section>
+
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <StatCard label="Current plan" value={loading ? "Loading..." : billingStatus === "Active" && !businessExpired ? selected.name : "Free trial"} change={businessExpired ? "Expired" : billingStatus} tone="green" />
         <StatCard label="Plan price" value={formatNaira(selected.price)} change={selected.name === "Business" ? "Monthly" : selected.billing} tone={hasPaystackPublicKey ? "green" : "amber"} />
@@ -215,7 +244,7 @@ export default function BillingPage() {
         {productPlans.map((plan) => {
           const active = selectedPlan === plan.name;
           return (
-            <article key={plan.name} className={`sellmate-card rounded-lg p-5 ${active ? "border-slate-950 ring-2 ring-slate-950" : ""}`}>
+            <article key={plan.name} className={`sellmate-card rounded-lg p-5 transition hover:-translate-y-0.5 hover:shadow-xl ${active ? "border-emerald-600 ring-2 ring-emerald-100" : ""}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-black text-slate-950">{plan.name}</h2>
@@ -236,7 +265,7 @@ export default function BillingPage() {
                 onClick={() => choosePlan(plan.name)}
                 disabled={savingPlan === plan.name || loading}
                 className={`mt-6 w-full rounded-md px-5 py-3 text-sm font-black ${
-                  active ? "bg-slate-200 text-slate-700" : "bg-slate-950 text-white hover:bg-slate-800"
+                  active ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200" : "bg-slate-950 text-white hover:bg-slate-800"
                 }`}
               >
                 {savingPlan === plan.name ? "Saving..." : active ? "Current plan" : `Choose ${plan.name}`}
@@ -254,15 +283,19 @@ export default function BillingPage() {
       </div>
 
       <section className="sellmate-card mt-6 rounded-lg p-5">
-        <h2 className="text-xl font-black text-slate-950">How you get paid as the app owner</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <h2 className="text-xl font-black text-slate-950">Billing workflow</h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div className="rounded-lg bg-slate-50 p-4">
-            <p className="font-black text-slate-950">Seller subscription</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">The seller pays VENDORAQ monthly to use the dashboard, storefront, orders, inventory, and analytics.</p>
+            <p className="font-black text-slate-950">1. Select a plan</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Choose the product limit that matches the seller business size.</p>
           </div>
           <div className="rounded-lg bg-slate-50 p-4">
-            <p className="font-black text-slate-950">Customer checkout</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">The customer pays the seller for products. Later Paystack can support seller payouts or seller-owned payment accounts.</p>
+            <p className="font-black text-slate-950">2. Pay securely</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Paystack opens a protected checkout and returns here after payment.</p>
+          </div>
+          <div className="rounded-lg bg-slate-50 p-4">
+            <p className="font-black text-slate-950">3. Limit updates</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">After confirmation, the dashboard updates the seller active product limit.</p>
           </div>
         </div>
       </section>
