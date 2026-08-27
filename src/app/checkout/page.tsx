@@ -127,10 +127,18 @@ export default function CheckoutPage() {
       .eq("user_id", sellerId)
       .maybeSingle();
 
+    const activeStoreSlug = storeSlug || validatedItems[0]?.store_slug || "";
+    const activeStoreHref = activeStoreSlug ? `/store/${activeStoreSlug}` : storeHref;
+    const activeSellerName = sellerProfile?.business_name ?? sellerName ?? "the seller";
+    writeCurrentStoreHref(activeStoreHref);
+
     savePendingWhatsAppOrder({
       orderId: orderData.orderId,
-      sellerName: sellerProfile?.business_name ?? "the seller",
+      sellerName: activeSellerName,
+      sellerLogoUrl,
       sellerPhone: sellerProfile?.whatsapp_phone ?? "",
+      storeHref: activeStoreHref,
+      storeSlug: activeStoreSlug,
       customerName,
       customerPhone,
       city,
@@ -140,7 +148,7 @@ export default function CheckoutPage() {
     });
     saveCustomerOrder({
       orderId: orderData.orderId,
-      store_slug: storeSlug,
+      store_slug: activeStoreSlug,
       seller_id: sellerId,
       customer_name: customerName,
       customer_phone: customerPhone,
@@ -434,7 +442,10 @@ function isValidEmail(email: string) {
 function savePendingWhatsAppOrder({
   orderId,
   sellerName,
+  sellerLogoUrl,
   sellerPhone,
+  storeHref,
+  storeSlug,
   customerName,
   customerPhone,
   city,
@@ -444,7 +455,10 @@ function savePendingWhatsAppOrder({
 }: {
   orderId: string;
   sellerName: string;
+  sellerLogoUrl: string;
   sellerPhone: string;
+  storeHref: string;
+  storeSlug: string;
   customerName: string;
   customerPhone: string;
   city: string;
@@ -486,7 +500,12 @@ function savePendingWhatsAppOrder({
   window.localStorage.setItem(
     "sellmate_pending_whatsapp",
     JSON.stringify({
+      orderId,
+      sellerName,
+      sellerLogoUrl,
       sellerPhone,
+      storeHref,
+      storeSlug,
       text,
     }),
   );

@@ -5,7 +5,17 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
 import { StoreHeader } from "@/components/ui";
-import { clearCart, readCurrentStoreHref, updateCustomerOrder } from "@/lib/cart";
+import { clearCart, readCurrentStoreHref, updateCustomerOrder, writeCurrentStoreHref } from "@/lib/cart";
+
+type PendingWhatsAppOrder = {
+  orderId?: string;
+  sellerName?: string;
+  sellerLogoUrl?: string;
+  sellerPhone?: string;
+  storeHref?: string;
+  storeSlug?: string;
+  text?: string;
+};
 
 function PaymentCallbackContent() {
   const params = useSearchParams();
@@ -15,13 +25,22 @@ function PaymentCallbackContent() {
   const [message, setMessage] = useState("Confirming your payment...");
   const [whatsappUrl, setWhatsappUrl] = useState("");
   const [storeHref, setStoreHref] = useState("/");
+  const [sellerName, setSellerName] = useState("Store");
+  const [sellerLogoUrl, setSellerLogoUrl] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
 
   useEffect(() => {
     async function verifyPayment() {
-      setStoreHref(readCurrentStoreHref());
+      const pendingOrder = readPendingWhatsAppOrder();
+      const nextStoreHref = getSafeStoreHref(pendingOrder?.storeHref || readCurrentStoreHref());
+      setStoreHref(nextStoreHref);
+      setSellerName(pendingOrder?.sellerName || "Store");
+      setSellerLogoUrl(pendingOrder?.sellerLogoUrl || "");
+      if (nextStoreHref !== "/") {
+        writeCurrentStoreHref(nextStoreHref);
+      }
 
       if (!reference || !order) {
         setStatus("error");
@@ -41,7 +60,7 @@ function PaymentCallbackContent() {
       updateCustomerOrder(order, { payment_status: "Paid", status: "Paid" });
       setStatus("success");
       setMessage("Payment received. Your order has been sent to the seller.");
-      const nextWhatsappUrl = buildPendingWhatsAppUrl();
+      const nextWhatsappUrl = buildPendingWhatsAppUrl(pendingOrder);
       if (nextWhatsappUrl) {
         setWhatsappUrl(nextWhatsappUrl);
       }
@@ -53,7 +72,8 @@ function PaymentCallbackContent() {
   return (
     <main className="min-h-screen bg-slate-100 pt-[176px] sm:pt-[128px]">
       <StoreHeader
-        sellerName="Store"
+        sellerName={sellerName}
+        sellerLogoUrl={sellerLogoUrl}
         storeHref={storeHref}
         cartHref={cartHref}
         cartCount={0}
@@ -89,30 +109,41 @@ function PaymentCallbackContent() {
         ) : null}
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href={storeHref} className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Continue shopping</Link>
-          <Link href="/" className="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700">Home</Link>
+          <Link href={storeHref} className="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700">Store home</Link>
         </div>
       </section>
     </main>
   );
 }
 
-function buildPendingWhatsAppUrl() {
+function readPendingWhatsAppOrder() {
   const raw = window.localStorage.getItem("sellmate_pending_whatsapp");
   if (!raw) {
-    return "";
+    return null;
   }
 
   try {
-    const data = JSON.parse(raw) as { sellerPhone?: string; text?: string };
-    const phone = normalizeWhatsAppPhone(data.sellerPhone ?? "");
-    if (!phone || !data.text) {
-      return "";
-    }
-    window.localStorage.removeItem("sellmate_pending_whatsapp");
-    return `https://wa.me/${phone}?text=${encodeURIComponent(data.text)}`;
+    return JSON.parse(raw) as PendingWhatsAppOrder;
   } catch {
+    return null;
+  }
+}
+
+function buildPendingWhatsAppUrl(pendingOrder: PendingWhatsAppOrder | null) {
+  if (!pendingOrder) {
     return "";
   }
+
+  const phone = normalizeWhatsAppPhone(pendingOrder.sellerPhone ?? "");
+  if (!phone || !pendingOrder.text) {
+    return "";
+  }
+  window.localStorage.removeItem("sellmate_pending_whatsapp");
+  return `https://wa.me/${phone}?text=${encodeURIComponent(pendingOrder.text)}`;
+}
+
+function getSafeStoreHref(href: string) {
+  return href.startsWith("/store/") ? href : "/";
 }
 
 function normalizeWhatsAppPhone(phone: string) {
