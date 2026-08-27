@@ -21,12 +21,13 @@ function PaymentCallbackContent() {
   const params = useSearchParams();
   const reference = params.get("reference");
   const order = params.get("order");
+  const initialStore = getInitialStoreContext();
   const [status, setStatus] = useState<"checking" | "success" | "error">("checking");
   const [message, setMessage] = useState("Confirming your payment...");
   const [whatsappUrl, setWhatsappUrl] = useState("");
-  const [storeHref, setStoreHref] = useState("/");
-  const [sellerName, setSellerName] = useState("Store");
-  const [sellerLogoUrl, setSellerLogoUrl] = useState("");
+  const [storeHref, setStoreHref] = useState(initialStore.storeHref);
+  const [sellerName, setSellerName] = useState(initialStore.sellerName);
+  const [sellerLogoUrl, setSellerLogoUrl] = useState(initialStore.sellerLogoUrl);
   const [searchTerm, setSearchTerm] = useState("");
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
@@ -117,6 +118,10 @@ function PaymentCallbackContent() {
 }
 
 function readPendingWhatsAppOrder() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
   const raw = window.localStorage.getItem("sellmate_pending_whatsapp");
   if (!raw) {
     return null;
@@ -127,6 +132,23 @@ function readPendingWhatsAppOrder() {
   } catch {
     return null;
   }
+}
+
+function getInitialStoreContext() {
+  if (typeof window === "undefined") {
+    return {
+      storeHref: "/",
+      sellerName: "Store",
+      sellerLogoUrl: "",
+    };
+  }
+
+  const pendingOrder = readPendingWhatsAppOrder();
+  return {
+    storeHref: getSafeStoreHref(pendingOrder?.storeHref || readCurrentStoreHref()),
+    sellerName: pendingOrder?.sellerName || "Store",
+    sellerLogoUrl: pendingOrder?.sellerLogoUrl || "",
+  };
 }
 
 function buildPendingWhatsAppUrl(pendingOrder: PendingWhatsAppOrder | null) {

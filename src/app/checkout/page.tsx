@@ -123,19 +123,20 @@ export default function CheckoutPage() {
 
     const { data: sellerProfile } = await supabase
       .from("seller_profiles")
-      .select("business_name,whatsapp_phone")
+      .select("business_name,logo_text,logo_url,whatsapp_phone")
       .eq("user_id", sellerId)
       .maybeSingle();
 
     const activeStoreSlug = storeSlug || validatedItems[0]?.store_slug || "";
     const activeStoreHref = activeStoreSlug ? `/store/${activeStoreSlug}` : storeHref;
-    const activeSellerName = sellerProfile?.business_name ?? sellerName ?? "the seller";
+    const activeSellerName = sellerProfile?.logo_text || sellerName || sellerProfile?.business_name || "the seller";
+    const activeSellerLogoUrl = sellerProfile?.logo_url || sellerLogoUrl;
     writeCurrentStoreHref(activeStoreHref);
 
     savePendingWhatsAppOrder({
       orderId: orderData.orderId,
       sellerName: activeSellerName,
-      sellerLogoUrl,
+      sellerLogoUrl: activeSellerLogoUrl,
       sellerPhone: sellerProfile?.whatsapp_phone ?? "",
       storeHref: activeStoreHref,
       storeSlug: activeStoreSlug,
