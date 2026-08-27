@@ -286,13 +286,13 @@ export default function DynamicStorefrontPage() {
       />
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-5 lg:py-8">
-          <div className="grid min-h-[210px] overflow-hidden rounded-lg border border-slate-200 bg-[#F7F9FC] px-5 py-6 shadow-sm sm:min-h-[280px] sm:px-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:py-8">
-            <div className="relative z-10 max-w-2xl">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Welcome to {brandName}</p>
-              <h1 className="mt-3 text-[2rem] font-black leading-tight text-[#0F172A] sm:text-5xl">Great products from a trusted seller</h1>
-              <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-[#64748B] sm:text-base">Discover quality items across different categories at great prices.</p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <a href="#products" className="rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">Shop Now</a>
+          <div className="grid min-h-[160px] grid-cols-[minmax(0,1fr)_42%] items-center gap-3 overflow-hidden rounded-lg border border-slate-200 bg-[#F7F9FC] px-4 py-4 shadow-sm sm:min-h-[250px] sm:gap-6 sm:px-8 sm:py-7 lg:grid-cols-[1fr_0.85fr] lg:py-8">
+            <div className="relative z-10 min-w-0 max-w-2xl">
+              <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">Welcome to {brandName}</p>
+              <h1 className="mt-2 text-[1.45rem] font-black leading-tight text-[#0F172A] sm:mt-3 sm:text-5xl">Great products from a trusted seller</h1>
+              <p className="mt-2 line-clamp-2 max-w-xl text-xs font-semibold leading-5 text-[#64748B] sm:mt-3 sm:text-base sm:leading-6">Discover quality items across different categories at great prices.</p>
+              <div className="mt-3 flex flex-wrap gap-2 sm:mt-5 sm:gap-3">
+                <a href="#products" className="rounded-md bg-[#16A34A] px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:px-5 sm:py-3 sm:text-sm">Shop Now</a>
                 <Link href={`${storeHomeHref}/products`} className="hidden rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:border-emerald-300 hover:text-emerald-700 sm:inline-flex">View Products</Link>
               </div>
             </div>
@@ -374,7 +374,7 @@ export default function DynamicStorefrontPage() {
 function HeroCollage({ products, activeIndex }: { products: StoreProduct[]; activeIndex: number }) {
   if (products.length === 0) {
     return (
-      <div className="relative mt-5 hidden min-h-[190px] rounded-lg border border-slate-200 bg-white sm:block lg:mt-0">
+      <div className="relative min-h-[120px] rounded-lg border border-slate-200 bg-white sm:min-h-[190px]">
         <div className="absolute inset-6 rounded-lg bg-[#F0FDF4]" />
         <div className="absolute left-8 top-8 h-24 w-24 rounded-lg border border-slate-200 bg-white shadow-sm" />
         <div className="absolute bottom-8 right-8 h-32 w-32 rounded-lg border border-slate-200 bg-white shadow-sm" />
@@ -384,15 +384,15 @@ function HeroCollage({ products, activeIndex }: { products: StoreProduct[]; acti
 
   const orderedProducts = products.map((_, index) => products[(activeIndex + index) % products.length]).slice(0, 5);
   const slots = [
-    "left-[6%] top-[18%] h-24 w-24 sm:h-32 sm:w-32",
-    "left-[34%] top-[6%] h-32 w-32 sm:h-44 sm:w-44",
-    "right-[4%] top-[24%] h-24 w-24 sm:h-36 sm:w-36",
+    "left-[2%] top-[20%] h-14 w-14 sm:left-[6%] sm:top-[18%] sm:h-32 sm:w-32",
+    "left-[28%] top-[8%] h-20 w-20 sm:left-[34%] sm:top-[6%] sm:h-44 sm:w-44",
+    "right-[2%] top-[28%] h-14 w-14 sm:right-[4%] sm:top-[24%] sm:h-36 sm:w-36",
     "bottom-[8%] left-[18%] hidden h-24 w-28 sm:block",
     "bottom-[10%] right-[18%] hidden h-20 w-28 lg:block",
   ];
 
   return (
-    <div className="relative mt-5 min-h-[170px] sm:min-h-[230px] lg:mt-0">
+    <div className="relative min-h-[120px] sm:min-h-[230px]">
       <div className="absolute inset-0 rounded-lg bg-white/75" />
       {orderedProducts.map((product, index) => (
         <div key={product.id} className={`absolute ${slots[index]} overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-lg`}>
