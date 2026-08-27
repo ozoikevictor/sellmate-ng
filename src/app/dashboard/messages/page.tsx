@@ -14,6 +14,8 @@ type CustomerMessage = {
   customer_phone: string;
   message: string;
   status: "New" | "Read" | "Replied";
+  seller_reply?: string | null;
+  replied_at?: string | null;
   created_at: string;
 };
 
@@ -27,6 +29,7 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState("");
   const [notice, setNotice] = useState("");
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   const loadMessages = useCallback(async () => {
     if (!user?.id) {
@@ -71,6 +74,7 @@ export default function MessagesPage() {
   const selectedMessage = messages.find((message) => message.id === selectedId) ?? filteredMessages[0] ?? messages[0];
   const newMessages = messages.filter((message) => message.status === "New").length;
   const repliedMessages = messages.filter((message) => message.status === "Replied").length;
+  const replyText = selectedMessage ? (replyDrafts[selectedMessage.id] ?? selectedMessage.seller_reply ?? "") : "";
 
   async function updateStatus(messageId: string, status: CustomerMessage["status"]) {
     setSavingId(messageId);
@@ -98,6 +102,46 @@ export default function MessagesPage() {
     }
 
     setMessages((current) => current.map((message) => (message.id === messageId ? { ...message, status } : message)));
+    setSavingId("");
+  }
+
+  async function sendReply(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedMessage) return;
+    const reply = replyText.trim();
+    if (!reply) {
+      setNotice("Write a reply before sending.");
+      return;
+    }
+
+    setSavingId(selectedMessage.id);
+    setNotice("");
+    const token = await getAccessToken();
+    if (!token) {
+      setNotice("Log in again before replying.");
+      setSavingId("");
+      return;
+    }
+
+    const response = await fetch("/api/customer-messages", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ id: selectedMessage.id, status: "Replied", sellerReply: reply }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      setNotice(data.message ?? "Could not send this reply.");
+      setSavingId("");
+      return;
+    }
+
+    const repliedAt = new Date().toISOString();
+    setMessages((current) => current.map((message) => (message.id === selectedMessage.id ? { ...message, status: "Replied", seller_reply: reply, replied_at: repliedAt } : message)));
+    setReplyDrafts((current) => ({ ...current, [selectedMessage.id]: reply }));
+    setNotice("Reply saved. The customer will see it in their store notification.");
     setSavingId("");
   }
 
@@ -204,6 +248,24 @@ export default function MessagesPage() {
                 <p className="text-sm font-black text-slate-950">Message</p>
                 <p className="mt-3 whitespace-pre-wrap text-sm font-semibold leading-7 text-slate-600">{selectedMessage.message}</p>
               </div>
+
+              <form onSubmit={sendReply} className="mt-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+                <label className="grid gap-2 text-sm font-black text-slate-950">
+                  Reply for customer notification
+                  <textarea
+                    value={replyText}
+                    onChange={(event) => setReplyDrafts((current) => ({ ...current, [selectedMessage.id]: event.target.value }))}
+                    maxLength={800}
+                    rows={4}
+                    placeholder={`Hello ${selectedMessage.customer_name}, this product is available.`}
+                    className="resize-none rounded-md border border-emerald-200 bg-white px-3 py-3 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600"
+                  />
+                </label>
+                {selectedMessage.seller_reply ? <p className="mt-2 text-xs font-bold text-emerald-800">Last reply saved{selectedMessage.replied_at ? ` ${new Date(selectedMessage.replied_at).toLocaleString()}` : ""}.</p> : null}
+                <button disabled={savingId === selectedMessage.id} className="mt-3 rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400">
+                  {savingId === selectedMessage.id ? "Saving..." : "Send reply"}
+                </button>
+              </form>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 {statuses.map((status) => (

@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/server-security";
 type MessagePatch = {
   id?: string;
   status?: string;
+  sellerReply?: string;
 };
 
 function getSupabaseAdmin() {
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Customer messages are not configured yet." }, { status: 500 });
   }
 
-  const { error } = await supabase.from("customer_messages").insert({
+  const { data, error } = await supabase.from("customer_messages").insert({
     seller_id: sellerId,
     store_slug: storeSlug,
     product_id: productId,
@@ -91,19 +92,46 @@ export async function POST(request: Request) {
     customer_phone: customerPhone,
     message,
     status: "New",
-  });
+  }).select("id").single();
 
   if (error) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, id: data?.id ?? "" });
 }
 
 export async function GET(request: Request) {
   const limited = rateLimit(request, "customer-message-list", 30);
   if (limited) {
     return limited;
+  }
+
+  const url = new URL(request.url);
+  const publicIds = url.searchParams.get("ids")?.split(",").map((id) => id.trim()).filter(Boolean).slice(0, 20) ?? [];
+  const publicStoreSlug = url.searchParams.get("store")?.trim() ?? "";
+
+  if (publicIds.length > 0 && publicStoreSlug) {
+    let supabase: ReturnType<typeof getSupabaseAdmin>;
+    try {
+      supabase = getSupabaseAdmin();
+    } catch {
+      return NextResponse.json({ message: "Customer messages are not configured yet." }, { status: 500 });
+    }
+
+    const { data, error } = await supabase
+      .from("customer_messages")
+      .select("id,store_slug,product_name,message,status,seller_reply,replied_at,created_at")
+      .eq("store_slug", publicStoreSlug)
+      .in("id", publicIds)
+      .not("seller_reply", "is", null)
+      .order("replied_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ messages: data ?? [] });
   }
 
   const auth = await getAuthenticatedSeller(request);
@@ -120,7 +148,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await supabase
     .from("customer_messages")
-    .select("id,store_slug,product_id,product_name,customer_name,customer_phone,message,status,created_at")
+    .select("id,store_slug,product_id,product_name,customer_name,customer_phone,message,status,seller_reply,replied_at,created_at")
     .eq("seller_id", auth.userId)
     .order("created_at", { ascending: false });
 
@@ -151,8 +179,13 @@ export async function PATCH(request: Request) {
 
   const id = String(body.id ?? "").trim();
   const status = String(body.status ?? "").trim();
+  const sellerReply = String(body.sellerReply ?? "").trim();
   if (!id || !["New", "Read", "Replied"].includes(status)) {
     return NextResponse.json({ message: "Choose a valid message status." }, { status: 400 });
+  }
+
+  if (sellerReply.length > 800) {
+    return NextResponse.json({ message: "Please keep your reply under 800 characters." }, { status: 400 });
   }
 
   let supabase: ReturnType<typeof getSupabaseAdmin>;
@@ -162,9 +195,16 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Customer messages are not configured yet." }, { status: 500 });
   }
 
+  const updatePayload: { status: string; seller_reply?: string; replied_at?: string | null } = { status };
+  if (sellerReply) {
+    updatePayload.seller_reply = sellerReply;
+    updatePayload.replied_at = new Date().toISOString();
+    updatePayload.status = "Replied";
+  }
+
   const { error } = await supabase
     .from("customer_messages")
-    .update({ status })
+    .update(updatePayload)
     .eq("id", id)
     .eq("seller_id", auth.userId);
 
@@ -172,5 +212,5 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: error.message }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true, status });
+  return NextResponse.json({ ok: true, status: updatePayload.status });
 }

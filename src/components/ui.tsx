@@ -524,15 +524,19 @@ export function StoreHeader({
 }) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [replyMessages, setReplyMessages] = useState<Array<{ id: string; product_name: string; seller_reply: string; replied_at?: string | null }>>([]);
+  const [isRepliesOpen, setIsRepliesOpen] = useState(false);
   const productPageHref = `${storeHref}/products`;
   const categoriesHref = `${storeHref}/categories`;
   const wishlistHref = `${storeHref}/wishlist`;
   const ordersHref = `${storeHref}/orders`;
   const supportHref = `${storeHref}/support`;
-  const drawerLinks: Array<{ label: string; href?: string; icon: "home" | "search" | "menu" | "heart" | "cart" | "user"; disabled?: boolean }> = [
+  const chatHref = `${storeHref}/chat`;
+  const drawerLinks: Array<{ label: string; href?: string; icon: "home" | "search" | "menu" | "heart" | "cart" | "user" | "messages"; disabled?: boolean }> = [
     { label: "Home", href: storeHref, icon: "home" },
     { label: "All Products", href: productPageHref, icon: "search" },
     { label: "Categories", href: categoriesHref, icon: "menu" },
+    { label: "Chat Seller", href: chatHref, icon: "messages" },
     { label: "Wishlist", href: wishlistHref, icon: "heart" },
     { label: "My Cart", href: cartHref, icon: "cart" },
     { label: "My Orders", href: ordersHref, icon: "user" },
@@ -573,6 +577,33 @@ export function StoreHeader({
       window.removeEventListener("touchmove", closeMenu);
     };
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    const storeSlug = storeHref.split("/store/")[1]?.split(/[?#/]/)[0];
+    if (!storeSlug) return;
+
+    async function loadCustomerReplies() {
+      const savedIds = readCustomerMessageIds(storeSlug);
+      if (savedIds.length === 0) {
+        setReplyMessages([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/customer-messages?store=${encodeURIComponent(storeSlug)}&ids=${encodeURIComponent(savedIds.join(","))}`);
+        const data = await response.json();
+        if (response.ok) {
+          setReplyMessages((data.messages ?? []).filter((message: { seller_reply?: string | null }) => message.seller_reply));
+        }
+      } catch {
+        setReplyMessages([]);
+      }
+    }
+
+    loadCustomerReplies();
+    window.addEventListener("sellmate-customer-messages-updated", loadCustomerReplies);
+    return () => window.removeEventListener("sellmate-customer-messages-updated", loadCustomerReplies);
+  }, [storeHref]);
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -623,6 +654,14 @@ export function StoreHeader({
             <IconGlyph name="heart" className="h-4 w-4" />
             Wishlist
           </Link>
+          <button type="button" onClick={() => setIsRepliesOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]" aria-label="View seller replies">
+            <IconGlyph name="messages" className="h-5 w-5" />
+            {replyMessages.length > 0 ? (
+              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#16A34A] px-1 text-[10px] font-black text-white">
+                {replyMessages.length}
+              </span>
+            ) : null}
+          </button>
           <CartIconLink href={cartHref} count={cartCount} />
           <Link href="/login" className="hidden h-10 items-center gap-2 rounded-full px-3 text-sm font-black text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] lg:inline-flex">
             <IconGlyph name="user" className="h-4 w-4" />
@@ -729,8 +768,61 @@ export function StoreHeader({
           </aside>
         </div>
       ) : null}
+      {isRepliesOpen ? (
+        <div className="fixed inset-0 z-[1000] grid place-items-end bg-slate-950/35 p-0 sm:place-items-center sm:p-4">
+          <button type="button" className="absolute inset-0" aria-label="Close seller replies" onClick={() => setIsRepliesOpen(false)} />
+          <section className="relative max-h-[88dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Seller replies</p>
+                <h2 className="mt-1 text-xl font-black text-slate-950">Your messages</h2>
+              </div>
+              <button type="button" onClick={() => setIsRepliesOpen(false)} aria-label="Close seller replies" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700">
+                <IconGlyph name="x" className="h-5 w-5" />
+              </button>
+            </div>
+            {replyMessages.length === 0 ? (
+              <p className="py-8 text-sm font-semibold leading-6 text-slate-500">No seller replies yet. When a seller replies to your product question, it will show here.</p>
+            ) : (
+              <div className="grid gap-3 py-4">
+                {replyMessages.map((message) => (
+                  <article key={message.id} className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">{message.seller_reply}</p>
+                    {message.replied_at ? <p className="mt-3 text-xs font-bold text-slate-500">{new Date(message.replied_at).toLocaleString()}</p> : null}
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      ) : null}
     </header>
   );
+}
+
+const CUSTOMER_MESSAGE_KEY = "sellmate-ng-customer-messages";
+
+function readCustomerMessageIds(storeSlug: string) {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_MESSAGE_KEY) || "{}") as Record<string, string[]>;
+    return Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomerMessageId(storeSlug: string, messageId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_MESSAGE_KEY) || "{}") as Record<string, string[]>;
+    const current = Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
+    parsed[storeSlug] = [messageId, ...current.filter((id) => id !== messageId)].slice(0, 20);
+    window.localStorage.setItem(CUSTOMER_MESSAGE_KEY, JSON.stringify(parsed));
+  } catch {
+    window.localStorage.setItem(CUSTOMER_MESSAGE_KEY, JSON.stringify({ [storeSlug]: [messageId] }));
+  }
 }
 
 export function CheckoutHeader({
@@ -807,6 +899,14 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   const [messageStatus, setMessageStatus] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   async function sendSellerMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSendingMessage(true);
@@ -834,29 +934,40 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
       return;
     }
 
+    if (data.id && storeSlug) {
+      saveCustomerMessageId(storeSlug, data.id);
+      window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
+    }
+
     event.currentTarget.reset();
     setMessageStatus("Message sent. The seller will see it in their dashboard.");
     setSendingMessage(false);
   }
 
   return (
-    <div className="fixed inset-0 z-[1100] grid place-items-end bg-slate-950/55 px-0 pt-10 backdrop-blur-sm sm:place-items-center sm:px-4 sm:py-6">
+    <div className="fixed inset-0 z-[1100] bg-white">
       <button type="button" className="absolute inset-0 h-full w-full" aria-label="Close product details" onClick={onClose} />
-      <section className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:max-w-4xl sm:rounded-2xl">
-        <div className="grid items-start gap-0 md:grid-cols-[minmax(0,1fr)_minmax(20rem,0.9fr)]">
-          <div className="relative min-w-0 bg-slate-100">
-            <div className="aspect-square w-full bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center md:min-h-0" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
+      <section className="relative h-[100dvh] w-full overflow-y-auto bg-white">
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6 lg:px-10">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Product details</p>
+            <p className="truncate text-sm font-black text-slate-950 sm:text-base">{product.name}</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close product details" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100">
+            <IconGlyph name="x" className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="mx-auto grid w-full max-w-7xl items-start gap-0 lg:min-h-[calc(100dvh-4.5rem)] lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
+          <div className="relative min-w-0 bg-slate-100 lg:sticky lg:top-[4.5rem] lg:min-h-[calc(100dvh-4.5rem)]">
+            <div className="aspect-[4/3] w-full bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-contain bg-center bg-no-repeat sm:aspect-[16/10] lg:h-[calc(100dvh-4.5rem)] lg:aspect-auto" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
             <span className="absolute left-4 top-4 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#166534]">{product.category}</span>
           </div>
-          <div className="flex min-w-0 flex-col p-5 sm:p-6">
+          <div className="flex min-w-0 flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-10">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Product details</p>
                 <h2 className="mt-2 break-words text-2xl font-black leading-tight text-slate-950 sm:text-4xl">{product.name}</h2>
               </div>
-              <button type="button" onClick={onClose} aria-label="Close product details" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100">
-                <IconGlyph name="x" className="h-5 w-5" />
-              </button>
             </div>
             <p className="mt-5 text-3xl font-black text-[#16A34A]">{formatNaira(product.price)}</p>
             <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-600">
@@ -886,10 +997,16 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
                 onClick={() => setMessageOpen((open) => !open)}
                 className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-100"
               >
-                <IconGlyph name="messages" className="h-4 w-4" />
-                Message seller
-              </button>
-            </div>
+            <IconGlyph name="messages" className="h-4 w-4" />
+            Message seller
+          </button>
+          {storeSlug ? (
+            <Link href={`/store/${storeSlug}/chat?product=${encodeURIComponent(product.id)}`} onClick={onClose} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
+              <IconGlyph name="messages" className="h-4 w-4" />
+              Open full chat
+            </Link>
+          ) : null}
+        </div>
             {messageOpen ? (
               <form onSubmit={sendSellerMessage} className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <p className="text-sm font-black text-slate-950">Ask about this product</p>
