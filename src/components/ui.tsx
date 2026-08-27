@@ -644,7 +644,7 @@ export function StoreHeader({
             aria-label="Close store menu"
             onClick={() => setIsMenuOpen(false)}
           />
-          <aside className="vendoraq-mobile-drawer relative z-[1001] flex h-[100dvh] w-[min(86vw,20rem)] flex-col overflow-y-auto border-r border-[#E5E7EB] bg-white shadow-xl">
+          <aside className="vendoraq-mobile-drawer relative z-[1001] ml-auto flex h-[100dvh] w-[min(86vw,20rem)] flex-col overflow-y-auto border-l border-[#E5E7EB] bg-white shadow-xl">
             <div className="flex items-center justify-between gap-3 border-b border-[#E5E7EB] px-4 py-4">
               <Link href={storeHref} onClick={() => setIsMenuOpen(false)} className="flex min-w-0 items-center gap-3">
                 <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
@@ -700,7 +700,7 @@ export function StoreHeader({
                   Vendor Login
                 </Link>
               </div>
-              <p className="text-xs font-bold leading-5 text-slate-500">
+              <p className="rounded-lg border border-emerald-100 bg-[#F0FDF4] p-3 text-xs font-bold leading-5 text-slate-600">
                 {whatsappPhone ? `Need help? Contact this store on WhatsApp: ${whatsappPhone}` : "Browse products, add to cart, and checkout inside this store."}
               </p>
             </div>
