@@ -364,6 +364,8 @@ export default function DynamicStorefrontPage() {
           onClose={() => setSelectedProduct(null)}
           onAddToCart={handleAddToCart}
           onToggleFavorite={toggleFavorite}
+          storeSlug={activeStoreSlug}
+          sellerName={brandName}
         />
       ) : null}
       <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={storeHomeHref} />

@@ -94,6 +94,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     { key: "overview", label: "Overview", href: "/dashboard", icon: "dashboard" },
     { key: "products", label: "Products", href: "/dashboard/products", icon: "products" },
     { key: "orders", label: "Orders", href: "/dashboard/orders", icon: "orders" },
+    { key: "messages", label: "Messages", href: "/dashboard/messages", icon: "messages" },
     { key: "customers", label: "Customers", href: "/dashboard/customers", icon: "customers" },
     { key: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
     { key: "billing", label: "Billing & Payments", href: "/dashboard/billing", icon: "billing" },
@@ -290,6 +291,13 @@ export function MenuIcon({ name }: { name: string }) {
         <path d="M9 8c0 2 1.3 3 3 3s3-1 3-3" />
       </svg>
     ),
+    messages: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={common} aria-hidden="true">
+        <path d="M21 12a7 7 0 0 1-7 7H8l-5 3 1.6-4.8A7 7 0 1 1 21 12Z" />
+        <path d="M8 11h8" />
+        <path d="M8 14h5" />
+      </svg>
+    ),
     customers: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={common} aria-hidden="true">
         <circle cx="9" cy="8" r="3" />
@@ -387,7 +395,7 @@ export function SellerLogo({
 }
 
 
-export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock" | "x"; className?: string }) {
+export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "heart" | "cart" | "user" | "home" | "menu" | "lock" | "x" | "messages"; className?: string }) {
   const common = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   const icons: Record<string, ReactNode> = {
     search: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>,
@@ -398,6 +406,7 @@ export function IconGlyph({ name, className = "h-5 w-5" }: { name: "search" | "h
     menu: <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>,
     lock: <><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></>,
     x: <><path d="M18 6 6 18" /><path d="m6 6 12 12" /></>,
+    messages: <><path d="M21 12a7 7 0 0 1-7 7H8l-5 3 1.6-4.8A7 7 0 1 1 21 12Z" /><path d="M8 11h8" /><path d="M8 14h5" /></>,
   };
 
   return (
@@ -767,6 +776,7 @@ export function CheckoutHeader({
 
 export type CustomerProductDetails = {
   id: string;
+  user_id?: string;
   name: string;
   sku?: string | null;
   category: string;
@@ -782,13 +792,53 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   onClose,
   onAddToCart,
   onToggleFavorite,
+  storeSlug,
+  sellerName,
 }: {
   product: TProduct;
   isFavorite: boolean;
   onClose: () => void;
   onAddToCart: (product: TProduct) => void;
   onToggleFavorite: (product: TProduct) => void;
+  storeSlug?: string;
+  sellerName?: string;
 }) {
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [messageStatus, setMessageStatus] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+
+  async function sendSellerMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSendingMessage(true);
+    setMessageStatus("");
+
+    const formData = new FormData(event.currentTarget);
+    const response = await fetch("/api/customer-messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sellerId: product.user_id,
+        storeSlug,
+        productId: product.id,
+        productName: product.name,
+        customerName: String(formData.get("customer_name") ?? "").trim(),
+        customerPhone: String(formData.get("customer_phone") ?? "").trim(),
+        message: String(formData.get("message") ?? "").trim(),
+      }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      setMessageStatus(data.message ?? "Could not send message. Please try again.");
+      setSendingMessage(false);
+      return;
+    }
+
+    event.currentTarget.reset();
+    setMessageStatus("Message sent. The seller will see it in their dashboard.");
+    setSendingMessage(false);
+  }
+
   return (
     <div className="fixed inset-0 z-[1100] grid place-items-end bg-slate-950/55 px-0 pt-10 backdrop-blur-sm sm:place-items-center sm:px-4 sm:py-6">
       <button type="button" className="absolute inset-0 h-full w-full" aria-label="Close product details" onClick={onClose} />
@@ -830,6 +880,40 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
                 {isFavorite ? "Saved" : "Save"}
               </button>
             </div>
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setMessageOpen((open) => !open)}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-100"
+              >
+                <IconGlyph name="messages" className="h-4 w-4" />
+                Message seller
+              </button>
+            </div>
+            {messageOpen ? (
+              <form onSubmit={sendSellerMessage} className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-black text-slate-950">Ask about this product</p>
+                <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Your message goes to {sellerName || "the seller"} dashboard.</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-1 text-xs font-bold text-slate-600">
+                    Your name
+                    <input name="customer_name" required placeholder="Your name" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600" />
+                  </label>
+                  <label className="grid gap-1 text-xs font-bold text-slate-600">
+                    Phone number
+                    <input name="customer_phone" required placeholder="0803 123 4567" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600" />
+                  </label>
+                  <label className="grid gap-1 text-xs font-bold text-slate-600 sm:col-span-2">
+                    Message
+                    <textarea name="message" required maxLength={500} rows={4} placeholder="Is this available? Can you deliver today?" className="resize-none rounded-md border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600" />
+                  </label>
+                </div>
+                {messageStatus ? <p className="mt-3 rounded-md bg-white p-3 text-xs font-bold text-slate-600">{messageStatus}</p> : null}
+                <button disabled={sendingMessage || !product.user_id || !storeSlug} className="mt-4 w-full rounded-md bg-[#16A34A] px-4 py-3 text-sm font-black text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400">
+                  {sendingMessage ? "Sending..." : "Send message"}
+                </button>
+              </form>
+            ) : null}
           </div>
         </div>
       </section>

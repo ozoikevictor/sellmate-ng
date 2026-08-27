@@ -343,6 +343,8 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
           onClose={() => setSelectedProduct(null)}
           onAddToCart={handleAddToCart}
           onToggleFavorite={toggleFavorite}
+          storeSlug={activeStoreSlug}
+          sellerName={sellerName}
         />
       ) : null}
       <PublicFooter sellerName={sellerName} sellerLogoUrl={profile?.logo_url} storeHref={storeHref} />
