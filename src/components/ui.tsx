@@ -101,6 +101,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     { key: "delivery", label: "Delivery / Tracking", href: "/dashboard/settings", icon: "delivery" },
     { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
   ];
+  const activeLink = links.find((link) => (link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href))) ?? links[0];
 
   useEffect(() => {
     if (!user?.id) {
@@ -136,8 +137,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const sellerInitial = (user?.business || user?.name || "V").trim().charAt(0).toUpperCase();
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#F6F8FB]">
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-slate-200/80 bg-white shadow-[18px_0_60px_rgba(15,23,42,0.06)] transition-[width] duration-300 lg:block ${sidebarCollapsed ? "w-20 p-3" : "w-72 p-5"}`}>
+    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#EEF6F3_45%,#F8FAFC_100%)]">
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-slate-200/80 bg-[#07111F] text-white shadow-[18px_0_60px_rgba(15,23,42,0.12)] transition-[width] duration-300 lg:block ${sidebarCollapsed ? "w-20 p-3" : "w-72 p-5"}`}>
         <div className="flex h-full min-h-0 flex-col">
           <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3"}`}>
             <Link href="/dashboard" className={`min-w-0 rounded-2xl border border-slate-100 bg-white shadow-sm ${sidebarCollapsed ? "p-2" : "flex-1 p-3"}`} title="Dashboard home">
@@ -146,24 +147,24 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => setSidebarCollapsed(true)}
-              className={`h-11 w-11 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 ${sidebarCollapsed ? "hidden" : "grid"}`}
+              className={`h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-slate-100 shadow-sm transition hover:bg-white/15 ${sidebarCollapsed ? "hidden" : "grid"}`}
               aria-label="Collapse dashboard sidebar"
               title="Collapse sidebar"
             >
               <IconGlyph name="x" className="h-5 w-5" />
             </button>
           </div>
-          <div className={`mt-5 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white transition ${sidebarCollapsed ? "p-2" : "p-4"}`}>
+          <div className={`mt-5 rounded-2xl border border-white/10 bg-white/10 transition ${sidebarCollapsed ? "p-2" : "p-4"}`}>
             <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0F172A] text-lg font-black text-white shadow-sm">{sellerInitial}</span>
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#22C55E] text-lg font-black text-[#07111F] shadow-sm">{sellerInitial}</span>
               <div className={`min-w-0 ${sidebarCollapsed ? "hidden" : "block"}`}>
-                <p className="truncate text-sm font-black text-[#0F172A]">{user?.business ?? "Seller workspace"}</p>
-                <p className="text-xs font-bold text-slate-500">Vendor control center</p>
+                <p className="truncate text-sm font-black text-white">{user?.business ?? "Seller workspace"}</p>
+                <p className="text-xs font-bold text-slate-300">Vendor control center</p>
               </div>
             </div>
-            <div className={`mt-4 items-center justify-between rounded-xl bg-white/80 px-3 py-2 text-xs font-black text-slate-600 ring-1 ring-emerald-100 ${sidebarCollapsed ? "hidden" : "flex"}`}>
-              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#16A34A]" /> Store status</span>
-              <span className="text-[#16A34A]">Live</span>
+            <div className={`mt-4 items-center justify-between rounded-xl bg-white/10 px-3 py-2 text-xs font-black text-slate-200 ring-1 ring-white/10 ${sidebarCollapsed ? "hidden" : "flex"}`}>
+              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#22C55E]" /> Store status</span>
+              <span className="text-[#4ADE80]">Live</span>
             </div>
           </div>
           <nav className={`mt-6 min-h-0 flex-1 space-y-1.5 overflow-y-auto ${sidebarCollapsed ? "" : "pr-1"}`}>
@@ -175,10 +176,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   href={link.href}
                   title={link.label}
                   className={`flex items-center rounded-2xl py-3 text-sm font-black transition ${sidebarCollapsed ? "justify-center px-2" : "gap-3 px-3.5"} ${
-                    active ? "bg-[#0F172A] text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]" : "text-slate-600 hover:bg-[#F3F4F6] hover:text-[#0F172A]"
+                    active ? "bg-white text-[#07111F] shadow-[0_12px_30px_rgba(0,0,0,0.22)]" : "text-slate-300 hover:bg-white/10 hover:text-white"
                   }`}
                 >
-                  <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "bg-white/10 text-[#16A34A]" : "bg-slate-100 text-slate-500"}`}>
+                  <span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? "bg-[#DCFCE7] text-[#16A34A]" : "bg-white/10 text-slate-300"}`}>
                     <MenuIcon name={link.icon} />
                   </span>
                   <span className={sidebarCollapsed ? "sr-only" : ""}>{link.label}</span>
@@ -186,6 +187,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+          <div className={`mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 ${sidebarCollapsed ? "hidden" : "block"}`}>
+            <p className="text-xs font-bold leading-5 text-slate-300">Share your store link with customers when your products are ready.</p>
+            {canOpenStore ? (
+              <Link href={storeHref} className="mt-3 flex min-h-10 items-center justify-center rounded-xl bg-[#22C55E] px-3 py-2 text-xs font-black text-[#07111F] transition hover:bg-[#4ADE80]">
+                Open storefront
+              </Link>
+            ) : null}
+          </div>
         </div>
       </aside>
       <section className={`min-w-0 transition-[padding] duration-300 ${sidebarCollapsed ? "lg:pl-20" : "lg:pl-72"}`}>
@@ -207,6 +216,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             )}
             <div className="hidden min-w-0 flex-1 lg:block">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Vendor dashboard</p>
+              <p className="truncate text-lg font-black text-[#0F172A]">{activeLink.label}</p>
               <p className="truncate text-sm font-bold text-slate-500">{user?.business ?? "Seller workspace"} · Manage products, orders, payments and delivery</p>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
