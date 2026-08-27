@@ -102,7 +102,7 @@ export default function StorefrontPage() {
   });
 
   return (
-    <main className="flex min-h-screen flex-col sellmate-page-bg pt-[176px] sm:pt-[128px]">
+    <main className="flex min-h-screen flex-col sellmate-page-bg pt-[128px]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}

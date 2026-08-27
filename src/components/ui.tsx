@@ -543,13 +543,6 @@ export function StoreHeader({
     { label: "Login / Account", href: "/login", icon: "user" },
     { label: "Contact / Support", href: supportHref, icon: "user" },
   ];
-  const desktopLinks = [
-    { label: "Home", href: storeHref },
-    { label: "All Products", href: productPageHref },
-    { label: "Categories", href: categoriesHref },
-    { label: "Contact / Support", href: supportHref },
-  ];
-
   useEffect(() => {
     if (!isMenuOpen) {
       return;
@@ -613,13 +606,7 @@ export function StoreHeader({
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white shadow-sm">
-      <div className="hidden border-b border-[#E5E7EB] bg-[#F3F4F6] text-[#0F172A] sm:block">
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-5 text-xs font-bold">
-          <span>Secure shopping powered by VENDORAQ</span>
-          <span>{whatsappPhone ? `WhatsApp support: ${whatsappPhone}` : "Search products, add to cart, checkout securely"}</span>
-        </div>
-      </div>
-      <nav className="mx-auto grid max-w-7xl gap-2 px-3 py-2 sm:min-h-[76px] sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-4 sm:px-5 sm:py-3">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-3 sm:h-[68px] sm:px-5">
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -635,25 +622,7 @@ export function StoreHeader({
             <span className="truncate capitalize">{sellerName}</span>
           </Link>
         </div>
-        <form onSubmit={submitSearch} className="order-3 sm:order-none">
-          <label className="relative block">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
-            <input
-              value={searchTerm}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search products, brands and categories"
-              className="h-12 w-full rounded-full border border-[#E5E7EB] bg-[#F5F5F5] pl-9 pr-14 text-sm font-semibold text-[#1F2937] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10 sm:h-11"
-            />
-            <button type="submit" aria-label="Search products" className="absolute right-1.5 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-[#16A34A] text-white transition hover:bg-[#15803D]">
-              <IconGlyph name="search" className="h-4 w-4" />
-            </button>
-          </label>
-        </form>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-          <Link href={wishlistHref} className="hidden h-10 items-center gap-2 rounded-full px-3 text-sm font-black text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] lg:inline-flex">
-            <IconGlyph name="heart" className="h-4 w-4" />
-            Wishlist
-          </Link>
           <button type="button" onClick={() => setIsRepliesOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]" aria-label="View seller replies">
             <IconGlyph name="messages" className="h-5 w-5" />
             {replyMessages.length > 0 ? (
@@ -669,20 +638,21 @@ export function StoreHeader({
           </Link>
         </div>
       </nav>
-      <div className="hidden border-t border-[#E5E7EB] bg-white lg:block">
-        <div className="mx-auto flex h-11 max-w-7xl items-center justify-between px-5">
-          <nav className="flex items-center gap-1">
-            {desktopLinks.map((link) => (
-              <Link key={link.label} href={link.href} className="rounded-full px-3 py-2 text-sm font-black text-[#475569] transition hover:bg-[#F0FDF4] hover:text-[#16A34A]">
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <Link href="/register" className="rounded-full px-3 py-2 text-sm font-black text-[#475569] transition hover:bg-[#F0FDF4] hover:text-[#16A34A]">Sell on Vendura</Link>
-            <Link href="/login" className="rounded-full bg-[#0F172A] px-4 py-2 text-sm font-black text-white transition hover:bg-[#16A34A]">Vendor Login</Link>
-          </div>
-        </div>
+      <div className="border-t border-[#E5E7EB] bg-white px-3 py-2 sm:px-5">
+        <form onSubmit={submitSearch} className="mx-auto max-w-7xl">
+          <label className="relative block">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IconGlyph name="search" className="h-4 w-4" /></span>
+            <input
+              value={searchTerm}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Search products, brands and categories"
+              className="h-11 w-full rounded-full border border-[#E5E7EB] bg-[#F5F5F5] pl-9 pr-12 text-sm font-semibold text-[#1F2937] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10"
+            />
+            <button type="submit" aria-label="Search products" className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-[#16A34A] text-white transition hover:bg-[#15803D]">
+              <IconGlyph name="search" className="h-4 w-4" />
+            </button>
+          </label>
+        </form>
       </div>
       {isMenuOpen ? (
         <div className="fixed inset-0 z-[1000]">
@@ -690,7 +660,7 @@ export function StoreHeader({
             @keyframes vendoraq-drawer-in {
               from {
                 opacity: 0;
-                transform: translateX(100%);
+                transform: translateX(-100%);
               }
 
               to {
@@ -705,7 +675,7 @@ export function StoreHeader({
             aria-label="Close store menu"
             onClick={() => setIsMenuOpen(false)}
           />
-          <aside className="vendoraq-mobile-drawer relative z-[1001] ml-auto flex h-[100dvh] w-[min(86vw,20rem)] flex-col overflow-y-auto border-l border-[#E5E7EB] bg-white shadow-xl">
+          <aside className="vendoraq-mobile-drawer relative z-[1001] flex h-[100dvh] w-[min(86vw,20rem)] flex-col overflow-y-auto border-r border-[#E5E7EB] bg-white shadow-xl">
             <div className="flex items-center justify-between gap-3 border-b border-[#E5E7EB] px-4 py-4">
               <Link href={storeHref} onClick={() => setIsMenuOpen(false)} className="flex min-w-0 items-center gap-3">
                 <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
@@ -813,18 +783,6 @@ function readCustomerMessageIds(storeSlug: string) {
   }
 }
 
-function saveCustomerMessageId(storeSlug: string, messageId: string) {
-  if (typeof window === "undefined") return;
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_MESSAGE_KEY) || "{}") as Record<string, string[]>;
-    const current = Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
-    parsed[storeSlug] = [messageId, ...current.filter((id) => id !== messageId)].slice(0, 20);
-    window.localStorage.setItem(CUSTOMER_MESSAGE_KEY, JSON.stringify(parsed));
-  } catch {
-    window.localStorage.setItem(CUSTOMER_MESSAGE_KEY, JSON.stringify({ [storeSlug]: [messageId] }));
-  }
-}
-
 export function CheckoutHeader({
   sellerName,
   sellerLogoUrl,
@@ -885,7 +843,6 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   onAddToCart,
   onToggleFavorite,
   storeSlug,
-  sellerName,
 }: {
   product: TProduct;
   isFavorite: boolean;
@@ -895,10 +852,6 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   storeSlug?: string;
   sellerName?: string;
 }) {
-  const [messageOpen, setMessageOpen] = useState(false);
-  const [messageStatus, setMessageStatus] = useState("");
-  const [sendingMessage, setSendingMessage] = useState(false);
-
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -906,43 +859,6 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
       document.body.style.overflow = originalOverflow;
     };
   }, []);
-
-  async function sendSellerMessage(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSendingMessage(true);
-    setMessageStatus("");
-
-    const formData = new FormData(event.currentTarget);
-    const response = await fetch("/api/customer-messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sellerId: product.user_id,
-        storeSlug,
-        productId: product.id,
-        productName: product.name,
-        customerName: String(formData.get("customer_name") ?? "").trim(),
-        customerPhone: String(formData.get("customer_phone") ?? "").trim(),
-        message: String(formData.get("message") ?? "").trim(),
-      }),
-    });
-    const data = await response.json();
-
-    if (!response.ok) {
-      setMessageStatus(data.message ?? "Could not send message. Please try again.");
-      setSendingMessage(false);
-      return;
-    }
-
-    if (data.id && storeSlug) {
-      saveCustomerMessageId(storeSlug, data.id);
-      window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
-    }
-
-    event.currentTarget.reset();
-    setMessageStatus("Message sent. The seller will see it in their dashboard.");
-    setSendingMessage(false);
-  }
 
   return (
     <div className="fixed inset-0 z-[1100] bg-white">
@@ -991,45 +907,11 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
                 {isFavorite ? "Saved" : "Save"}
               </button>
             </div>
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => setMessageOpen((open) => !open)}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-800 transition hover:bg-emerald-100"
-              >
-            <IconGlyph name="messages" className="h-4 w-4" />
-            Message seller
-          </button>
-          {storeSlug ? (
-            <Link href={`/store/${storeSlug}/chat?product=${encodeURIComponent(product.id)}`} onClick={onClose} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
-              <IconGlyph name="messages" className="h-4 w-4" />
-              Open full chat
-            </Link>
-          ) : null}
-        </div>
-            {messageOpen ? (
-              <form onSubmit={sendSellerMessage} className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-black text-slate-950">Ask about this product</p>
-                <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Your message goes to {sellerName || "the seller"} dashboard.</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1 text-xs font-bold text-slate-600">
-                    Your name
-                    <input name="customer_name" required placeholder="Your name" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600" />
-                  </label>
-                  <label className="grid gap-1 text-xs font-bold text-slate-600">
-                    Phone number
-                    <input name="customer_phone" required placeholder="0803 123 4567" className="rounded-md border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600" />
-                  </label>
-                  <label className="grid gap-1 text-xs font-bold text-slate-600 sm:col-span-2">
-                    Message
-                    <textarea name="message" required maxLength={500} rows={4} placeholder="Is this available? Can you deliver today?" className="resize-none rounded-md border border-slate-300 bg-white px-3 py-2 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600" />
-                  </label>
-                </div>
-                {messageStatus ? <p className="mt-3 rounded-md bg-white p-3 text-xs font-bold text-slate-600">{messageStatus}</p> : null}
-                <button disabled={sendingMessage || !product.user_id || !storeSlug} className="mt-4 w-full rounded-md bg-[#16A34A] px-4 py-3 text-sm font-black text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400">
-                  {sendingMessage ? "Sending..." : "Send message"}
-                </button>
-              </form>
+            {storeSlug ? (
+              <Link href={`/store/${storeSlug}/chat?product=${encodeURIComponent(product.id)}`} onClick={onClose} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
+                <IconGlyph name="messages" className="h-4 w-4" />
+                Chat with seller
+              </Link>
             ) : null}
           </div>
         </div>
