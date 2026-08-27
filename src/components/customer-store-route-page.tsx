@@ -83,14 +83,6 @@ function productRating(product: StoreProduct) {
   return { stars: 2, label: "New in store" };
 }
 
-function productRows(products: StoreProduct[]) {
-  const rows: StoreProduct[][] = [];
-  for (let index = 0; index < products.length; index += 6) {
-    rows.push(products.slice(index, index + 6));
-  }
-  return rows;
-}
-
 function sortProducts(products: StoreProduct[], sortBy: SortOption) {
   return [...products].sort((first, second) => {
     if (sortBy === "price-low") return first.price - second.price;
@@ -290,14 +282,14 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
         whatsappPhone={profile?.whatsapp_phone}
       />
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-5 py-8">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-5 sm:py-8">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{profile?.city || "Customer store"}</p>
-          <h1 className="mt-2 text-3xl font-black capitalize text-slate-950 sm:text-5xl">{pageTitle(view, sellerName)}</h1>
+          <h1 className="mt-2 text-3xl font-black capitalize text-slate-950 sm:text-4xl">{pageTitle(view, sellerName)}</h1>
           <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">{pageDescription(view, sellerName)}</p>
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:py-12">
+      <section className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-5 sm:py-12">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
         {view === "products" ? <ProductsView products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}
@@ -388,13 +380,9 @@ function ProductsView({
         </div>
       </div>
       {products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
-      <div className="grid gap-4">
-        {productRows(products).map((row, rowIndex) => (
-          <div key={`product-row-${rowIndex}`} className="-mx-5 grid grid-cols-[repeat(6,minmax(10.5rem,44vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
-            {row.map((product) => (
-              <ProductTile key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
-            ))}
-          </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        {products.map((product) => (
+          <ProductTile key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
         ))}
       </div>
     </>
@@ -405,29 +393,28 @@ function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite, onVie
   const rating = productRating(product);
   const badge = productBadge(product);
   return (
-    <article className="group flex h-full scroll-ml-5 snap-start flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
-        <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="h-36 w-full bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center sm:h-48 lg:h-44 xl:h-48" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
-        <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-lg bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-600 hover:text-rose-600"}`}>
+    <article className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative bg-[#F7F9FC]">
+        <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid h-36 w-full place-items-center p-3 sm:h-44">
+          {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
+        </button>
+        <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full bg-white shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-500 hover:text-rose-600"}`}>
           <IconGlyph name="heart" className="h-4 w-4" />
         </button>
-        <span className="absolute bottom-3 left-3 rounded-full bg-[#DCFCE7] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#166534] sm:text-xs">{product.category}</span>
+        <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-full bg-white/95 px-2 py-1 text-[10px] font-black uppercase text-[#64748B] ring-1 ring-[#E5E7EB]">{product.category}</span>
       </div>
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
-        <div className="flex items-center justify-between gap-2">
-          <span className="rounded-full bg-[#F3F4F6] px-2 py-1 text-[10px] font-black text-[#166534] ring-1 ring-[#E5E7EB]">{"★".repeat(rating.stars)}{"☆".repeat(5 - rating.stars)}</span>
-          <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
-        </div>
-        <span className={`mt-3 w-fit rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ring-1 ${badge.className}`}>{badge.label}</span>
+      <div className="flex flex-1 flex-col p-3">
         <button type="button" onClick={() => onViewDetails(product)} className="text-left">
-          <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] transition hover:text-[#16A34A] sm:text-lg">{product.name}</h3>
-          <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">{product.variant_options || `SKU: ${product.sku}`}</p>
+          <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-black leading-5 text-[#0F172A] transition hover:text-[#16A34A] sm:text-base">{product.name}</h3>
         </button>
-        <p className="mt-2 text-xs font-black text-[#166534]">{rating.label}</p>
-        <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">{formatNaira(product.price)}</p>
-        <button type="button" onClick={() => onAddToCart(product)} className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">
+        <p className="mt-2 text-base font-black text-[#0F172A] sm:text-lg">{formatNaira(product.price)}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold text-[#64748B]">
+          <span>★ {rating.stars}.0</span>
+          <span className={`rounded-full px-2 py-1 text-[10px] font-black ring-1 ${badge.className}`}>{badge.label}</span>
+        </div>
+        <button type="button" onClick={() => onAddToCart(product)} className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#16A34A] px-3 text-xs font-black text-white transition hover:bg-[#15803D]">
           <IconGlyph name="cart" className="h-4 w-4" />
-          Add to Cart
+          Add
         </button>
       </div>
     </article>
@@ -437,13 +424,21 @@ function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite, onVie
 function CategoriesView({ categories, products, storeHref }: { categories: string[]; products: StoreProduct[]; storeHref: string }) {
   if (categories.length === 0) return <EmptyPanel title="No categories yet" text="This seller has not added product categories yet." />;
   return (
-    <div className="-mx-5 grid grid-cols-[repeat(3,minmax(13rem,70vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
-      {categories.map((category) => (
-        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="scroll-ml-5 snap-start rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
-          <p className="text-lg font-black text-slate-950">{category}</p>
-          <p className="mt-2 text-sm font-semibold text-slate-500">{products.filter((product) => product.category === category).length} product(s)</p>
+    <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+      {categories.map((category) => {
+        const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
+        return (
+        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[13rem] items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
+          <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-[#F7F9FC]">
+            {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" className="h-full w-full object-contain p-1" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-lg font-black text-slate-950">{category}</span>
+            <span className="text-sm font-semibold text-slate-500">{products.filter((item) => item.category === category).length} product(s)</span>
+          </span>
         </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

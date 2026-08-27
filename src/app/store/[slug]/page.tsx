@@ -76,14 +76,6 @@ function getProductRating(product: StoreProduct) {
   return { stars: 2, label: "New in store" };
 }
 
-function productRows(products: StoreProduct[]) {
-  const rows: StoreProduct[][] = [];
-  for (let index = 0; index < products.length; index += 6) {
-    rows.push(products.slice(index, index + 6));
-  }
-  return rows;
-}
-
 function sortProducts(products: StoreProduct[], sortBy: SortOption) {
   return [...products].sort((first, second) => {
     if (sortBy === "price-low") return first.price - second.price;
@@ -97,6 +89,29 @@ function productBadge(product: StoreProduct) {
   if (product.stock <= 3) return { label: "Low stock", className: "bg-rose-50 text-rose-700 ring-rose-100" };
   if (product.stock <= 10) return { label: "Selling fast", className: "bg-orange-50 text-orange-700 ring-orange-100" };
   return { label: "In stock", className: "bg-emerald-50 text-emerald-700 ring-emerald-100" };
+}
+
+function pickHeroProducts(products: StoreProduct[]) {
+  const withImages = products.filter((product) => Boolean(product.image_url));
+  const picked: StoreProduct[] = [];
+  const usedCategories = new Set<string>();
+
+  withImages.forEach((product) => {
+    if (picked.length >= 5) return;
+    if (!usedCategories.has(product.category)) {
+      picked.push(product);
+      usedCategories.add(product.category);
+    }
+  });
+
+  withImages.forEach((product) => {
+    if (picked.length >= 5) return;
+    if (!picked.some((item) => item.id === product.id)) {
+      picked.push(product);
+    }
+  });
+
+  return picked;
 }
 
 export default function DynamicStorefrontPage() {
@@ -225,11 +240,10 @@ export default function DynamicStorefrontPage() {
   const businessName = profile?.business_name || "Store";
   const brandName = profile?.logo_text || businessName;
   const logoUrl = profile?.logo_url || "";
-  const city = profile?.city || "Nigeria";
   const categories = Array.from(new Set(products.map((product) => product.category).filter(Boolean))).slice(0, 10);
-  const heroProducts = products.length > 0 ? products.slice(0, 6) : [];
-  const featuredProduct = heroProducts[heroIndex % Math.max(heroProducts.length, 1)];
-  const lowStockCount = products.filter((product) => product.stock <= 5).length;
+  const heroProducts = pickHeroProducts(products);
+  const featuredProducts = products.slice(0, 6);
+  const newArrivalProducts = products.slice(0, 6);
   const activeStoreSlug = profile?.store_slug || slug;
   const storeHomeHref = `/store/${activeStoreSlug}`;
   const storeCartHref = `/cart?store=${encodeURIComponent(activeStoreSlug)}`;
@@ -270,74 +284,33 @@ export default function DynamicStorefrontPage() {
         onSearchChange={setSearchTerm}
         whatsappPhone={profile?.whatsapp_phone}
       />
-      <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#fff7ed_0%,#eff6ff_48%,#dcfce7_100%)]">
-        <div className="mx-auto grid max-w-7xl gap-5 px-5 py-6 lg:grid-cols-[220px_1fr_320px] lg:py-8">
-          <aside id="categories" className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:block">
-            <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-500">Categories</p>
-            <div className="grid gap-2 text-sm font-bold text-slate-700">
-              {["All", ...(categories.length ? categories : ["Products"])].map((category) => (
-                <a key={category} href="#products" onClick={() => setSelectedCategory(category)} className={`rounded-md px-3 py-2 hover:bg-emerald-50 hover:text-emerald-700 ${selectedCategory === category ? "bg-emerald-50 text-emerald-700" : ""}`}>{category}</a>
-              ))}
-            </div>
-          </aside>
-          <div className="overflow-hidden rounded-lg bg-slate-950 shadow-xl">
-            <div className="grid min-h-[280px] gap-5 bg-[radial-gradient(circle_at_80%_20%,rgba(249,115,22,0.45),transparent_24rem),linear-gradient(135deg,#0f172a,#064e3b)] p-6 text-white sm:p-8 lg:grid-cols-[1fr_280px] lg:items-center">
-              <div>
-                <p className="w-fit rounded-full bg-[#16A34A] px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-white">{city} storefront</p>
-                <h1 className="mt-4 max-w-3xl text-4xl font-black capitalize leading-[1.02] sm:text-5xl lg:text-6xl">
-                  Shop products from {businessName}
-                </h1>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-100 sm:text-lg">
-                  Browse anything this seller offers, from beauty and fashion to gadgets, food items, tools, accessories, and everyday essentials.
-                </p>
-                {featuredProduct ? (
-                  <div className="mt-4 flex w-fit flex-wrap items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-black ring-1 ring-white/20">
-                    <span className="text-orange-200">Now showing</span>
-                    <span className="max-w-[220px] truncate text-white">{featuredProduct.name}</span>
-                    <span className="text-emerald-200">{formatNaira(featuredProduct.price)}</span>
-                  </div>
-                ) : null}
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a href="#products" className="rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">Shop now</a>
-                  <Link href={storeCartHref} className="rounded-md bg-white px-5 py-3 text-sm font-black text-slate-950 shadow-sm hover:bg-slate-100">View cart</Link>
-                </div>
-              </div>
-              <div className="rounded-lg bg-white/10 p-3 ring-1 ring-white/20">
-                <div className="relative overflow-hidden rounded-md">
-                  <div className="aspect-square rounded-md bg-white/10 bg-cover bg-center transition-all duration-700" style={featuredProduct?.image_url ? { backgroundImage: `url(${featuredProduct.image_url})` } : undefined} />
-                  <div className="absolute inset-x-3 bottom-3 rounded-md bg-slate-950/75 p-3 text-white backdrop-blur">
-                    <p className="truncate text-sm font-black">{featuredProduct?.name || "Fresh products"}</p>
-                    <p className="text-xs font-semibold text-emerald-100">{featuredProduct ? formatNaira(featuredProduct.price) : "Ready for customers"}</p>
-                  </div>
-                </div>
-                {heroProducts.length > 1 ? (
-                  <div className="mt-3 flex justify-center gap-2">
-                    {heroProducts.map((product, index) => (
-                      <button
-                        key={product.id}
-                        onClick={() => setHeroIndex(index)}
-                        className={`h-2 rounded-full transition-all ${index === heroIndex % heroProducts.length ? "w-7 bg-orange-400" : "w-2 bg-white/40 hover:bg-white/70"}`}
-                        aria-label={`Show ${product.name}`}
-                      />
-                    ))}
-                  </div>
-                ) : null}
+      <section className="bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-5 lg:py-8">
+          <div className="grid min-h-[210px] overflow-hidden rounded-lg border border-slate-200 bg-[#F7F9FC] px-5 py-6 shadow-sm sm:min-h-[280px] sm:px-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:py-8">
+            <div className="relative z-10 max-w-2xl">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Welcome to {brandName}</p>
+              <h1 className="mt-3 text-[2rem] font-black leading-tight text-[#0F172A] sm:text-5xl">Great products from a trusted seller</h1>
+              <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-[#64748B] sm:text-base">Discover quality items across different categories at great prices.</p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <a href="#products" className="rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">Shop Now</a>
+                <Link href={`${storeHomeHref}/products`} className="hidden rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:border-emerald-300 hover:text-emerald-700 sm:inline-flex">View Products</Link>
               </div>
             </div>
-          </div>
-          <aside className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Live products</p><p className="mt-2 text-3xl font-black text-slate-950">{products.length}</p></div>
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm"><p className="text-xs font-bold uppercase text-emerald-700">Cart items</p><p className="mt-2 text-3xl font-black text-slate-950">{cartCount}</p></div>
-            <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 shadow-sm"><p className="text-xs font-bold uppercase text-orange-700">Low stock</p><p className="mt-2 text-3xl font-black text-slate-950">{lowStockCount}</p></div>
-          </aside>
-        </div>
-        <div className="border-t border-slate-200 bg-white/85">
-          <div className="mx-auto grid max-w-7xl gap-2 px-5 py-3 text-xs font-black text-slate-700 sm:grid-cols-4">
-            <span>✓ Secure Paystack checkout</span><span>✓ Seller-managed delivery</span><span>✓ WhatsApp order receipt</span><span>✓ Real stock count</span>
+            <HeroCollage products={heroProducts} activeIndex={heroIndex} />
           </div>
         </div>
       </section>
-      <section id="products" className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:py-12">
+      <TrustBar />
+      <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-5">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <SectionTitle eyebrow="Categories" title="Shop by Category" />
+          <Link href={`${storeHomeHref}/categories`} className="text-sm font-black text-[#16A34A]">View all</Link>
+        </div>
+        <CategoryShelf categories={categories} products={products} storeHref={storeHomeHref} />
+      </section>
+      <ProductShelf title="Featured Products" actionLabel="View all products" actionHref={`${storeHomeHref}/products`} products={featuredProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+      <ProductShelf title="New Arrivals" products={newArrivalProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+      <section id="products" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-5 sm:py-12">
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
           {["All", ...(categories.length ? categories : ["Products"])].map((category) => (
@@ -365,64 +338,7 @@ export default function DynamicStorefrontPage() {
         {!loading && !message && products.length > 0 && displayProducts.length === 0 ? (
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
         ) : null}
-        <div className="grid gap-4">
-          {productRows(displayProducts).map((row, rowIndex) => (
-            <div key={`product-row-${rowIndex}`} className="-mx-5 grid grid-cols-[repeat(6,minmax(10.5rem,44vw))] gap-3 overflow-x-auto px-5 pb-4 snap-x snap-mandatory sm:mx-0 sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-6">
-              {row.map((product) => {
-                const rating = getProductRating(product);
-                const isFavorite = favoriteIds.includes(product.id);
-                const badge = productBadge(product);
-                return (
-                  <article key={product.id} className="group flex h-full scroll-ml-5 snap-start flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-                <div className="relative overflow-hidden rounded-t-xl bg-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedProduct(product)}
-                    aria-label={`View details for ${product.name}`}
-                    className="h-36 w-full bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-cover bg-center transition duration-300 group-hover:scale-[1.02] sm:h-48 lg:h-44 xl:h-48"
-                    style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => toggleFavorite(product)}
-                    aria-label={isFavorite ? "Remove from favourites" : "Add to favourites"}
-                    className={`absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-lg bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] transition hover:bg-white ${isFavorite ? "text-rose-600" : "text-slate-600 hover:text-rose-600"}`}
-                  >
-                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill={isFavorite ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-                    </svg>
-                  </button>
-                  <span className="absolute bottom-3 left-3 rounded-full bg-[#DCFCE7] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#166534] sm:text-xs">
-                    {product.category}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col p-3 sm:p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-full bg-[#F3F4F6] px-2 py-1 text-[10px] font-black text-[#166534] ring-1 ring-[#E5E7EB]">
-                      {"★".repeat(rating.stars)}{"☆".repeat(5 - rating.stars)}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase text-[#6B7280]">{product.stock} available</span>
-                  </div>
-                  <span className={`mt-3 w-fit rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ring-1 ${badge.className}`}>{badge.label}</span>
-                  <button type="button" onClick={() => setSelectedProduct(product)} className="text-left">
-                    <h3 className="mt-3 line-clamp-2 text-base font-black leading-tight text-[#111827] transition hover:text-[#16A34A] sm:text-lg">{product.name}</h3>
-                    <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs font-semibold leading-5 text-[#6B7280] sm:text-sm">
-                      {product.variant_options || `SKU: ${product.sku}`}
-                    </p>
-                  </button>
-                  <p className="mt-2 text-xs font-black text-[#166534]">{rating.label}</p>
-                  <p className="mt-4 text-lg font-black text-[#111827] sm:text-xl">{formatNaira(product.price)}</p>
-                  <button onClick={() => handleAddToCart(product)} className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-3 py-3 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">
-                    <IconGlyph name="cart" className="h-4 w-4" />
-                    Add to Cart
-                  </button>
-                </div>
-                  </article>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+        <ProductGrid products={displayProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
       </section>
       {cartNotice || cartCount > 0 ? (
         <div className="fixed bottom-5 left-4 right-4 z-50 sellmate-card rounded-lg p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
@@ -452,6 +368,136 @@ export default function DynamicStorefrontPage() {
       ) : null}
       <PublicFooter sellerName={brandName} sellerLogoUrl={logoUrl} storeHref={storeHomeHref} />
     </main>
+  );
+}
+
+function HeroCollage({ products, activeIndex }: { products: StoreProduct[]; activeIndex: number }) {
+  if (products.length === 0) {
+    return (
+      <div className="relative mt-5 hidden min-h-[190px] rounded-lg border border-slate-200 bg-white sm:block lg:mt-0">
+        <div className="absolute inset-6 rounded-lg bg-[#F0FDF4]" />
+        <div className="absolute left-8 top-8 h-24 w-24 rounded-lg border border-slate-200 bg-white shadow-sm" />
+        <div className="absolute bottom-8 right-8 h-32 w-32 rounded-lg border border-slate-200 bg-white shadow-sm" />
+      </div>
+    );
+  }
+
+  const orderedProducts = products.map((_, index) => products[(activeIndex + index) % products.length]).slice(0, 5);
+  const slots = [
+    "left-[6%] top-[18%] h-24 w-24 sm:h-32 sm:w-32",
+    "left-[34%] top-[6%] h-32 w-32 sm:h-44 sm:w-44",
+    "right-[4%] top-[24%] h-24 w-24 sm:h-36 sm:w-36",
+    "bottom-[8%] left-[18%] hidden h-24 w-28 sm:block",
+    "bottom-[10%] right-[18%] hidden h-20 w-28 lg:block",
+  ];
+
+  return (
+    <div className="relative mt-5 min-h-[170px] sm:min-h-[230px] lg:mt-0">
+      <div className="absolute inset-0 rounded-lg bg-white/75" />
+      {orderedProducts.map((product, index) => (
+        <div key={product.id} className={`absolute ${slots[index]} overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-lg`}>
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} loading={index > 1 ? "lazy" : "eager"} className="h-full w-full object-contain" />
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TrustBar() {
+  return (
+    <section className="border-y border-slate-200 bg-white">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-3 text-xs font-black text-[#0F172A] sm:grid-cols-4 sm:px-5">
+        {["Secure Payment", "Fast Delivery", "Easy Returns", "Buyer Protection"].map((item) => (
+          <div key={item} className="rounded-md bg-[#F7F9FC] px-3 py-2 text-center">{item}</div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CategoryShelf({ categories, products, storeHref }: { categories: string[]; products: StoreProduct[]; storeHref: string }) {
+  if (categories.length === 0) {
+    return <p className="rounded-lg border border-slate-200 bg-white p-5 text-sm font-semibold text-[#64748B]">No categories available yet.</p>;
+  }
+
+  return (
+    <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+      {categories.map((category) => {
+        const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
+        return (
+          <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[10rem] items-center gap-3 rounded-lg border border-[#E5E7EB] bg-white p-3 shadow-sm transition hover:border-emerald-300 hover:shadow-md">
+            <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-[#F7F9FC]">
+              {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" className="h-full w-full object-contain p-1" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-black text-[#0F172A]">{category}</span>
+              <span className="text-xs font-bold text-[#64748B]">{products.filter((item) => item.category === category).length} items</span>
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function ProductShelf({ title, actionLabel, actionHref, products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { title: string; actionLabel?: string; actionHref?: string; products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+  if (products.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mx-auto w-full max-w-7xl px-4 py-7 sm:px-5">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <SectionTitle eyebrow="Shop" title={title} />
+        {actionHref ? <Link href={actionHref} className="text-sm font-black text-[#16A34A]">{actionLabel ?? "View all"}</Link> : null}
+      </div>
+      <ProductGrid products={products} favoriteIds={favoriteIds} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
+    </section>
+  );
+}
+
+function ProductGrid({ products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
+      ))}
+    </div>
+  );
+}
+
+function ProductCard({ product, isFavorite, onAddToCart, onToggleFavorite, onViewDetails }: { product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+  const rating = getProductRating(product);
+  const badge = productBadge(product);
+
+  return (
+    <article className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative bg-[#F7F9FC]">
+        <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid h-36 w-full place-items-center p-3 sm:h-44">
+          {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
+        </button>
+        <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full bg-white shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-500 hover:text-rose-600"}`}>
+          <IconGlyph name="heart" className="h-4 w-4" />
+        </button>
+        <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-full bg-white/95 px-2 py-1 text-[10px] font-black uppercase text-[#64748B] ring-1 ring-[#E5E7EB]">{product.category}</span>
+      </div>
+      <div className="flex flex-1 flex-col p-3">
+        <button type="button" onClick={() => onViewDetails(product)} className="text-left">
+          <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-black leading-5 text-[#0F172A] transition hover:text-[#16A34A] sm:text-base">{product.name}</h3>
+        </button>
+        <p className="mt-2 text-base font-black text-[#0F172A] sm:text-lg">{formatNaira(product.price)}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold text-[#64748B]">
+          <span>★ {rating.stars}.0</span>
+          <span className={`rounded-full px-2 py-1 text-[10px] font-black ring-1 ${badge.className}`}>{badge.label}</span>
+        </div>
+        <button type="button" onClick={() => onAddToCart(product)} className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#16A34A] px-3 text-xs font-black text-white transition hover:bg-[#15803D]">
+          <IconGlyph name="cart" className="h-4 w-4" />
+          Add
+        </button>
+      </div>
+    </article>
   );
 }
 

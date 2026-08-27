@@ -530,11 +530,20 @@ export function StoreHeader({
     { label: "Login / Account", href: "/login", icon: "user" },
     { label: "Contact / Support", href: supportHref, icon: "user" },
   ];
+  const desktopLinks = [
+    { label: "Home", href: storeHref },
+    { label: "All Products", href: productPageHref },
+    { label: "Categories", href: categoriesHref },
+    { label: "Contact / Support", href: supportHref },
+  ];
 
   useEffect(() => {
     if (!isMenuOpen) {
       return;
     }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     function closeMenu() {
       setIsMenuOpen(false);
@@ -550,6 +559,7 @@ export function StoreHeader({
     window.addEventListener("scroll", closeMenu, { passive: true, once: true });
 
     return () => {
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", closeOnEscape);
       window.removeEventListener("scroll", closeMenu);
     };
@@ -600,9 +610,32 @@ export function StoreHeader({
           </label>
         </form>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
+          <Link href={wishlistHref} className="hidden h-10 items-center gap-2 rounded-full px-3 text-sm font-black text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] lg:inline-flex">
+            <IconGlyph name="heart" className="h-4 w-4" />
+            Wishlist
+          </Link>
           <CartIconLink href={cartHref} count={cartCount} />
+          <Link href="/login" className="hidden h-10 items-center gap-2 rounded-full px-3 text-sm font-black text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A] lg:inline-flex">
+            <IconGlyph name="user" className="h-4 w-4" />
+            Account
+          </Link>
         </div>
       </nav>
+      <div className="hidden border-t border-[#E5E7EB] bg-white lg:block">
+        <div className="mx-auto flex h-11 max-w-7xl items-center justify-between px-5">
+          <nav className="flex items-center gap-1">
+            {desktopLinks.map((link) => (
+              <Link key={link.label} href={link.href} className="rounded-full px-3 py-2 text-sm font-black text-[#475569] transition hover:bg-[#F0FDF4] hover:text-[#16A34A]">
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            <Link href="/register" className="rounded-full px-3 py-2 text-sm font-black text-[#475569] transition hover:bg-[#F0FDF4] hover:text-[#16A34A]">Sell on Vendura</Link>
+            <Link href="/login" className="rounded-full bg-[#0F172A] px-4 py-2 text-sm font-black text-white transition hover:bg-[#16A34A]">Vendor Login</Link>
+          </div>
+        </div>
+      </div>
       {isMenuOpen ? (
         <div className="fixed inset-0 z-[1000]">
           <button
@@ -659,6 +692,14 @@ export function StoreHeader({
               )}
             </nav>
             <div className="mt-auto border-t border-[#E5E7EB] p-4">
+              <div className="mb-4 grid gap-2">
+                <Link href="/register" onClick={() => setIsMenuOpen(false)} className="rounded-md bg-[#16A34A] px-4 py-3 text-center text-sm font-black text-white">
+                  Sell on Vendura
+                </Link>
+                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="rounded-md border border-[#E5E7EB] bg-white px-4 py-3 text-center text-sm font-black text-[#0F172A]">
+                  Vendor Login
+                </Link>
+              </div>
               <p className="text-xs font-bold leading-5 text-slate-500">
                 {whatsappPhone ? `Need help? Contact this store on WhatsApp: ${whatsappPhone}` : "Browse products, add to cart, and checkout inside this store."}
               </p>
