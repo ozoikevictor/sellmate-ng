@@ -542,9 +542,6 @@ export function StoreHeader({
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     function closeMenu() {
       setIsMenuOpen(false);
     }
@@ -557,11 +554,14 @@ export function StoreHeader({
 
     document.addEventListener("keydown", closeOnEscape);
     window.addEventListener("scroll", closeMenu, { passive: true, once: true });
+    window.addEventListener("wheel", closeMenu, { passive: true, once: true });
+    window.addEventListener("touchmove", closeMenu, { passive: true, once: true });
 
     return () => {
-      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", closeOnEscape);
       window.removeEventListener("scroll", closeMenu);
+      window.removeEventListener("wheel", closeMenu);
+      window.removeEventListener("touchmove", closeMenu);
     };
   }, [isMenuOpen]);
 
@@ -638,6 +638,19 @@ export function StoreHeader({
       </div>
       {isMenuOpen ? (
         <div className="fixed inset-0 z-[1000]">
+          <style>{`
+            @keyframes vendoraq-drawer-in {
+              from {
+                opacity: 0;
+                transform: translateX(100%);
+              }
+
+              to {
+                opacity: 1;
+                transform: translateX(0);
+              }
+            }
+          `}</style>
           <button
             type="button"
             className="absolute inset-0 h-full w-full bg-slate-950/35"
