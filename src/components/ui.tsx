@@ -737,9 +737,11 @@ export function CheckoutHeader({
   storeHref: string;
   cartHref?: string;
   cartCount?: number;
-  mode: "cart" | "checkout";
+  mode: "cart" | "checkout" | "success";
 }) {
   const isCheckout = mode === "checkout";
+  const statusText = mode === "success" ? "Payment complete" : isCheckout ? "Secure checkout" : "Secure shopping cart";
+  const actionText = mode === "success" ? "Back to store" : "Shop products";
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
@@ -750,13 +752,13 @@ export function CheckoutHeader({
             <p className="truncate text-base font-black capitalize leading-tight text-[#0F172A] sm:text-2xl">{sellerName}</p>
             <p className="hidden items-center gap-1 text-xs font-semibold text-slate-500 sm:flex">
               <IconGlyph name="lock" className="h-3.5 w-3.5" />
-              {isCheckout ? "Secure checkout" : "Secure shopping cart"}
+              {statusText}
             </p>
           </div>
         </Link>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {isCheckout && cartHref ? <CartIconLink href={cartHref} count={cartCount ?? 0} label="Edit cart" /> : null}
-          <Link href={storeHref} className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">Shop products</Link>
+          <Link href={storeHref} className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:text-sm">{actionText}</Link>
         </div>
       </nav>
     </header>

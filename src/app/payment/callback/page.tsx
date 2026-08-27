@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
-import { StoreHeader } from "@/components/ui";
+import { CheckoutHeader } from "@/components/ui";
 import { clearCart, readCurrentStoreHref, updateCustomerOrder, writeCurrentStoreHref } from "@/lib/cart";
 
 type PendingWhatsAppOrder = {
@@ -28,7 +28,6 @@ function PaymentCallbackContent() {
   const [storeHref, setStoreHref] = useState(initialStore.storeHref);
   const [sellerName, setSellerName] = useState(initialStore.sellerName);
   const [sellerLogoUrl, setSellerLogoUrl] = useState(initialStore.sellerLogoUrl);
-  const [searchTerm, setSearchTerm] = useState("");
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
 
@@ -71,15 +70,14 @@ function PaymentCallbackContent() {
   }, [order, reference]);
 
   return (
-    <main className="min-h-screen bg-slate-100 pt-[176px] sm:pt-[128px]">
-      <StoreHeader
+    <main className="min-h-screen bg-slate-100 pt-[72px]">
+      <CheckoutHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
         storeHref={storeHref}
         cartHref={cartHref}
         cartCount={0}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        mode="success"
       />
       <section className={`mx-auto mt-8 w-[calc(100%-2rem)] max-w-xl rounded-lg border bg-white p-6 shadow-sm ${status === "error" ? "border-rose-200" : "border-emerald-200"}`}>
         <p className={`text-xs font-black uppercase tracking-[0.18em] ${status === "error" ? "text-rose-700" : "text-emerald-700"}`}>

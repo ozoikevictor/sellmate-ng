@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { IconGlyph, PublicFooter, StoreHeader } from "@/components/ui";
+import { CheckoutHeader, IconGlyph, PublicFooter } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
 import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -25,7 +25,6 @@ export default function CartPage() {
   const [sellerName, setSellerName] = useState("Store");
   const [sellerLogoUrl, setSellerLogoUrl] = useState("");
   const [storeHref, setStoreHref] = useState("/");
-  const [searchTerm, setSearchTerm] = useState("");
   const subtotal = cartTotal(items);
   const total = items.length > 0 ? subtotal + delivery : 0;
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
@@ -57,15 +56,14 @@ export default function CartPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
-      <StoreHeader
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[72px]">
+      <CheckoutHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
         storeHref={storeHref}
         cartHref={cartHref}
         cartCount={itemCount}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        mode="cart"
       />
 
       <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#f8fafc_0%,#e7f8ef_56%,#fff7ed_100%)]">
