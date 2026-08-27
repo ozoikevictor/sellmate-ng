@@ -57,7 +57,7 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
       <StoreHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
@@ -98,7 +98,7 @@ export default function CartPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
         {items.length === 0 ? (
           <div className="rounded-lg border border-dashed border-emerald-300 bg-white p-8 text-center shadow-lg">
             <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-emerald-700">

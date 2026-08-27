@@ -103,7 +103,7 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#F8FAFC] text-[#111827]">
+    <main className="flex min-h-screen flex-col overflow-x-hidden bg-[#F8FAFC] text-[#111827]">
       <LandingHeader storeHref={storeHref} navLinks={navLinks} menuOpen={menuOpen} setMenuOpen={setMenuOpen} onDemoCartOpen={() => setDemoCartOpen(true)} />
       {demoCartOpen ? <DemoCartModal onClose={() => setDemoCartOpen(false)} /> : null}
 

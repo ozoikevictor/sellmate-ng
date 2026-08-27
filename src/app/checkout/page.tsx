@@ -193,7 +193,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
       <StoreHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
@@ -221,7 +221,7 @@ export default function CheckoutPage() {
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_390px]">
+      <div className="mx-auto grid w-full max-w-7xl flex-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_390px]">
         <section>
           <form onSubmit={placeOrder} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
             <div className="border-b border-slate-100 bg-white p-5">

@@ -278,7 +278,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   if (loading && !profile) return <LoadingScreen />;
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
       <StoreHeader
         sellerName={sellerName}
         sellerLogoUrl={profile?.logo_url}
@@ -297,7 +297,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-8 sm:py-12">
+      <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:py-12">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
         {view === "products" ? <ProductsView products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}

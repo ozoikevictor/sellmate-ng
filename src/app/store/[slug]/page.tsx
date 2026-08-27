@@ -259,7 +259,7 @@ export default function DynamicStorefrontPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[176px] sm:pt-[128px]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}
@@ -337,7 +337,7 @@ export default function DynamicStorefrontPage() {
           </div>
         </div>
       </section>
-      <section id="products" className="mx-auto max-w-7xl px-5 py-8 sm:py-12">
+      <section id="products" className="mx-auto w-full max-w-7xl flex-1 px-5 py-8 sm:py-12">
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
           {["All", ...(categories.length ? categories : ["Products"])].map((category) => (

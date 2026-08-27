@@ -102,7 +102,7 @@ export default function StorefrontPage() {
   });
 
   return (
-    <main className="min-h-screen sellmate-page-bg pt-[176px] sm:pt-[128px]">
+    <main className="flex min-h-screen flex-col sellmate-page-bg pt-[176px] sm:pt-[128px]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}
@@ -140,7 +140,7 @@ export default function StorefrontPage() {
           </div>
         </div>
       </section>
-      <section id="products" className="mx-auto max-w-7xl px-5 py-12">
+      <section id="products" className="mx-auto w-full max-w-7xl flex-1 px-5 py-12">
         <SectionTitle
           eyebrow="Shop"
           title="Latest products"
