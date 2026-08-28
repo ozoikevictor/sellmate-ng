@@ -141,7 +141,7 @@ export async function GET(request: Request) {
 
     const { data, error } = await supabase
       .from("customer_messages")
-      .select("id,store_slug,product_name,message,status,seller_reply,replied_at,created_at")
+      .select("id,store_slug,product_id,product_name,message,status,seller_reply,replied_at,created_at")
       .eq("store_slug", publicStoreSlug)
       .in("id", publicIds)
       .not("seller_reply", "is", null)

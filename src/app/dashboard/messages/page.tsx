@@ -20,6 +20,15 @@ type CustomerMessage = {
   created_at: string;
 };
 
+type CustomerConversation = {
+  key: string;
+  customer_name: string;
+  customer_phone: string;
+  latest: CustomerMessage;
+  messages: CustomerMessage[];
+  newCount: number;
+};
+
 const statuses: CustomerMessage["status"][] = ["New", "Read", "Replied"];
 
 export default function MessagesPage() {
@@ -97,7 +106,13 @@ export default function MessagesPage() {
   const filteredMessages = useMemo(() => {
     return filter === "All" ? messages : messages.filter((message) => message.status === filter);
   }, [filter, messages]);
-  const selectedMessage = messages.find((message) => message.id === selectedId) ?? filteredMessages[0] ?? messages[0];
+  const conversations = useMemo(() => buildConversations(filteredMessages), [filteredMessages]);
+  const selectedConversation =
+    conversations.find((conversation) => conversation.messages.some((message) => message.id === selectedId)) ?? conversations[0];
+  const selectedMessage =
+    selectedConversation?.messages.find((message) => message.id === selectedId) ??
+    selectedConversation?.messages.find((message) => !message.seller_reply) ??
+    selectedConversation?.latest;
   const newMessages = messages.filter((message) => message.status === "New").length;
   const repliedMessages = messages.filter((message) => message.status === "Replied").length;
   const replyText = selectedMessage ? (replyDrafts[selectedMessage.id] ?? selectedMessage.seller_reply ?? "") : "";
@@ -257,25 +272,33 @@ export default function MessagesPage() {
           <section className="sellmate-card overflow-hidden rounded-lg">
             <div className="border-b border-slate-100 p-4">
               <p className="text-sm font-black text-slate-950">Inbox</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500">{filteredMessages.length} message(s) showing</p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{conversations.length} customer conversation(s)</p>
             </div>
             <div className="max-h-[680px] overflow-y-auto">
-              {filteredMessages.map((message) => (
+              {conversations.map((conversation) => (
                 <button
-                  key={message.id}
+                  key={conversation.key}
                   type="button"
-                  onClick={() => setSelectedId(message.id)}
-                  className={`block w-full border-b border-slate-100 p-4 text-left transition hover:bg-emerald-50/60 ${selectedMessage?.id === message.id ? "bg-emerald-50" : "bg-white"}`}
+                  onClick={() => setSelectedId(conversation.latest.id)}
+                  className={`block w-full border-b border-slate-100 p-4 text-left transition hover:bg-emerald-50/60 ${selectedConversation?.key === conversation.key ? "bg-emerald-50" : "bg-white"}`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-black text-slate-950">{message.customer_name}</p>
-                      <p className="mt-1 truncate text-xs font-semibold text-slate-500">{message.product_name}</p>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-950 text-sm font-black text-white">
+                        {conversation.customer_name.slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-black text-slate-950">{conversation.customer_name}</span>
+                        <span className="mt-1 block truncate text-xs font-semibold text-slate-500">{conversation.latest.product_name}</span>
+                      </span>
                     </div>
-                    <Badge tone={message.status === "New" ? "amber" : message.status === "Replied" ? "green" : "blue"}>{message.status}</Badge>
+                    {conversation.newCount > 0 ? <Badge tone="amber">{conversation.newCount} new</Badge> : <Badge tone="green">Open</Badge>}
                   </div>
-                  <p className="mt-3 line-clamp-2 text-sm font-semibold leading-6 text-slate-600">{message.message}</p>
-                  <p className="mt-2 text-xs font-bold text-slate-400">{new Date(message.created_at).toLocaleString()}</p>
+                  <p className="mt-3 line-clamp-2 text-sm font-semibold leading-6 text-slate-600">{conversation.latest.message}</p>
+                  <div className="mt-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-400">
+                    <span>{conversation.customer_phone}</span>
+                    <span>{new Date(conversation.latest.created_at).toLocaleString()}</span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -286,7 +309,7 @@ export default function MessagesPage() {
               <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Customer message</p>
-                  <h2 className="mt-2 text-2xl font-black text-slate-950">{selectedMessage.customer_name}</h2>
+                  <h2 className="mt-2 text-2xl font-black text-slate-950">Chat with {selectedConversation?.customer_name ?? selectedMessage.customer_name}</h2>
                   <p className="mt-1 text-sm font-semibold text-slate-500">{selectedMessage.customer_phone}</p>
                 </div>
                 <Badge tone={selectedMessage.status === "New" ? "amber" : selectedMessage.status === "Replied" ? "green" : "blue"}>{selectedMessage.status}</Badge>
@@ -304,9 +327,30 @@ export default function MessagesPage() {
                 </div>
               </div>
 
-              <div className="mt-5 rounded-lg bg-white p-5 ring-1 ring-slate-200">
-                <p className="text-sm font-black text-slate-950">Message</p>
-                <p className="mt-3 whitespace-pre-wrap text-sm font-semibold leading-7 text-slate-600">{selectedMessage.message}</p>
+              <div className="mt-5 grid max-h-[430px] gap-4 overflow-y-auto rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200">
+                {selectedConversation?.messages.slice().reverse().map((message) => (
+                  <div key={message.id} className="grid gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(message.id)}
+                      className={`mr-auto max-w-[86%] rounded-2xl rounded-bl-md px-4 py-3 text-left text-sm font-semibold leading-6 ring-1 ${selectedMessage.id === message.id ? "bg-emerald-50 text-slate-950 ring-emerald-200" : "bg-white text-slate-700 ring-slate-200"}`}
+                    >
+                      <span className="block text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</span>
+                      <span className="mt-2 block whitespace-pre-wrap">{message.message}</span>
+                      <span className="mt-2 block text-[11px] font-bold text-slate-400">{new Date(message.created_at).toLocaleString()}</span>
+                    </button>
+                    {message.seller_reply ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(message.id)}
+                        className={`ml-auto max-w-[86%] rounded-2xl rounded-br-md px-4 py-3 text-left text-sm font-semibold leading-6 ${selectedMessage.id === message.id ? "bg-[#15803D] text-white" : "bg-[#16A34A] text-white"}`}
+                      >
+                        <span className="block whitespace-pre-wrap">{message.seller_reply}</span>
+                        {message.replied_at ? <span className="mt-2 block text-[11px] font-bold text-white/75">{new Date(message.replied_at).toLocaleString()}</span> : null}
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
               </div>
 
               <form onSubmit={sendReply} className="mt-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
@@ -397,4 +441,38 @@ function normalizePhone(phone: string) {
   if (digits.startsWith("234")) return digits;
   if (digits.startsWith("0")) return `234${digits.slice(1)}`;
   return digits;
+}
+
+function buildConversations(messages: CustomerMessage[]) {
+  const grouped = new Map<string, CustomerConversation>();
+
+  messages.forEach((message) => {
+    const phoneKey = normalizePhone(message.customer_phone);
+    const key = phoneKey || message.customer_name.trim().toLowerCase() || message.id;
+    const current = grouped.get(key);
+    if (!current) {
+      grouped.set(key, {
+        key,
+        customer_name: message.customer_name || "Customer",
+        customer_phone: message.customer_phone,
+        latest: message,
+        messages: [message],
+        newCount: message.status === "New" ? 1 : 0,
+      });
+      return;
+    }
+
+    current.messages.push(message);
+    current.newCount += message.status === "New" ? 1 : 0;
+    if (new Date(message.created_at).getTime() > new Date(current.latest.created_at).getTime()) {
+      current.latest = message;
+    }
+  });
+
+  return Array.from(grouped.values())
+    .map((conversation) => ({
+      ...conversation,
+      messages: conversation.messages.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    }))
+    .sort((a, b) => new Date(b.latest.created_at).getTime() - new Date(a.latest.created_at).getTime());
 }

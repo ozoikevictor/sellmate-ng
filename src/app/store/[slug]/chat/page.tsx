@@ -44,6 +44,7 @@ type LocalChatMessage = {
 
 type SellerReply = {
   id: string;
+  product_id?: string | null;
   product_name: string;
   message: string;
   seller_reply: string;
@@ -53,12 +54,14 @@ type SellerReply = {
 
 const CUSTOMER_CHAT_KEY = "sellmate-ng-customer-chat";
 const CUSTOMER_MESSAGE_KEY = "sellmate-ng-customer-messages";
+const CUSTOMER_READ_REPLIES_KEY = "sellmate-ng-read-replies";
 
 export default function CustomerChatPage() {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
   const slug = params.slug;
   const selectedProductId = searchParams.get("product") ?? "";
+  const selectedMessageId = searchParams.get("message") ?? "";
   const [profile, setProfile] = useState<StoreProfile | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [selectedId, setSelectedId] = useState(selectedProductId);
@@ -140,6 +143,21 @@ export default function CustomerChatPage() {
     window.addEventListener("sellmate-customer-messages-updated", loadReplies);
     return () => window.removeEventListener("sellmate-customer-messages-updated", loadReplies);
   }, [slug]);
+
+  useEffect(() => {
+    if (!selectedMessageId) return;
+
+    const localMessage = readLocalChat(slug).find((message) => message.id === selectedMessageId);
+    const nextProductId = selectedProductId || localMessage?.product_id || sellerReplies.find((reply) => reply.id === selectedMessageId)?.product_id || "";
+    markCustomerReplyRead(slug, selectedMessageId);
+    window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
+    window.setTimeout(() => {
+      if (nextProductId) {
+        setSelectedId(nextProductId);
+      }
+      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  }, [selectedMessageId, selectedProductId, sellerReplies, slug]);
 
   const selectedProduct = products.find((product) => product.id === selectedId) ?? products[0];
   const categories = useMemo(() => Array.from(new Set(products.map((product) => product.category).filter(Boolean))).sort(), [products]);
@@ -363,6 +381,17 @@ function saveCustomerMessageId(storeSlug: string, messageId: string) {
     window.localStorage.setItem(CUSTOMER_MESSAGE_KEY, JSON.stringify(parsed));
   } catch {
     window.localStorage.setItem(CUSTOMER_MESSAGE_KEY, JSON.stringify({ [storeSlug]: [messageId] }));
+  }
+}
+
+function markCustomerReplyRead(storeSlug: string, messageId: string) {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_READ_REPLIES_KEY) || "{}") as Record<string, string[]>;
+    const current = Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
+    parsed[storeSlug] = [messageId, ...current.filter((id) => id !== messageId)].slice(0, 50);
+    window.localStorage.setItem(CUSTOMER_READ_REPLIES_KEY, JSON.stringify(parsed));
+  } catch {
+    window.localStorage.setItem(CUSTOMER_READ_REPLIES_KEY, JSON.stringify({ [storeSlug]: [messageId] }));
   }
 }
 

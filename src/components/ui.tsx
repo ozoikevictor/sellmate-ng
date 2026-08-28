@@ -524,7 +524,8 @@ export function StoreHeader({
 }) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [replyMessages, setReplyMessages] = useState<Array<{ id: string; product_name: string; seller_reply: string; replied_at?: string | null }>>([]);
+  const [replyMessages, setReplyMessages] = useState<Array<{ id: string; product_id?: string | null; product_name: string; seller_reply: string; replied_at?: string | null }>>([]);
+  const [readReplyIds, setReadReplyIds] = useState<string[]>([]);
   const [isRepliesOpen, setIsRepliesOpen] = useState(false);
   const productPageHref = `${storeHref}/products`;
   const categoriesHref = `${storeHref}/categories`;
@@ -532,6 +533,8 @@ export function StoreHeader({
   const ordersHref = `${storeHref}/orders`;
   const supportHref = `${storeHref}/support`;
   const chatHref = `${storeHref}/chat`;
+  const storeSlug = storeHref.split("/store/")[1]?.split(/[?#/]/)[0] ?? "";
+  const unreadReplyMessages = replyMessages.filter((message) => !readReplyIds.includes(message.id));
   const drawerLinks: Array<{ label: string; href?: string; icon: "home" | "search" | "menu" | "heart" | "cart" | "user" | "messages"; disabled?: boolean }> = [
     { label: "Home", href: storeHref, icon: "home" },
     { label: "All Products", href: productPageHref, icon: "search" },
@@ -572,11 +575,11 @@ export function StoreHeader({
   }, [isMenuOpen]);
 
   useEffect(() => {
-    const storeSlug = storeHref.split("/store/")[1]?.split(/[?#/]/)[0];
     if (!storeSlug) return;
 
     async function loadCustomerReplies() {
       const savedIds = readCustomerMessageIds(storeSlug);
+      setReadReplyIds(readCustomerReadReplyIds(storeSlug));
       if (savedIds.length === 0) {
         setReplyMessages([]);
         return;
@@ -596,7 +599,14 @@ export function StoreHeader({
     loadCustomerReplies();
     window.addEventListener("sellmate-customer-messages-updated", loadCustomerReplies);
     return () => window.removeEventListener("sellmate-customer-messages-updated", loadCustomerReplies);
-  }, [storeHref]);
+  }, [storeHref, storeSlug]);
+
+  function markReplyRead(messageId: string) {
+    if (!storeSlug) return;
+    markCustomerReplyRead(storeSlug, messageId);
+    setReadReplyIds(readCustomerReadReplyIds(storeSlug));
+    window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
+  }
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -625,9 +635,9 @@ export function StoreHeader({
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <button type="button" onClick={() => setIsRepliesOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]" aria-label="View seller replies">
             <IconGlyph name="messages" className="h-5 w-5" />
-            {replyMessages.length > 0 ? (
+            {unreadReplyMessages.length > 0 ? (
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#16A34A] px-1 text-[10px] font-black text-white">
-                {replyMessages.length}
+                {unreadReplyMessages.length}
               </span>
             ) : null}
           </button>
@@ -757,9 +767,22 @@ export function StoreHeader({
               <div className="grid gap-3 py-4">
                 {replyMessages.map((message) => (
                   <article key={message.id} className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</p>
+                      {readReplyIds.includes(message.id) ? <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500 ring-1 ring-emerald-100">Read</span> : null}
+                    </div>
                     <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">{message.seller_reply}</p>
                     {message.replied_at ? <p className="mt-3 text-xs font-bold text-slate-500">{new Date(message.replied_at).toLocaleString()}</p> : null}
+                    <Link
+                      href={`${chatHref}?message=${encodeURIComponent(message.id)}${message.product_id ? `&product=${encodeURIComponent(message.product_id)}` : ""}`}
+                      onClick={() => {
+                        markReplyRead(message.id);
+                        setIsRepliesOpen(false);
+                      }}
+                      className="mt-3 inline-flex rounded-md bg-[#16A34A] px-4 py-2 text-xs font-black text-white transition hover:bg-[#15803D]"
+                    >
+                      Reply in chat
+                    </Link>
                   </article>
                 ))}
               </div>
@@ -772,6 +795,7 @@ export function StoreHeader({
 }
 
 const CUSTOMER_MESSAGE_KEY = "sellmate-ng-customer-messages";
+const CUSTOMER_READ_REPLIES_KEY = "sellmate-ng-read-replies";
 
 function readCustomerMessageIds(storeSlug: string) {
   if (typeof window === "undefined") return [];
@@ -780,6 +804,28 @@ function readCustomerMessageIds(storeSlug: string) {
     return Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
   } catch {
     return [];
+  }
+}
+
+function readCustomerReadReplyIds(storeSlug: string) {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_READ_REPLIES_KEY) || "{}") as Record<string, string[]>;
+    return Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
+  } catch {
+    return [];
+  }
+}
+
+function markCustomerReplyRead(storeSlug: string, messageId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_READ_REPLIES_KEY) || "{}") as Record<string, string[]>;
+    const current = Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
+    parsed[storeSlug] = [messageId, ...current.filter((id) => id !== messageId)].slice(0, 50);
+    window.localStorage.setItem(CUSTOMER_READ_REPLIES_KEY, JSON.stringify(parsed));
+  } catch {
+    window.localStorage.setItem(CUSTOMER_READ_REPLIES_KEY, JSON.stringify({ [storeSlug]: [messageId] }));
   }
 }
 
