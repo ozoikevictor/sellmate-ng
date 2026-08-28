@@ -158,31 +158,50 @@ export default function CustomerChatPage() {
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!profile || !selectedProduct) return;
+    const form = event.currentTarget;
+    if (!profile?.user_id || !selectedProduct?.id) {
+      setNotice("This store is still loading. Wait a moment, then send your message again.");
+      return;
+    }
 
     setSending(true);
     setNotice("");
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const customerName = String(formData.get("customer_name") ?? "").trim();
     const customerPhone = String(formData.get("customer_phone") ?? "").trim();
     const message = String(formData.get("message") ?? "").trim();
 
-    const response = await fetch("/api/customer-messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sellerId: profile.user_id,
-        storeSlug: slug,
-        productId: selectedProduct.id,
-        productName: selectedProduct.name,
-        customerName,
-        customerPhone,
-        message,
-      }),
-    });
-    const data = await response.json();
+    let response: Response;
+    let data: { message?: string; id?: string };
+    try {
+      response = await fetch("/api/customer-messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sellerId: profile.user_id,
+          storeSlug: slug,
+          productId: selectedProduct.id,
+          productName: selectedProduct.name,
+          customerName,
+          customerPhone,
+          message,
+        }),
+      });
+      data = await response.json();
+    } catch {
+      setNotice("Could not connect to customer chat. Refresh the page and try again.");
+      setSending(false);
+      return;
+    }
+
     if (!response.ok) {
-      setNotice(data.message ?? "Could not send your message.");
+      setNotice(formatChatError(data.message));
+      setSending(false);
+      return;
+    }
+
+    if (!data.id) {
+      setNotice("Customer chat did not return a message ID. Please try again.");
       setSending(false);
       return;
     }
@@ -200,7 +219,7 @@ export default function CustomerChatPage() {
     saveLocalChat(slug, savedMessage);
     setLocalMessages(readLocalChat(slug));
     window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
-    event.currentTarget.reset();
+    form.reset();
     setSending(false);
   }
 
@@ -307,7 +326,7 @@ export default function CustomerChatPage() {
             <input name="customer_name" required placeholder="Your name" className="rounded-md border border-slate-300 px-3 py-2.5 text-base font-semibold outline-none focus:border-emerald-600" />
             <input name="customer_phone" required placeholder="Phone number" className="rounded-md border border-slate-300 px-3 py-2.5 text-base font-semibold outline-none focus:border-emerald-600" />
             <textarea name="message" required maxLength={500} rows={2} placeholder="Type your message..." className="resize-none rounded-md border border-slate-300 px-3 py-2.5 text-base font-semibold outline-none focus:border-emerald-600 sm:col-span-2" />
-            <button disabled={sending || !selectedProduct} className="rounded-md bg-[#16A34A] px-5 py-2.5 text-sm font-black text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400 sm:col-span-2">
+            <button disabled={sending || !profile?.user_id || !selectedProduct?.id} className="rounded-md bg-[#16A34A] px-5 py-2.5 text-sm font-black text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400 sm:col-span-2">
               {sending ? "Sending..." : "Send message"}
             </button>
           </form>
@@ -317,6 +336,14 @@ export default function CustomerChatPage() {
       <PublicFooter sellerName={profile?.business_name} sellerLogoUrl={profile?.logo_url} storeHref={storeHref} />
     </main>
   );
+}
+
+function formatChatError(message?: string) {
+  const text = message ?? "";
+  if (text.toLowerCase().includes("customer_messages") || text.toLowerCase().includes("schema cache")) {
+    return "Customer chat is not fully connected yet. Add the customer_messages table in Supabase first.";
+  }
+  return text || "Could not send your message.";
 }
 
 function readCustomerMessageIds(storeSlug: string) {

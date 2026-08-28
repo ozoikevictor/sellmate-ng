@@ -256,7 +256,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </header>
-        <div className="mx-auto max-w-[1500px] px-4 pb-6 pt-32 sm:px-6 lg:pb-8 lg:pt-28">{children}</div>
+        <div className="mx-auto max-w-[1500px] px-4 pb-6 pt-40 sm:px-6 sm:pt-36 lg:pb-8 lg:pt-28">{children}</div>
       </section>
     </main>
   );

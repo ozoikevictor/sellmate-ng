@@ -83,22 +83,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Customer messages are not configured yet." }, { status: 500 });
   }
 
-  const { data, error } = await supabase.from("customer_messages").insert({
-    seller_id: sellerId,
-    store_slug: storeSlug,
-    product_id: productId,
-    product_name: productName,
-    customer_name: customerName,
-    customer_phone: customerPhone,
-    message,
-    status: "New",
-  }).select("id").single();
-
-  if (error) {
-    return NextResponse.json({ message: error.message }, { status: 400 });
+  let result: { data: { id: string } | null; error: { message: string } | null };
+  try {
+    result = await supabase
+      .from("customer_messages")
+      .insert({
+        seller_id: sellerId,
+        store_slug: storeSlug,
+        product_id: productId,
+        product_name: productName,
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        message,
+        status: "New",
+      })
+      .select("id")
+      .single();
+  } catch {
+    return NextResponse.json({ message: "Could not reach Supabase messages table. Check the table setup and environment keys." }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, id: data?.id ?? "" });
+  if (result.error) {
+    return NextResponse.json({ message: formatCustomerMessageError(result.error.message) }, { status: 400 });
+  }
+
+  return NextResponse.json({ ok: true, id: result.data?.id ?? "" });
+}
+
+function formatCustomerMessageError(message: string) {
+  const lower = message.toLowerCase();
+  if (lower.includes("fetch failed")) {
+    return "Could not connect to Supabase from the local server. Check your internet connection and Supabase environment keys.";
+  }
+  if (lower.includes("customer_messages") || lower.includes("schema cache")) {
+    return "Customer messages are not fully connected yet. Add the customer_messages table in Supabase first.";
+  }
+  return message;
 }
 
 export async function GET(request: Request) {

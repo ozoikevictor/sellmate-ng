@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, IconGlyph, SectionTitle, StatCard } from "@/components/ui";
 import { useAuth } from "@/components/auth";
+import { supabase } from "@/lib/supabase";
 
 type CustomerMessage = {
   id: string;
@@ -22,25 +23,36 @@ type CustomerMessage = {
 const statuses: CustomerMessage["status"][] = ["New", "Read", "Replied"];
 
 export default function MessagesPage() {
-  const { user } = useAuth();
+  const { ready, user } = useAuth();
+  const userId = user?.id ?? "";
   const [messages, setMessages] = useState<CustomerMessage[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [filter, setFilter] = useState<"All" | CustomerMessage["status"]>("All");
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState("");
   const [notice, setNotice] = useState("");
+  const [sessionNotice, setSessionNotice] = useState(false);
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   const loadMessages = useCallback(async () => {
-    if (!user?.id) {
+    if (!ready) {
+      return;
+    }
+
+    if (!userId) {
+      setNotice("Open the login page again before viewing customer messages.");
+      setSessionNotice(true);
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     setNotice("");
+    setSessionNotice(false);
     const token = await getAccessToken();
     if (!token) {
-      setNotice("Log in again to view customer messages.");
+      setNotice("Your dashboard is open, but the private message connection needs a fresh session.");
+      setSessionNotice(true);
       setLoading(false);
       return;
     }
@@ -50,7 +62,21 @@ export default function MessagesPage() {
     });
     const data = await response.json();
     if (!response.ok) {
-      setNotice(data.message ?? "Could not load customer messages.");
+      if (response.status === 401) {
+        const fallback = await loadMessagesFromSupabase(userId);
+        if (fallback.ok) {
+          setMessages(fallback.messages);
+          setSelectedId((current) => current || fallback.messages[0]?.id || "");
+          setLoading(false);
+          return;
+        }
+        setNotice(formatMessagesError(fallback.message));
+        setSessionNotice(false);
+        setLoading(false);
+        return;
+      }
+      setNotice(response.status === 401 ? "Your dashboard is open, but the private message connection needs a fresh session." : formatMessagesError(data.message));
+      setSessionNotice(response.status === 401);
       setLoading(false);
       return;
     }
@@ -59,7 +85,7 @@ export default function MessagesPage() {
     setMessages(nextMessages);
     setSelectedId((current) => current || nextMessages[0]?.id || "");
     setLoading(false);
-  }, [user?.id]);
+  }, [ready, userId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -96,7 +122,18 @@ export default function MessagesPage() {
     });
     const data = await response.json();
     if (!response.ok) {
-      setNotice(data.message ?? "Could not update this message.");
+      if (response.status === 401) {
+        const { error } = await supabase.from("customer_messages").update({ status }).eq("id", messageId).eq("seller_id", userId);
+        if (!error) {
+          setMessages((current) => current.map((message) => (message.id === messageId ? { ...message, status } : message)));
+          setSavingId("");
+          return;
+        }
+        setNotice(formatMessagesError(error.message));
+        setSavingId("");
+        return;
+      }
+      setNotice(formatMessagesError(data.message));
       setSavingId("");
       return;
     }
@@ -133,7 +170,25 @@ export default function MessagesPage() {
     });
     const data = await response.json();
     if (!response.ok) {
-      setNotice(data.message ?? "Could not send this reply.");
+      if (response.status === 401) {
+        const repliedAt = new Date().toISOString();
+        const { error } = await supabase
+          .from("customer_messages")
+          .update({ status: "Replied", seller_reply: reply, replied_at: repliedAt })
+          .eq("id", selectedMessage.id)
+          .eq("seller_id", userId);
+        if (!error) {
+          setMessages((current) => current.map((message) => (message.id === selectedMessage.id ? { ...message, status: "Replied", seller_reply: reply, replied_at: repliedAt } : message)));
+          setReplyDrafts((current) => ({ ...current, [selectedMessage.id]: reply }));
+          setNotice("Reply saved. The customer will see it in their store notification.");
+          setSavingId("");
+          return;
+        }
+        setNotice(formatMessagesError(error.message));
+        setSavingId("");
+        return;
+      }
+      setNotice(formatMessagesError(data.message));
       setSavingId("");
       return;
     }
@@ -149,6 +204,11 @@ export default function MessagesPage() {
     <>
       <SectionTitle eyebrow="Inbox" title="Messages" />
       {notice ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{notice}</p> : null}
+      {sessionNotice ? (
+        <button type="button" onClick={loadMessages} className="mb-5 inline-flex rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D]">
+          Refresh messages
+        </button>
+      ) : null}
 
       <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="grid gap-5 bg-[linear-gradient(135deg,#F8FAFC_0%,#ECFDF5_58%,#EFF6FF_100%)] p-5 lg:grid-cols-[1fr_330px] lg:items-center lg:p-6">
@@ -295,10 +355,35 @@ export default function MessagesPage() {
   );
 }
 
+async function loadMessagesFromSupabase(userId: string) {
+  const { data, error } = await supabase
+    .from("customer_messages")
+    .select("id,store_slug,product_id,product_name,customer_name,customer_phone,message,status,seller_reply,replied_at,created_at")
+    .eq("seller_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return { ok: false, messages: [] as CustomerMessage[], message: error.message };
+  }
+
+  return { ok: true, messages: (data ?? []) as CustomerMessage[] };
+}
+
+function formatMessagesError(message?: string) {
+  const text = message ?? "";
+  if (text.toLowerCase().includes("customer_messages") || text.toLowerCase().includes("schema cache")) {
+    return "Customer messages are not fully connected yet. Add the customer_messages table in Supabase first.";
+  }
+  return text || "Could not load customer messages.";
+}
+
 async function getAccessToken() {
-  const { supabase } = await import("@/lib/supabase");
   const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? "";
+  if (data.session?.access_token) {
+    return data.session.access_token;
+  }
+  const refreshed = await supabase.auth.refreshSession();
+  return refreshed.data.session?.access_token ?? "";
 }
 
 function buildWhatsAppHref(message: CustomerMessage) {
