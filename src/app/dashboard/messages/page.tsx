@@ -142,8 +142,10 @@ export default function MessagesPage() {
       <section className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-white shadow-sm">
         {notice ? <p className="m-3 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{notice}</p> : null}
           <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-3 py-3 sm:px-4">
-            <Link href="/dashboard/messages" aria-label="Back to messages" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
-              &lt;
+            <Link href="/dashboard/messages" aria-label="Back to messages" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-5 w-5" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </Link>
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-950 text-sm font-black text-white">{openConversation.customer_name.slice(0, 1).toUpperCase()}</span>
@@ -183,8 +185,15 @@ export default function MessagesPage() {
                 placeholder={`Reply to ${openConversation.customer_name}...`}
                 className="max-h-28 min-h-12 resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600"
               />
-              <button disabled={savingId === openConversation.latest.id} className="min-h-12 rounded-full bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D] disabled:bg-slate-400">
-                {savingId === openConversation.latest.id ? "..." : "Send"}
+              <button disabled={savingId === openConversation.latest.id} aria-label="Send reply" className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#16A34A] text-white transition hover:bg-[#15803D] disabled:bg-slate-400">
+                {savingId === openConversation.latest.id ? (
+                  <span className="text-sm font-black">...</span>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-5 w-5" aria-hidden="true">
+                    <path d="M5 12h13" />
+                    <path d="M13 6l6 6-6 6" />
+                  </svg>
+                )}
               </button>
             </div>
           </form>
