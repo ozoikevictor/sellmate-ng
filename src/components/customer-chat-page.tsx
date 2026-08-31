@@ -143,6 +143,15 @@ export default function CustomerChatPage() {
   }, [slug, selectedProductId]);
 
   useEffect(() => {
+    if (!selectedProductId) return;
+    setSelectedId(selectedProductId);
+    setSelectedProductIds([selectedProductId]);
+    window.setTimeout(() => {
+      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }, [selectedProductId]);
+
+  useEffect(() => {
     async function loadReplies() {
       try {
         const ids = readCustomerMessageIds(slug);
