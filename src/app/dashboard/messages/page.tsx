@@ -141,17 +141,17 @@ export default function MessagesPage() {
     return (
       <section className="flex h-[calc(100dvh-9rem)] min-h-0 flex-col overflow-hidden border-y border-slate-200 bg-white shadow-sm sm:h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-6rem)] lg:min-h-[34rem] lg:border-x">
         {notice ? <p className="m-3 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{notice}</p> : null}
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-white p-4">
-            <div className="flex min-w-0 items-center gap-3">
+          <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-3 py-3 sm:px-4">
+            <Link href="/dashboard/messages" aria-label="Back to messages" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
+              &lt;
+            </Link>
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-950 text-sm font-black text-white">{openConversation.customer_name.slice(0, 1).toUpperCase()}</span>
               <div className="min-w-0">
                 <h2 className="truncate text-lg font-black text-slate-950">{openConversation.customer_name}</h2>
                 <p className="truncate text-sm font-semibold text-slate-500">{openConversation.customer_phone}</p>
               </div>
             </div>
-            <Link href="/dashboard/messages" className="shrink-0 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
-              Back
-            </Link>
           </div>
 
           <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto bg-slate-50 p-4">

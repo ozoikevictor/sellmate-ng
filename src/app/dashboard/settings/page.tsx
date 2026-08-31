@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { SectionTitle, SellerLogo } from "@/components/ui";
+import { IconGlyph, SectionTitle, SellerLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -72,6 +72,9 @@ export default function SettingsPage() {
   const cleanStoreSlug = profile.store_slug.trim().toLowerCase().replace(/\s+/g, "-") || (user?.id ? makeStoreSlug(profile.business_name || user.business || "store", user.id) : "store");
   const storePath = `/store/${cleanStoreSlug}`;
   const storeUrl = siteOrigin ? `${siteOrigin}${storePath}` : storePath;
+  const hasStoreDetails = Boolean(profile.business_name && profile.whatsapp_phone && profile.store_slug);
+  const hasPayoutDetails = Boolean(profile.bank_code && profile.account_number && profile.account_name);
+  const payoutConnected = Boolean(profile.paystack_subaccount_code);
 
   const loadProfile = useCallback(async () => {
     const userId = user?.id;
@@ -222,108 +225,139 @@ export default function SettingsPage() {
   return (
     <>
       <SectionTitle eyebrow="Workspace" title="Settings" />
-      <form onSubmit={saveProfile} className="sellmate-card rounded-lg p-5">
-        <h2 className="mb-4 text-xl font-black text-slate-950">Store details</h2>
-        <div className="grid gap-4 md:grid-cols-2">
-          <SettingsField label="Owner name" name="owner_name" value={profile.owner_name} onChange={updateProfile} placeholder="Ozoike Victor" />
-          <SettingsField label="Business name" name="business_name" value={profile.business_name} onChange={updateProfile} placeholder="Victor Fashions" />
-          <SettingsField label="WhatsApp line" name="whatsapp_phone" value={profile.whatsapp_phone} onChange={updateProfile} placeholder="+234 801 555 0199" />
-          <SettingsField label="City" name="city" value={profile.city} onChange={updateProfile} placeholder="Lagos" />
-          <SettingsField label="Delivery fee" name="delivery_fee" value={profile.delivery_fee} onChange={updateProfile} placeholder="3500" type="number" />
-          <SettingsField label="Store slug" name="store_slug" value={profile.store_slug} onChange={updateProfile} placeholder="victor-fashions" />
-          <SettingsField label="Logo text" name="logo_text" value={profile.logo_text} onChange={updateProfile} placeholder="Victor Fashions" />
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm text-slate-500">Store URL</p>
-            <p className="mt-2 break-all text-lg font-black text-slate-950">{storeUrl}</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                href={storePath}
-                target="_blank"
-                className="rounded-md bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-slate-800"
-              >
-                Open store
-              </Link>
-              <button
-                type="button"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(storeUrl);
-                  setMessage("Store link copied.");
-                }}
-                className="rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm hover:bg-slate-100"
-              >
-                Copy link
-              </button>
+      <form onSubmit={saveProfile} className="grid gap-5">
+        <section className="grid gap-3 sm:grid-cols-3">
+          <SettingsStatusCard icon="home" label="Store profile" value={hasStoreDetails ? "Ready" : "Needs setup"} tone={hasStoreDetails ? "good" : "warn"} />
+          <SettingsStatusCard icon="cart" label="Delivery fee" value={profile.delivery_fee ? `NGN ${Number(profile.delivery_fee || 0).toLocaleString()}` : "Not set"} tone={profile.delivery_fee ? "good" : "warn"} />
+          <SettingsStatusCard icon="lock" label="Payout" value={payoutConnected ? "Connected" : hasPayoutDetails ? "Ready to connect" : "Needs bank"} tone={payoutConnected ? "good" : hasPayoutDetails ? "warn" : "neutral"} />
+        </section>
+
+        <section className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
+          <div className="sellmate-card rounded-lg p-5">
+            <SettingsSectionHeader title="Store identity" text="This information appears on your storefront, receipts, checkout pages, and customer message header." />
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <SettingsField label="Owner name" name="owner_name" value={profile.owner_name} onChange={updateProfile} placeholder="Ozoike Victor" />
+              <SettingsField label="Business name" name="business_name" value={profile.business_name} onChange={updateProfile} placeholder="Victor Fashions" />
+              <SettingsField label="WhatsApp line" name="whatsapp_phone" value={profile.whatsapp_phone} onChange={updateProfile} placeholder="+234 801 555 0199" />
+              <SettingsField label="City" name="city" value={profile.city} onChange={updateProfile} placeholder="Lagos" />
+              <SettingsField label="Store slug" name="store_slug" value={profile.store_slug} onChange={updateProfile} placeholder="victor-fashions" />
+              <SettingsField label="Logo text" name="logo_text" value={profile.logo_text} onChange={updateProfile} placeholder="Victor Fashions" />
             </div>
           </div>
-        </div>
-        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <h3 className="text-sm font-black text-slate-950">Store logo</h3>
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
-            <SellerLogo name={profile.logo_text || profile.business_name || "Store"} logoUrl={profile.logo_url} />
-            <div className="grid gap-3">
-              <label className="w-fit cursor-pointer rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm hover:bg-slate-100">
-                Upload logo from device
-                <input type="file" accept="image/*" onChange={(event) => uploadLogo(event.target.files?.[0] ?? null)} className="sr-only" />
+
+          <div className="sellmate-card rounded-lg p-5">
+            <SettingsSectionHeader title="Public store link" text="Share this link with customers. It opens the live customer storefront for this seller." />
+            <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Store URL</p>
+              <p className="mt-2 break-all text-base font-black leading-6 text-slate-950">{storeUrl}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link href={storePath} target="_blank" className="rounded-md bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-slate-800">
+                  Open store
+                </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(storeUrl);
+                    setMessage("Store link copied.");
+                  }}
+                  className="rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm hover:bg-slate-100"
+                >
+                  Copy link
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+          <div className="sellmate-card rounded-lg p-5">
+            <SettingsSectionHeader title="Store logo" text="Keep the logo clear and compact so it looks good in the header, cart, checkout, and footer." />
+            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <SellerLogo name={profile.logo_text || profile.business_name || "Store"} logoUrl={profile.logo_url} />
+              <div className="grid gap-3">
+                <label className="w-fit cursor-pointer rounded-md border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-800 shadow-sm hover:bg-slate-100">
+                  Upload logo
+                  <input type="file" accept="image/*" onChange={(event) => uploadLogo(event.target.files?.[0] ?? null)} className="sr-only" />
+                </label>
+                <button type="button" onClick={() => setProfile((current) => ({ ...current, logo_url: "" }))} className="w-fit text-sm font-bold text-rose-700">
+                  Use text logo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="sellmate-card rounded-lg p-5">
+            <SettingsSectionHeader title="Delivery and payout" text="Set the default delivery fee and the bank account that will receive seller product payments." />
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <SettingsField label="Delivery fee" name="delivery_fee" value={profile.delivery_fee} onChange={updateProfile} placeholder="3500" type="number" />
+              <label className="grid gap-2 text-sm font-bold text-slate-700">
+                Bank
+                <select value={profile.bank_code} onChange={(event) => updateBank(event.target.value)} className="rounded-md border border-slate-300 bg-white px-3 py-3 font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100">
+                  <option value="">Choose bank</option>
+                  {nigerianBanks.map((bank) => (
+                    <option key={bank.code} value={bank.code}>{bank.name}</option>
+                  ))}
+                </select>
               </label>
+              <SettingsField label="Account number" name="account_number" value={profile.account_number} onChange={updateProfile} placeholder="0123456789" />
+              <SettingsField label="Account name" name="account_name" value={profile.account_name} onChange={updateProfile} placeholder="Victor Fashions" />
+              <SettingsField label="Paystack subaccount code" name="paystack_subaccount_code" value={profile.paystack_subaccount_code} onChange={updateProfile} placeholder="ACCT_xxxxxxx" />
+            </div>
+            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
               <button
                 type="button"
-                onClick={() => setProfile((current) => ({ ...current, logo_url: "" }))}
-                className="w-fit text-sm font-bold text-rose-700"
+                onClick={connectPaystackPayout}
+                disabled={loading || connectingPayout || !profile.business_name || !profile.bank_code || !profile.account_number}
+                className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400"
               >
-                Remove picture and use text logo
+                {connectingPayout ? "Connecting..." : "Connect Paystack payout"}
               </button>
+              <span className="text-sm font-bold text-emerald-900">{payoutConnected ? `Connected: ${profile.paystack_subaccount_code}` : "Seller payout will be ready after bank details are connected."}</span>
             </div>
           </div>
-          <p className="mt-3 text-xs leading-5 text-slate-500">
-            The logo is automatically fitted into a small square so it does not appear too large on your shop, cart, checkout, and footer.
-          </p>
-        </div>
-        <div className="mt-8 border-t border-slate-200 pt-6">
-          <h2 className="text-xl font-black text-slate-950">Seller payment account</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-            This is where each seller adds the bank account for product payments. Customer checkout can later use Paystack subaccounts or splits so product money goes to this seller.
-          </p>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 text-sm font-bold text-slate-700">
-              Bank
-              <select
-                value={profile.bank_code}
-                onChange={(event) => updateBank(event.target.value)}
-                className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600"
-              >
-                <option value="">Choose bank</option>
-                {nigerianBanks.map((bank) => (
-                  <option key={bank.code} value={bank.code}>{bank.name}</option>
-                ))}
-              </select>
-            </label>
-            <SettingsField label="Account number" name="account_number" value={profile.account_number} onChange={updateProfile} placeholder="0123456789" />
-            <SettingsField label="Account name" name="account_name" value={profile.account_name} onChange={updateProfile} placeholder="Victor Fashions" />
-            <SettingsField label="Paystack subaccount code" name="paystack_subaccount_code" value={profile.paystack_subaccount_code} onChange={updateProfile} placeholder="ACCT_xxxxxxx" />
-          </div>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={connectPaystackPayout}
-              disabled={loading || connectingPayout || !profile.business_name || !profile.bank_code || !profile.account_number}
-              className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-400"
-            >
-              {connectingPayout ? "Connecting..." : "Connect Paystack payout"}
+        </section>
+
+        <div className="sticky bottom-0 z-20 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-10px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:mx-0 sm:rounded-lg sm:border sm:px-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <button disabled={loading || saving} className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:bg-slate-400">
+              {saving ? "Saving..." : "Save settings"}
             </button>
-            {profile.paystack_subaccount_code ? <span className="text-sm font-bold text-emerald-700">Connected: {profile.paystack_subaccount_code}</span> : null}
+            {message ? <p className="text-sm font-semibold text-slate-700">{message}</p> : <p className="text-sm font-semibold text-slate-500">Review changes, then save to update your store.</p>}
           </div>
-        </div>
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <button disabled={loading || saving} className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:bg-slate-400">
-            {saving ? "Saving..." : "Save settings"}
-          </button>
-          {message ? <p className="text-sm font-semibold text-slate-700">{message}</p> : null}
         </div>
       </form>
-      <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
-        Your app-owner Paystack keys collect SellMate subscription payments. Seller bank details are for customer product payouts and future Paystack split setup.
-      </div>
     </>
+  );
+}
+
+function SettingsSectionHeader({ title, text }: { title: string; text: string }) {
+  return (
+    <div>
+      <h2 className="text-xl font-black text-slate-950">{title}</h2>
+      <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{text}</p>
+    </div>
+  );
+}
+
+function SettingsStatusCard({ icon, label, value, tone }: { icon: "home" | "cart" | "lock"; label: string; value: string; tone: "good" | "warn" | "neutral" }) {
+  const styles = {
+    good: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    warn: "border-amber-200 bg-amber-50 text-amber-800",
+    neutral: "border-slate-200 bg-white text-slate-700",
+  };
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-3">
+        <span className={`grid h-10 w-10 place-items-center rounded-md border ${styles[tone]}`}>
+          <IconGlyph name={icon} className="h-5 w-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">{label}</p>
+          <p className="mt-1 truncate text-lg font-black text-slate-950">{value}</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -351,7 +385,7 @@ function SettingsField({
         onChange={(event) => onChange(name, event.target.value)}
         type={type}
         min={type === "number" ? 0 : undefined}
-        className="rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600"
+        className="rounded-md border border-slate-300 bg-white px-3 py-3 font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100"
         placeholder={placeholder}
       />
     </label>
