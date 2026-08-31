@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, IconGlyph, SectionTitle, StatCard } from "@/components/ui";
+import { Badge, IconGlyph, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -115,20 +115,18 @@ export default function MessagesPage() {
         </button>
       ) : null}
 
-      <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="grid gap-5 bg-[linear-gradient(135deg,#F8FAFC_0%,#ECFDF5_58%,#EFF6FF_100%)] p-5 lg:grid-cols-[1fr_330px] lg:items-center lg:p-6">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Customer message center</p>
-            <h2 className="mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">Reply to product questions before customers buy.</h2>
-            <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
-              Messages sent from product details appear here with the customer phone number and product reference.
-            </p>
-          </div>
-          <div className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-            <StatCard label="All messages" value={loading ? "..." : String(messages.length)} change="Product questions" tone="blue" />
-            <StatCard label="New" value={loading ? "..." : String(newMessages)} change="Needs reply" tone={newMessages ? "amber" : "green"} />
-            <StatCard label="Replied" value={loading ? "..." : String(repliedMessages)} change="Closed chats" tone="green" />
-          </div>
+      <section className="mb-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">All messages</p>
+          <p className="mt-2 text-3xl font-black text-slate-950">{loading ? "..." : messages.length}</p>
+        </div>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">Unread</p>
+          <p className="mt-2 text-3xl font-black text-slate-950">{loading ? "..." : newMessages}</p>
+        </div>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Replied</p>
+          <p className="mt-2 text-3xl font-black text-slate-950">{loading ? "..." : repliedMessages}</p>
         </div>
       </section>
 
@@ -167,7 +165,7 @@ export default function MessagesPage() {
               {conversations.map((conversation) => (
                 <Link
                   key={conversation.key}
-                  href={`/dashboard/messages/${encodeURIComponent(conversation.key)}`}
+                  href={`/dashboard/messages/${encodeURIComponent(conversation.latest.id)}`}
                   className="block w-full border-b border-slate-100 bg-white p-4 text-left transition hover:bg-emerald-50/60"
                 >
                   <div className="flex items-start justify-between gap-3">

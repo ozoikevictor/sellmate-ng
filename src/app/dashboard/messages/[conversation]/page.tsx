@@ -25,7 +25,7 @@ const statuses: CustomerMessage["status"][] = ["New", "Read", "Replied"];
 
 export default function DashboardConversationPage() {
   const params = useParams<{ conversation: string }>();
-  const conversationKey = decodeURIComponent(params.conversation);
+  const conversationRef = decodeURIComponent(params.conversation);
   const { ready, user } = useAuth();
   const userId = user?.id ?? "";
   const [messages, setMessages] = useState<CustomerMessage[]>([]);
@@ -52,14 +52,16 @@ export default function DashboardConversationPage() {
       return;
     }
 
+    const targetMessage = allMessages.messages.find((message) => message.id === conversationRef);
+    const conversationKey = targetMessage ? getConversationKey(targetMessage) : conversationRef;
     const customerMessages = allMessages.messages
-      .filter((message) => getConversationKey(message) === conversationKey)
+      .filter((message) => getConversationKey(message) === conversationKey || message.id === conversationRef)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     setMessages(customerMessages);
     setSelectedId((current) => current || customerMessages.find((message) => !message.seller_reply)?.id || customerMessages[0]?.id || "");
     setLoading(false);
-  }, [conversationKey, ready, userId]);
+  }, [conversationRef, ready, userId]);
 
   useEffect(() => {
     const timer = window.setTimeout(loadMessages, 0);
