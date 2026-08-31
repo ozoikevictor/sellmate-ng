@@ -216,6 +216,7 @@ export default function CustomerChatPage() {
   const selectedProduct = products.find((product) => product.id === selectedId) ?? products[0];
   const selectedChatProducts = products.filter((product) => selectedProductIds.includes(product.id));
   const isFocusedProductChat = Boolean(selectedProductId);
+  const isGeneralSellerChat = !selectedProductId && !selectedMessageId;
   const categories = useMemo(() => Array.from(new Set(products.map((product) => product.category).filter(Boolean))).sort(), [products]);
   const visibleProducts = searchTerm
     ? products.filter((product) => `${product.name} ${product.category} ${product.variant_options ?? ""}`.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -371,7 +372,7 @@ export default function CustomerChatPage() {
   if (customerIdentity) {
     return (
       <main className="flex h-[100dvh] overflow-hidden bg-[#EEF2F7]">
-        {!isFocusedProductChat ? (
+        {!isFocusedProductChat && !isGeneralSellerChat ? (
           <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white md:flex md:flex-col">
             <div className="border-b border-slate-100 p-4">
               <Link href={storeHref} className="inline-flex items-center gap-2 text-sm font-black text-slate-600 hover:text-emerald-700">
@@ -420,7 +421,7 @@ export default function CustomerChatPage() {
             </Link>
           </header>
 
-          <div className="shrink-0 border-b border-slate-100 bg-white px-3 py-2 sm:px-5">
+          {!isGeneralSellerChat ? <div className="shrink-0 border-b border-slate-100 bg-white px-3 py-2 sm:px-5">
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {visibleProducts.map((product) => {
                 const isSelected = selectedProductIds.includes(product.id);
@@ -442,7 +443,7 @@ export default function CustomerChatPage() {
                 );
               })}
             </div>
-          </div>
+          </div> : null}
 
           <div className="min-h-0 flex-1 overflow-y-auto bg-[#F5F7FB] px-3 py-4 sm:px-5">
             {selectedProduct ? (
@@ -468,7 +469,7 @@ export default function CustomerChatPage() {
                     <IconGlyph name="messages" className="h-5 w-5" />
                   </div>
                   <p className="mt-3 text-base font-black text-slate-950">You are now in the chat</p>
-                  <p className="mx-auto mt-1 max-w-sm text-sm font-semibold leading-6 text-slate-500">Type your message below. The seller will see your name, phone number, and product.</p>
+                  <p className="mx-auto mt-1 max-w-sm text-sm font-semibold leading-6 text-slate-500">Type your message below. The seller will see your name and phone number.</p>
                 </div>
               </div>
             ) : (
@@ -561,8 +562,8 @@ export default function CustomerChatPage() {
         whatsappPhone={profile?.whatsapp_phone}
       />
 
-      <section className={`mx-auto grid h-[calc(100dvh-8.15rem)] w-full max-w-6xl gap-3 px-3 pb-3 sm:h-[calc(100dvh-8.25rem)] sm:px-5 ${isFocusedProductChat ? "" : "md:grid-cols-[17rem_minmax(0,1fr)]"}`}>
-        {!isFocusedProductChat ? <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
+      <section className={`mx-auto grid h-[calc(100dvh-8.15rem)] w-full max-w-6xl gap-3 px-3 pb-3 sm:h-[calc(100dvh-8.25rem)] sm:px-5 ${isFocusedProductChat || isGeneralSellerChat ? "" : "md:grid-cols-[17rem_minmax(0,1fr)]"}`}>
+        {!isFocusedProductChat && !isGeneralSellerChat ? <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 p-3">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Choose product</p>
             <h1 className="mt-1 text-lg font-black text-slate-950">Chat with {profile?.business_name ?? "seller"}</h1>
@@ -609,7 +610,7 @@ export default function CustomerChatPage() {
             </div>
           </div>
 
-          <div className="border-b border-slate-100 bg-white p-3">
+          {!isGeneralSellerChat ? <div className="border-b border-slate-100 bg-white p-3">
             <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-emerald-100 bg-emerald-50 p-2.5">
               <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-white ring-1 ring-emerald-100">
                 {selectedProduct?.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-contain p-1" /> : null}
@@ -648,7 +649,7 @@ export default function CustomerChatPage() {
                 );
               })}
             </div>
-          </div>
+          </div> : null}
 
           {!customerIdentity ? (
             <div className="grid min-h-0 flex-1 place-items-center overflow-y-auto bg-slate-50 p-4">
