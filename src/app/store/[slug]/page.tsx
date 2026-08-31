@@ -308,8 +308,8 @@ export default function DynamicStorefrontPage() {
         </div>
         <CategoryShelf categories={categories} products={products} storeHref={storeHomeHref} />
       </section>
-      <ProductShelf title="Featured Products" actionLabel="View all products" actionHref={`${storeHomeHref}/products`} products={featuredProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
-      <ProductShelf title="New Arrivals" products={newArrivalProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+      <ProductShelf title="Featured Products" actionLabel="View all products" actionHref={`${storeHomeHref}/products`} storeHref={storeHomeHref} products={featuredProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+      <ProductShelf title="New Arrivals" storeHref={storeHomeHref} products={newArrivalProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
       <section id="products" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-5 sm:py-12">
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
@@ -338,7 +338,7 @@ export default function DynamicStorefrontPage() {
         {!loading && !message && products.length > 0 && displayProducts.length === 0 ? (
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
         ) : null}
-        <ProductGrid products={displayProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+        <ProductGrid storeHref={storeHomeHref} products={displayProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
       </section>
       {cartNotice || cartCount > 0 ? (
         <div className="fixed bottom-5 left-4 right-4 z-50 sellmate-card rounded-lg p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
@@ -444,7 +444,7 @@ function CategoryShelf({ categories, products, storeHref }: { categories: string
   );
 }
 
-function ProductShelf({ title, actionLabel, actionHref, products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { title: string; actionLabel?: string; actionHref?: string; products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function ProductShelf({ title, actionLabel, actionHref, storeHref, products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { title: string; actionLabel?: string; actionHref?: string; storeHref: string; products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   if (products.length === 0) {
     return null;
   }
@@ -455,22 +455,22 @@ function ProductShelf({ title, actionLabel, actionHref, products, favoriteIds, o
         <SectionTitle eyebrow="Shop" title={title} />
         {actionHref ? <Link href={actionHref} className="text-sm font-black text-[#16A34A]">{actionLabel ?? "View all"}</Link> : null}
       </div>
-      <ProductGrid products={products} favoriteIds={favoriteIds} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
+      <ProductGrid storeHref={storeHref} products={products} favoriteIds={favoriteIds} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
     </section>
   );
 }
 
-function ProductGrid({ products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function ProductGrid({ storeHref, products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { storeHref: string; products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   return (
     <div className="grid grid-cols-2 items-start gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
+        <ProductCard key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
       ))}
     </div>
   );
 }
 
-function ProductCard({ product, isFavorite, onAddToCart, onToggleFavorite, onViewDetails }: { product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function ProductCard({ product, isFavorite, onAddToCart, onToggleFavorite, onViewDetails }: { storeHref: string; product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   const rating = getProductRating(product);
   const badge = productBadge(product);
 
@@ -486,7 +486,7 @@ function ProductCard({ product, isFavorite, onAddToCart, onToggleFavorite, onVie
         <span className="absolute bottom-1.5 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-white/95 px-1.5 py-0.5 text-[9px] font-black uppercase text-[#16A34A] ring-1 ring-emerald-100">{product.category}</span>
       </div>
       <div className="p-2">
-        <button type="button" onClick={() => onViewDetails(product)} className="text-left">
+        <button type="button" onClick={() => onViewDetails(product)} className="block text-left">
           <h3 className="line-clamp-2 min-h-8 text-[12px] font-bold leading-4 text-[#0F172A] transition hover:text-[#16A34A]">{product.name}</h3>
         </button>
         <p className="mt-1 text-[12px] font-black text-[#16A34A] sm:text-[13px]">{formatNaira(product.price)}</p>

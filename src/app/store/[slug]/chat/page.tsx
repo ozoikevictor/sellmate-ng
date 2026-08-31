@@ -42,6 +42,11 @@ type LocalChatMessage = {
   created_at: string;
 };
 
+type CustomerChatIdentity = {
+  customer_name: string;
+  customer_phone: string;
+};
+
 type SellerReply = {
   id: string;
   product_id?: string | null;
@@ -55,12 +60,13 @@ type SellerReply = {
 const CUSTOMER_CHAT_KEY = "sellmate-ng-customer-chat";
 const CUSTOMER_MESSAGE_KEY = "sellmate-ng-customer-messages";
 const CUSTOMER_READ_REPLIES_KEY = "sellmate-ng-read-replies";
+const CUSTOMER_CHAT_IDENTITY_KEY = "sellmate-ng-customer-chat-identity";
 
 export default function CustomerChatPage() {
-  const params = useParams<{ slug: string }>();
+  const params = useParams<{ slug: string; productId?: string }>();
   const searchParams = useSearchParams();
   const slug = params.slug;
-  const selectedProductId = searchParams.get("product") ?? "";
+  const selectedProductId = searchParams.get("product") ?? params.productId ?? "";
   const selectedMessageId = searchParams.get("message") ?? "";
   const [profile, setProfile] = useState<StoreProfile | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
@@ -72,6 +78,8 @@ export default function CustomerChatPage() {
   const [sending, setSending] = useState(false);
   const [localMessages, setLocalMessages] = useState<LocalChatMessage[]>(() => (typeof window === "undefined" ? [] : readLocalChat(slug)));
   const [sellerReplies, setSellerReplies] = useState<SellerReply[]>([]);
+  const [customerIdentity, setCustomerIdentity] = useState<CustomerChatIdentity | null>(() => (typeof window === "undefined" ? null : readCustomerChatIdentity(slug)));
+  const [messageDraft, setMessageDraft] = useState("");
   const chatPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -109,6 +117,15 @@ export default function CustomerChatPage() {
 
     loadStore();
     writeCurrentStoreHref(`/store/${slug}`);
+    window.setTimeout(() => {
+      const savedMessages = readLocalChat(slug);
+      const savedIdentity = readCustomerChatIdentity(slug) ?? identityFromMessages(savedMessages);
+      setLocalMessages(savedMessages);
+      setCustomerIdentity(savedIdentity);
+      if (savedIdentity) {
+        saveCustomerChatIdentity(slug, savedIdentity);
+      }
+    }, 0);
 
     function syncCartCount() {
       setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
@@ -145,6 +162,19 @@ export default function CustomerChatPage() {
   }, [slug]);
 
   useEffect(() => {
+    const channel = supabase
+      .channel(`customer-chat-${slug}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "customer_messages", filter: `store_slug=eq.${slug}` }, () => {
+        window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [slug]);
+
+  useEffect(() => {
     if (!selectedMessageId) return;
 
     const localMessage = readLocalChat(slug).find((message) => message.id === selectedMessageId);
@@ -160,15 +190,35 @@ export default function CustomerChatPage() {
   }, [selectedMessageId, selectedProductId, sellerReplies, slug]);
 
   const selectedProduct = products.find((product) => product.id === selectedId) ?? products[0];
+  const isFocusedProductChat = Boolean(selectedProductId);
   const categories = useMemo(() => Array.from(new Set(products.map((product) => product.category).filter(Boolean))).sort(), [products]);
   const visibleProducts = searchTerm
     ? products.filter((product) => `${product.name} ${product.category} ${product.variant_options ?? ""}`.toLowerCase().includes(searchTerm.toLowerCase()))
     : products;
-  const productMessages = selectedProduct ? localMessages.filter((message) => message.product_id === selectedProduct.id) : [];
-  const productReplies = selectedProduct ? sellerReplies.filter((reply) => productMessages.some((message) => message.id === reply.id)) : [];
+  const conversationMessages = useMemo(() => localMessages.slice().sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()), [localMessages]);
 
   function chooseProduct(productId: string) {
     setSelectedId(productId);
+    window.setTimeout(() => {
+      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }
+
+  function startCustomerChat(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const customerName = String(formData.get("customer_name") ?? "").trim();
+    const customerPhone = String(formData.get("customer_phone") ?? "").trim();
+
+    if (!customerName || !customerPhone) {
+      setNotice("Enter your name and phone number to start chatting.");
+      return;
+    }
+
+    const nextIdentity = { customer_name: customerName, customer_phone: customerPhone };
+    saveCustomerChatIdentity(slug, nextIdentity);
+    setCustomerIdentity(nextIdentity);
+    setNotice("");
     window.setTimeout(() => {
       chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
@@ -184,10 +234,14 @@ export default function CustomerChatPage() {
 
     setSending(true);
     setNotice("");
-    const formData = new FormData(form);
-    const customerName = String(formData.get("customer_name") ?? "").trim();
-    const customerPhone = String(formData.get("customer_phone") ?? "").trim();
-    const message = String(formData.get("message") ?? "").trim();
+    const customerName = customerIdentity?.customer_name ?? "";
+    const customerPhone = customerIdentity?.customer_phone ?? "";
+    const message = messageDraft.trim();
+    if (!customerName || !customerPhone) {
+      setNotice("Start the chat with your name and phone number first.");
+      setSending(false);
+      return;
+    }
 
     let response: Response;
     let data: { message?: string; id?: string };
@@ -233,11 +287,15 @@ export default function CustomerChatPage() {
       message,
       created_at: new Date().toISOString(),
     };
+    const nextIdentity = { customer_name: customerName, customer_phone: customerPhone };
+    saveCustomerChatIdentity(slug, nextIdentity);
+    setCustomerIdentity(nextIdentity);
     saveCustomerMessageId(slug, data.id);
     saveLocalChat(slug, savedMessage);
     setLocalMessages(readLocalChat(slug));
     window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
     form.reset();
+    setMessageDraft("");
     setSending(false);
   }
 
@@ -246,7 +304,7 @@ export default function CustomerChatPage() {
   const storeHref = `/store/${slug}`;
 
   return (
-    <main className="min-h-screen bg-[#F5F7FB] pt-[8.15rem] sm:pt-[8.25rem]">
+    <main className="h-[100dvh] overflow-hidden bg-[#F5F7FB] pt-[8.15rem] sm:pt-[8.25rem]">
       <StoreHeader
         sellerName={profile?.business_name ?? "Store"}
         sellerLogoUrl={profile?.logo_url}
@@ -258,8 +316,8 @@ export default function CustomerChatPage() {
         whatsappPhone={profile?.whatsapp_phone}
       />
 
-      <section className="mx-auto grid w-full max-w-6xl gap-3 px-3 pb-8 sm:px-5 md:grid-cols-[17rem_minmax(0,1fr)]">
-        <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
+      <section className={`mx-auto grid h-[calc(100dvh-8.15rem)] w-full max-w-6xl gap-3 px-3 pb-3 sm:h-[calc(100dvh-8.25rem)] sm:px-5 ${isFocusedProductChat ? "" : "md:grid-cols-[17rem_minmax(0,1fr)]"}`}>
+        {!isFocusedProductChat ? <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 p-3">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Choose product</p>
             <h1 className="mt-1 text-lg font-black text-slate-950">Chat with {profile?.business_name ?? "seller"}</h1>
@@ -289,37 +347,79 @@ export default function CustomerChatPage() {
               </button>
             ))}
           </div>
-        </aside>
+        </aside> : null}
 
-        <section ref={chatPanelRef} className="scroll-mt-[8.5rem] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center gap-3 border-b border-slate-100 bg-white p-3">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-              {selectedProduct?.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-cover" /> : null}
+        <section ref={chatPanelRef} className="flex min-h-0 scroll-mt-[8.5rem] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-white p-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <SellerAvatar name={profile?.business_name ?? "Seller"} imageUrl={profile?.logo_url} />
+              <div className="min-w-0">
+                <p className="truncate text-base font-black text-slate-950">{profile?.business_name ?? "Seller"}</p>
+                <p className="text-xs font-bold text-emerald-700">Online store chat</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-base font-black text-slate-950">{selectedProduct?.name ?? "Select a product"}</p>
-              <p className="text-sm font-bold text-emerald-700">{selectedProduct ? formatNaira(selectedProduct.price) : ""}</p>
+            <div className="hidden shrink-0 items-center gap-2 rounded-full bg-slate-50 px-3 py-2 sm:flex">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="text-xs font-black text-slate-600">{conversationMessages.length} message(s)</span>
             </div>
           </div>
 
-          <div className="min-h-[20rem] bg-slate-50 p-3">
-            {productMessages.length === 0 ? (
-              <div className="grid min-h-[14rem] place-items-center text-center">
+          <div className="border-b border-slate-100 bg-white p-3">
+            <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-emerald-100 bg-emerald-50 p-2.5">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-white ring-1 ring-emerald-100">
+                {selectedProduct?.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-contain p-1" /> : null}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">Current product</p>
+                <p className="truncate text-sm font-black text-slate-950">{selectedProduct?.name ?? "Select a product"}</p>
+                <p className="mt-1 text-base font-black text-emerald-700">{selectedProduct ? formatNaira(selectedProduct.price) : ""}</p>
+                {selectedProduct ? (
+                  <div className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-bold text-slate-600">
+                    <span className="rounded bg-white px-2 py-1">{selectedProduct.category}</span>
+                    <span className="rounded bg-white px-2 py-1">{selectedProduct.stock} available</span>
+                    {selectedProduct.variant_options ? <span className="max-w-full truncate rounded bg-white px-2 py-1">{selectedProduct.variant_options}</span> : null}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {!customerIdentity ? (
+            <div className="grid min-h-0 flex-1 place-items-center overflow-y-auto bg-slate-50 p-4">
+              <form onSubmit={startCustomerChat} className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+                  <IconGlyph name="messages" className="h-5 w-5" />
+                </div>
+                <h2 className="mt-4 text-center text-xl font-black text-slate-950">Start chat with seller</h2>
+                <p className="mx-auto mt-2 max-w-sm text-center text-sm font-semibold leading-6 text-slate-500">Enter your details once. After this, you will enter the chat room and only type messages.</p>
+                <div className="mt-5 grid gap-3">
+                  <input name="customer_name" required placeholder="Your name" className="rounded-md border border-slate-300 bg-white px-3 py-3 text-base font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" />
+                  <input name="customer_phone" required placeholder="Phone number" className="rounded-md border border-slate-300 bg-white px-3 py-3 text-base font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" />
+                  <button className="rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D]">Enter chat</button>
+                </div>
+              </form>
+            </div>
+          ) : (
+          <>
+          <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-3">
+            {conversationMessages.length === 0 ? (
+              <div className="grid min-h-[18rem] place-items-center text-center">
                 <div>
                   <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-emerald-700">
                     <IconGlyph name="messages" className="h-5 w-5" />
                   </div>
-                  <p className="mt-3 text-base font-black text-slate-950">Start a product chat</p>
-                  <p className="mx-auto mt-1 max-w-sm text-sm font-semibold leading-6 text-slate-500">Ask about size, color, delivery, stock, or pickup before you buy.</p>
+                  <p className="mt-3 text-base font-black text-slate-950">Start chatting with the seller</p>
+                  <p className="mx-auto mt-1 max-w-sm text-sm font-semibold leading-6 text-slate-500">Pick a product, ask your question, then continue here like one normal conversation.</p>
                 </div>
               </div>
             ) : (
               <div className="grid gap-4">
-                {productMessages.map((message) => {
-                  const reply = productReplies.find((item) => item.id === message.id);
+                {conversationMessages.map((message) => {
+                  const reply = sellerReplies.find((item) => item.id === message.id);
                   return (
                     <div key={message.id} className="grid gap-3">
                       <div className="ml-auto max-w-[82%] rounded-2xl rounded-br-md bg-[#16A34A] px-3.5 py-2.5 text-white">
+                        <p className="mb-2 rounded-full bg-white/15 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-white/85">{message.product_name}</p>
                         <p className="text-sm font-semibold leading-6">{message.message}</p>
                         <p className="mt-2 text-[11px] font-bold text-white/75">{new Date(message.created_at).toLocaleString()}</p>
                       </div>
@@ -340,14 +440,24 @@ export default function CustomerChatPage() {
           </div>
 
           {notice ? <p className="mx-3 mt-3 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{notice}</p> : null}
-          <form onSubmit={sendMessage} className="grid gap-2.5 border-t border-slate-100 p-3 sm:grid-cols-2">
-            <input name="customer_name" required placeholder="Your name" className="rounded-md border border-slate-300 px-3 py-2.5 text-base font-semibold outline-none focus:border-emerald-600" />
-            <input name="customer_phone" required placeholder="Phone number" className="rounded-md border border-slate-300 px-3 py-2.5 text-base font-semibold outline-none focus:border-emerald-600" />
-            <textarea name="message" required maxLength={500} rows={2} placeholder="Type your message..." className="resize-none rounded-md border border-slate-300 px-3 py-2.5 text-base font-semibold outline-none focus:border-emerald-600 sm:col-span-2" />
-            <button disabled={sending || !profile?.user_id || !selectedProduct?.id} className="rounded-md bg-[#16A34A] px-5 py-2.5 text-sm font-black text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400 sm:col-span-2">
-              {sending ? "Sending..." : "Send message"}
-            </button>
+          <form onSubmit={sendMessage} className="sticky bottom-0 border-t border-slate-100 bg-white p-3">
+            <div className="mb-2 flex flex-wrap gap-2">
+              {["Is this available?", "What colors do you have?", "How much is delivery?"].map((text) => (
+                <button key={text} type="button" onClick={() => setMessageDraft(text)} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">
+                  {text}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_3rem] items-end gap-2">
+              <button type="button" aria-label="Add attachment" className="grid h-11 w-10 place-items-center rounded-full border border-slate-200 bg-slate-50 text-xl font-black text-slate-500">+</button>
+              <textarea name="message" required value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} maxLength={500} rows={1} placeholder="Type a message..." className="max-h-28 resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-semibold text-slate-950 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100" />
+              <button disabled={sending || !profile?.user_id || !selectedProduct?.id} aria-label="Send message" className="grid h-11 w-11 place-items-center rounded-full bg-[#16A34A] text-lg font-black text-white transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-400">
+                {sending ? "..." : "➤"}
+              </button>
+            </div>
           </form>
+          </>
+          )}
         </section>
       </section>
 
@@ -362,6 +472,14 @@ function formatChatError(message?: string) {
     return "Customer chat is not fully connected yet. Add the customer_messages table in Supabase first.";
   }
   return text || "Could not send your message.";
+}
+
+function SellerAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
+  return (
+    <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-950 text-sm font-black text-white ring-2 ring-emerald-100">
+      {imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-cover" /> : name.slice(0, 1).toUpperCase()}
+    </span>
+  );
 }
 
 function readCustomerMessageIds(storeSlug: string) {
@@ -392,6 +510,38 @@ function markCustomerReplyRead(storeSlug: string, messageId: string) {
     window.localStorage.setItem(CUSTOMER_READ_REPLIES_KEY, JSON.stringify(parsed));
   } catch {
     window.localStorage.setItem(CUSTOMER_READ_REPLIES_KEY, JSON.stringify({ [storeSlug]: [messageId] }));
+  }
+}
+
+function readCustomerChatIdentity(storeSlug: string): CustomerChatIdentity | null {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_CHAT_IDENTITY_KEY) || "{}") as Record<string, CustomerChatIdentity>;
+    const identity = parsed[storeSlug];
+    if (identity?.customer_name && identity?.customer_phone) {
+      return identity;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function identityFromMessages(messages: LocalChatMessage[]): CustomerChatIdentity | null {
+  const messageWithIdentity = messages.find((message) => message.customer_name && message.customer_phone);
+  if (!messageWithIdentity) return null;
+  return {
+    customer_name: messageWithIdentity.customer_name,
+    customer_phone: messageWithIdentity.customer_phone,
+  };
+}
+
+function saveCustomerChatIdentity(storeSlug: string, identity: CustomerChatIdentity) {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_CHAT_IDENTITY_KEY) || "{}") as Record<string, CustomerChatIdentity>;
+    parsed[storeSlug] = identity;
+    window.localStorage.setItem(CUSTOMER_CHAT_IDENTITY_KEY, JSON.stringify(parsed));
+  } catch {
+    window.localStorage.setItem(CUSTOMER_CHAT_IDENTITY_KEY, JSON.stringify({ [storeSlug]: identity }));
   }
 }
 
