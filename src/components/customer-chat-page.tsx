@@ -81,6 +81,8 @@ export default function CustomerChatPage() {
   const [customerIdentity, setCustomerIdentity] = useState<CustomerChatIdentity | null>(() => (typeof window === "undefined" ? null : readCustomerChatIdentity(slug)));
   const [messageDraft, setMessageDraft] = useState("");
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(() => (selectedProductId ? [selectedProductId] : []));
+  const [productReplyOpen, setProductReplyOpen] = useState(false);
+  const [productSwipeStart, setProductSwipeStart] = useState<number | null>(null);
   const chatPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -236,6 +238,25 @@ export default function CustomerChatPage() {
       }
       return [...current, productId].slice(0, 6);
     });
+  }
+
+  function openProductReply(product?: StoreProduct) {
+    if (!product) return;
+    setProductReplyOpen(true);
+  }
+
+  function replyToProduct(product?: StoreProduct) {
+    if (!product) return;
+    setMessageDraft(`I'm interested in ${product.name}. `);
+    setProductReplyOpen(false);
+  }
+
+  function handleProductTouchEnd(clientX: number) {
+    if (productSwipeStart === null) return;
+    if (Math.abs(clientX - productSwipeStart) > 52) {
+      openProductReply(selectedProduct);
+    }
+    setProductSwipeStart(null);
   }
 
   function startCustomerChat(event: FormEvent<HTMLFormElement>) {
@@ -415,16 +436,37 @@ export default function CustomerChatPage() {
 
           <div className="min-h-0 flex-1 overflow-y-auto bg-[#F5F7FB] px-3 py-4 sm:px-5">
             {selectedProduct ? (
-              <div className="mb-4 mr-auto flex max-w-[92%] gap-3 rounded-2xl rounded-bl-md bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:max-w-lg">
-                <span className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                  {selectedProduct.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-cover" /> : null}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Product you selected</p>
-                  <p className="mt-1 truncate text-sm font-black text-slate-950">{selectedProduct.name}</p>
-                  <p className="text-sm font-black text-emerald-700">{formatNaira(selectedProduct.price)}</p>
-                  {selectedProduct.variant_options ? <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-500">{selectedProduct.variant_options}</p> : null}
+              <div className="mb-4 mr-auto max-w-[92%] sm:max-w-lg">
+                <div className="relative overflow-hidden rounded-2xl rounded-bl-md bg-emerald-50 ring-1 ring-emerald-100">
+                  <button
+                    type="button"
+                    onClick={() => replyToProduct(selectedProduct)}
+                    className={`absolute inset-y-0 right-3 my-auto h-10 rounded-full bg-[#16A34A] px-4 text-sm font-black text-white shadow-sm transition ${productReplyOpen ? "translate-x-0 opacity-100" : "translate-x-5 opacity-0 pointer-events-none"}`}
+                  >
+                    Reply
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openProductReply(selectedProduct)}
+                    onTouchStart={(event) => setProductSwipeStart(event.touches[0]?.clientX ?? null)}
+                    onTouchEnd={(event) => handleProductTouchEnd(event.changedTouches[0]?.clientX ?? 0)}
+                    onMouseDown={(event) => setProductSwipeStart(event.clientX)}
+                    onMouseUp={(event) => handleProductTouchEnd(event.clientX)}
+                    className={`relative z-10 flex w-full touch-pan-y gap-3 rounded-2xl rounded-bl-md bg-white p-3 text-left shadow-sm ring-1 ring-slate-200 transition ${productReplyOpen ? "-translate-x-20" : "translate-x-0"}`}
+                    aria-label={`Reply about ${selectedProduct.name}`}
+                  >
+                    <span className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                      {selectedProduct.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-cover" /> : null}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Product you selected</span>
+                      <span className="mt-1 block truncate text-sm font-black text-slate-950">{selectedProduct.name}</span>
+                      <span className="block text-sm font-black text-emerald-700">{formatNaira(selectedProduct.price)}</span>
+                      {selectedProduct.variant_options ? <span className="mt-1 line-clamp-2 text-xs font-semibold text-slate-500">{selectedProduct.variant_options}</span> : null}
+                    </span>
+                  </button>
                 </div>
+                <p className="mt-1 px-2 text-[11px] font-bold text-slate-400">Swipe the product sideways to reply about it.</p>
               </div>
             ) : null}
 
