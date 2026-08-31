@@ -144,16 +144,20 @@ export default function CustomerChatPage() {
 
   useEffect(() => {
     async function loadReplies() {
-      const ids = readCustomerMessageIds(slug);
-      if (ids.length === 0) {
-        setSellerReplies([]);
-        return;
-      }
+      try {
+        const ids = readCustomerMessageIds(slug);
+        if (ids.length === 0) {
+          setSellerReplies([]);
+          return;
+        }
 
-      const response = await fetch(`/api/customer-messages?store=${encodeURIComponent(slug)}&ids=${encodeURIComponent(ids.join(","))}`);
-      const data = await response.json();
-      if (response.ok) {
-        setSellerReplies(data.messages ?? []);
+        const response = await fetch(`/api/customer-messages?store=${encodeURIComponent(slug)}&ids=${encodeURIComponent(ids.join(","))}`);
+        const data = await safeJson(response);
+        if (response.ok) {
+          setSellerReplies(Array.isArray(data.messages) ? data.messages : []);
+        }
+      } catch {
+        setSellerReplies([]);
       }
     }
 
@@ -163,15 +167,22 @@ export default function CustomerChatPage() {
   }, [slug]);
 
   useEffect(() => {
-    const channel = supabase
-      .channel(`customer-chat-${slug}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "customer_messages", filter: `store_slug=eq.${slug}` }, () => {
-        window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
-      })
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      channel = supabase
+        .channel(`customer-chat-${slug}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "customer_messages", filter: `store_slug=eq.${slug}` }, () => {
+          window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
+        })
+        .subscribe();
+    } catch {
+      channel = null;
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [slug]);
 
@@ -273,7 +284,7 @@ export default function CustomerChatPage() {
           message,
         }),
       });
-      data = await response.json();
+      data = await safeJson(response);
     } catch {
       setNotice("Could not connect to customer chat. Refresh the page and try again.");
       setSending(false);
@@ -509,6 +520,14 @@ function formatChatError(message?: string) {
   return text || "Could not send your message.";
 }
 
+async function safeJson(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+}
+
 function SellerAvatar({ name, imageUrl }: { name: string; imageUrl?: string | null }) {
   return (
     <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-950 text-sm font-black text-white ring-2 ring-emerald-100">
@@ -590,8 +609,12 @@ function readLocalChat(storeSlug: string) {
 }
 
 function saveLocalChat(storeSlug: string, message: LocalChatMessage) {
-  const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_CHAT_KEY) || "{}") as Record<string, LocalChatMessage[]>;
-  const current = Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
-  parsed[storeSlug] = [message, ...current].slice(0, 40);
-  window.localStorage.setItem(CUSTOMER_CHAT_KEY, JSON.stringify(parsed));
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOMER_CHAT_KEY) || "{}") as Record<string, LocalChatMessage[]>;
+    const current = Array.isArray(parsed[storeSlug]) ? parsed[storeSlug] : [];
+    parsed[storeSlug] = [message, ...current].slice(0, 40);
+    window.localStorage.setItem(CUSTOMER_CHAT_KEY, JSON.stringify(parsed));
+  } catch {
+    window.localStorage.setItem(CUSTOMER_CHAT_KEY, JSON.stringify({ [storeSlug]: [message] }));
+  }
 }

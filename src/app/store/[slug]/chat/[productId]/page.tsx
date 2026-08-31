@@ -1,3 +1,13 @@
-import CustomerChatPage from "@/components/customer-chat-page";
+import { redirect } from "next/navigation";
 
-export default CustomerChatPage;
+type ProductChatPageProps = {
+  params: Promise<{
+    slug: string;
+    productId: string;
+  }>;
+};
+
+export default async function ProductChatPage({ params }: ProductChatPageProps) {
+  const { slug, productId } = await params;
+  redirect(`/store/${slug}/chat?product=${encodeURIComponent(productId)}`);
+}
