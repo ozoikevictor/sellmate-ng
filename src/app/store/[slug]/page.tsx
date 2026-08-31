@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
-import { addToCart, readCart, readWishlist, toggleWishlistItem, writeCurrentStoreHref } from "@/lib/cart";
+import { addToCart, readCart, readWishlist, toggleWishlistItem, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -120,6 +120,7 @@ export default function DynamicStorefrontPage() {
   const [profile, setProfile] = useState<StoreProfile | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [cartCount, setCartCount] = useState(0);
+  const [cartQtyById, setCartQtyById] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [cartNotice, setCartNotice] = useState("");
@@ -181,7 +182,9 @@ export default function DynamicStorefrontPage() {
     loadStore();
     writeCurrentStoreHref(`/store/${slug}`);
     function syncCartCount() {
-      setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
+      const storeCart = readCart().filter((item) => item.store_slug === slug);
+      setCartCount(storeCart.reduce((sum, item) => sum + item.qty, 0));
+      setCartQtyById(Object.fromEntries(storeCart.map((item) => [item.id, item.qty])));
     }
     function syncWishlist() {
       setFavoriteIds(readWishlist(slug).map((item) => item.id));
@@ -218,8 +221,16 @@ export default function DynamicStorefrontPage() {
       image_url: product.image_url,
     });
     setCartCount(nextCart.filter((item) => item.store_slug === (profile?.store_slug || slug)).reduce((sum, item) => sum + item.qty, 0));
+    setCartQtyById(Object.fromEntries(nextCart.filter((item) => item.store_slug === (profile?.store_slug || slug)).map((item) => [item.id, item.qty])));
     setCartNotice(`${product.name} added to cart`);
     window.setTimeout(() => setCartNotice(""), 2600);
+  }
+
+  function handleChangeCartQty(product: StoreProduct, qty: number) {
+    const nextCart = updateCartQty(product.id, Math.max(0, Math.min(qty, product.stock)));
+    const storeCart = nextCart.filter((item) => item.store_slug === (profile?.store_slug || slug));
+    setCartCount(storeCart.reduce((sum, item) => sum + item.qty, 0));
+    setCartQtyById(Object.fromEntries(storeCart.map((item) => [item.id, item.qty])));
   }
 
   function toggleFavorite(product: StoreProduct) {
@@ -308,8 +319,8 @@ export default function DynamicStorefrontPage() {
         </div>
         <CategoryShelf categories={categories} products={products} storeHref={storeHomeHref} />
       </section>
-      <ProductShelf title="Featured Products" actionLabel="View all products" actionHref={`${storeHomeHref}/products`} storeHref={storeHomeHref} products={featuredProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
-      <ProductShelf title="New Arrivals" storeHref={storeHomeHref} products={newArrivalProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+      <ProductShelf title="Featured Products" actionLabel="View all products" actionHref={`${storeHomeHref}/products`} storeHref={storeHomeHref} products={featuredProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+      <ProductShelf title="New Arrivals" storeHref={storeHomeHref} products={newArrivalProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
       <section id="products" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-5 sm:py-12">
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
@@ -338,7 +349,7 @@ export default function DynamicStorefrontPage() {
         {!loading && !message && products.length > 0 && displayProducts.length === 0 ? (
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
         ) : null}
-        <ProductGrid storeHref={storeHomeHref} products={displayProducts} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+        <ProductGrid storeHref={storeHomeHref} products={displayProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
       </section>
       {cartNotice || cartCount > 0 ? (
         <div className="fixed bottom-5 left-4 right-4 z-50 sellmate-card rounded-lg p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
@@ -363,7 +374,9 @@ export default function DynamicStorefrontPage() {
           isFavorite={favoriteIds.includes(selectedProduct.id)}
           onClose={() => setSelectedProduct(null)}
           onAddToCart={handleAddToCart}
+          onChangeCartQty={handleChangeCartQty}
           onToggleFavorite={toggleFavorite}
+          cartQty={cartQtyById[selectedProduct.id] ?? 0}
           storeSlug={activeStoreSlug}
           sellerName={brandName}
         />
@@ -444,7 +457,7 @@ function CategoryShelf({ categories, products, storeHref }: { categories: string
   );
 }
 
-function ProductShelf({ title, actionLabel, actionHref, storeHref, products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { title: string; actionLabel?: string; actionHref?: string; storeHref: string; products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function ProductShelf({ title, actionLabel, actionHref, storeHref, products, favoriteIds, cartQtyById, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { title: string; actionLabel?: string; actionHref?: string; storeHref: string; products: StoreProduct[]; favoriteIds: string[]; cartQtyById: Record<string, number>; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   if (products.length === 0) {
     return null;
   }
@@ -455,22 +468,22 @@ function ProductShelf({ title, actionLabel, actionHref, storeHref, products, fav
         <SectionTitle eyebrow="Shop" title={title} />
         {actionHref ? <Link href={actionHref} className="text-sm font-black text-[#16A34A]">{actionLabel ?? "View all"}</Link> : null}
       </div>
-      <ProductGrid storeHref={storeHref} products={products} favoriteIds={favoriteIds} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
+      <ProductGrid storeHref={storeHref} products={products} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
     </section>
   );
 }
 
-function ProductGrid({ storeHref, products, favoriteIds, onAddToCart, onToggleFavorite, onViewDetails }: { storeHref: string; products: StoreProduct[]; favoriteIds: string[]; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function ProductGrid({ storeHref, products, favoriteIds, cartQtyById, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { storeHref: string; products: StoreProduct[]; favoriteIds: string[]; cartQtyById: Record<string, number>; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   return (
     <div className="grid grid-cols-2 items-start gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6">
       {products.map((product) => (
-        <ProductCard key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
+        <ProductCard key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
       ))}
     </div>
   );
 }
 
-function ProductCard({ product, isFavorite, onAddToCart, onToggleFavorite, onViewDetails }: { storeHref: string; product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function ProductCard({ product, isFavorite, cartQty, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { storeHref: string; product: StoreProduct; isFavorite: boolean; cartQty: number; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   const rating = getProductRating(product);
   const badge = productBadge(product);
 
@@ -495,9 +508,17 @@ function ProductCard({ product, isFavorite, onAddToCart, onToggleFavorite, onVie
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-1.5">
           <span className={`truncate rounded px-1.5 py-0.5 text-[9px] font-black ring-1 ${badge.className}`}>{badge.label}</span>
-          <button type="button" onClick={() => onAddToCart(product)} aria-label={`Add ${product.name} to cart`} className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[#16A34A] text-white transition hover:bg-[#15803D]">
-            <IconGlyph name="cart" className="h-3.5 w-3.5" />
-          </button>
+          {cartQty > 0 ? (
+            <div className="flex shrink-0 items-center overflow-hidden rounded-md border border-emerald-200 bg-emerald-50">
+              <button type="button" onClick={() => onChangeCartQty(product, cartQty - 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-emerald-800">-</button>
+              <span className="min-w-6 text-center text-xs font-black text-slate-950">{cartQty}</span>
+              <button type="button" onClick={() => onChangeCartQty(product, cartQty + 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-emerald-800">+</button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => onAddToCart(product)} aria-label={`Add ${product.name} to cart`} className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[#16A34A] text-white transition hover:bg-[#15803D]">
+              <IconGlyph name="cart" className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
     </article>

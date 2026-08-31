@@ -887,16 +887,20 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   isFavorite,
   onClose,
   onAddToCart,
+  onChangeCartQty,
   onToggleFavorite,
   storeSlug,
+  cartQty = 0,
 }: {
   product: TProduct;
   isFavorite: boolean;
   onClose: () => void;
   onAddToCart: (product: TProduct) => void;
+  onChangeCartQty?: (product: TProduct, qty: number) => void;
   onToggleFavorite: (product: TProduct) => void;
   storeSlug?: string;
   sellerName?: string;
+  cartQty?: number;
 }) {
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -944,10 +948,18 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
               </div>
             ) : null}
             <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
-              <button type="button" onClick={() => onAddToCart(product)} className="flex items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">
-                <IconGlyph name="cart" className="h-4 w-4" />
-                Add to Cart
-              </button>
+              {cartQty > 0 && onChangeCartQty ? (
+                <div className="flex items-center justify-between overflow-hidden rounded-lg border border-emerald-200 bg-emerald-50">
+                  <button type="button" onClick={() => onChangeCartQty(product, cartQty - 1)} className="grid h-12 w-14 place-items-center text-xl font-black text-emerald-800">-</button>
+                  <span className="text-base font-black text-slate-950">{cartQty} in cart</span>
+                  <button type="button" onClick={() => onChangeCartQty(product, cartQty + 1)} className="grid h-12 w-14 place-items-center text-xl font-black text-emerald-800">+</button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => onAddToCart(product)} className="flex items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">
+                  <IconGlyph name="cart" className="h-4 w-4" />
+                  Add to Cart
+                </button>
+              )}
               <button type="button" onClick={() => onToggleFavorite(product)} className={`flex items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-black transition ${isFavorite ? "border-rose-200 bg-rose-50 text-rose-700" : "border-slate-200 bg-white text-slate-700 hover:border-rose-200 hover:text-rose-700"}`}>
                 <IconGlyph name="heart" className="h-4 w-4" />
                 {isFavorite ? "Saved" : "Save"}

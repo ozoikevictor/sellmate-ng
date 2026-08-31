@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
 import { IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
-import { addToCart, CustomerOrder, readCart, readCustomerOrders, readWishlist, toggleWishlistItem, updateCustomerOrder, writeCurrentStoreHref } from "@/lib/cart";
+import { addToCart, CustomerOrder, readCart, readCustomerOrders, readWishlist, toggleWishlistItem, updateCartQty, updateCustomerOrder, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -105,6 +105,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   const [profile, setProfile] = useState<StoreProfile | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [cartCount, setCartCount] = useState(0);
+  const [cartQtyById, setCartQtyById] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [cartNotice, setCartNotice] = useState("");
@@ -184,7 +185,9 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
     writeCurrentStoreHref(`/store/${slug}`);
 
     function syncCartCount() {
-      setCartCount(readCart().filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
+      const storeCart = readCart().filter((item) => item.store_slug === slug);
+      setCartCount(storeCart.reduce((sum, item) => sum + item.qty, 0));
+      setCartQtyById(Object.fromEntries(storeCart.map((item) => [item.id, item.qty])));
     }
     function syncWishlist() {
       setFavoriteIds(readWishlist(slug).map((item) => item.id));
@@ -249,8 +252,16 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
       image_url: product.image_url,
     });
     setCartCount(nextCart.filter((item) => item.store_slug === activeStoreSlug).reduce((sum, item) => sum + item.qty, 0));
+    setCartQtyById(Object.fromEntries(nextCart.filter((item) => item.store_slug === activeStoreSlug).map((item) => [item.id, item.qty])));
     setCartNotice(`${product.name} added to cart`);
     window.setTimeout(() => setCartNotice(""), 2400);
+  }
+
+  function handleChangeCartQty(product: StoreProduct, qty: number) {
+    const nextCart = updateCartQty(product.id, Math.max(0, Math.min(qty, product.stock)));
+    const storeCart = nextCart.filter((item) => item.store_slug === activeStoreSlug);
+    setCartCount(storeCart.reduce((sum, item) => sum + item.qty, 0));
+    setCartQtyById(Object.fromEntries(storeCart.map((item) => [item.id, item.qty])));
   }
 
   function toggleFavorite(product: StoreProduct) {
@@ -321,9 +332,9 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-5 sm:py-12">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
-        {view === "products" ? <ProductsView storeHref={storeHref} products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
+        {view === "products" ? <ProductsView storeHref={storeHref} products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}
-        {view === "wishlist" ? <WishlistView storeHref={storeHref} products={sortProducts(products.filter((product) => favoriteIds.includes(product.id)), sortBy)} totalProducts={favoriteIds.length} searchTerm="" selectedCategory="" sortBy={sortBy} onSortChange={setSortBy} onAddToCart={handleAddToCart} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
+        {view === "wishlist" ? <WishlistView storeHref={storeHref} products={sortProducts(products.filter((product) => favoriteIds.includes(product.id)), sortBy)} totalProducts={favoriteIds.length} searchTerm="" selectedCategory="" sortBy={sortBy} onSortChange={setSortBy} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "orders" ? <OrdersView orders={customerOrders} cancelingOrderId={cancelingOrderId} onCancelOrder={cancelOrder} /> : null}
         {view === "support" ? <SupportView sellerName={sellerName} whatsappPhone={profile?.whatsapp_phone} storeHref={storeHref} /> : null}
       </section>
@@ -342,7 +353,9 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
           isFavorite={favoriteIds.includes(selectedProduct.id)}
           onClose={() => setSelectedProduct(null)}
           onAddToCart={handleAddToCart}
+          onChangeCartQty={handleChangeCartQty}
           onToggleFavorite={toggleFavorite}
+          cartQty={cartQtyById[selectedProduct.id] ?? 0}
           storeSlug={activeStoreSlug}
           sellerName={sellerName}
         />
@@ -383,7 +396,9 @@ function ProductsView({
   sortBy,
   onSortChange,
   favoriteIds,
+  cartQtyById,
   onAddToCart,
+  onChangeCartQty,
   onToggleFavorite,
   onViewDetails,
 }: {
@@ -395,7 +410,9 @@ function ProductsView({
   onSortChange: (value: SortOption) => void;
   favoriteIds: string[];
   storeHref: string;
+  cartQtyById: Record<string, number>;
   onAddToCart: (product: StoreProduct) => void;
+  onChangeCartQty: (product: StoreProduct, qty: number) => void;
   onToggleFavorite: (product: StoreProduct) => void;
   onViewDetails: (product: StoreProduct) => void;
 }) {
@@ -416,14 +433,14 @@ function ProductsView({
       {products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
       <div className="grid grid-cols-2 items-start gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6">
         {products.map((product) => (
-          <ProductTile key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} onAddToCart={onAddToCart} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
+          <ProductTile key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
         ))}
       </div>
     </>
   );
 }
 
-function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite, onViewDetails }: { storeHref: string; product: StoreProduct; isFavorite: boolean; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function ProductTile({ product, isFavorite, cartQty, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { storeHref: string; product: StoreProduct; isFavorite: boolean; cartQty: number; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   const rating = productRating(product);
   const badge = productBadge(product);
   return (
@@ -447,9 +464,17 @@ function ProductTile({ product, isFavorite, onAddToCart, onToggleFavorite, onVie
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-1.5">
           <span className={`truncate rounded px-1.5 py-0.5 text-[9px] font-black ring-1 ${badge.className}`}>{badge.label}</span>
-          <button type="button" onClick={() => onAddToCart(product)} aria-label={`Add ${product.name} to cart`} className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[#16A34A] text-white transition hover:bg-[#15803D]">
-            <IconGlyph name="cart" className="h-3.5 w-3.5" />
-          </button>
+          {cartQty > 0 ? (
+            <div className="flex shrink-0 items-center overflow-hidden rounded-md border border-emerald-200 bg-emerald-50">
+              <button type="button" onClick={() => onChangeCartQty(product, cartQty - 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-emerald-800">-</button>
+              <span className="min-w-6 text-center text-xs font-black text-slate-950">{cartQty}</span>
+              <button type="button" onClick={() => onChangeCartQty(product, cartQty + 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-emerald-800">+</button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => onAddToCart(product)} aria-label={`Add ${product.name} to cart`} className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[#16A34A] text-white transition hover:bg-[#15803D]">
+              <IconGlyph name="cart" className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
     </article>
@@ -478,7 +503,7 @@ function CategoriesView({ categories, products, storeHref }: { categories: strin
   );
 }
 
-function WishlistView(props: { storeHref: string; products: StoreProduct[]; totalProducts: number; searchTerm: string; selectedCategory: string; sortBy: SortOption; onSortChange: (value: SortOption) => void; onAddToCart: (product: StoreProduct) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
+function WishlistView(props: { storeHref: string; products: StoreProduct[]; totalProducts: number; searchTerm: string; selectedCategory: string; sortBy: SortOption; onSortChange: (value: SortOption) => void; cartQtyById: Record<string, number>; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   if (props.products.length === 0) return <EmptyPanel title="No wishlist items yet" text="Tap the heart on a product to save it while shopping this store." />;
   return <ProductsView {...props} favoriteIds={props.products.map((product) => product.id)} />;
 }

@@ -80,6 +80,7 @@ export default function CustomerChatPage() {
   const [sellerReplies, setSellerReplies] = useState<SellerReply[]>([]);
   const [customerIdentity, setCustomerIdentity] = useState<CustomerChatIdentity | null>(() => (typeof window === "undefined" ? null : readCustomerChatIdentity(slug)));
   const [messageDraft, setMessageDraft] = useState("");
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(() => (selectedProductId ? [selectedProductId] : []));
   const chatPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -190,6 +191,7 @@ export default function CustomerChatPage() {
   }, [selectedMessageId, selectedProductId, sellerReplies, slug]);
 
   const selectedProduct = products.find((product) => product.id === selectedId) ?? products[0];
+  const selectedChatProducts = products.filter((product) => selectedProductIds.includes(product.id));
   const isFocusedProductChat = Boolean(selectedProductId);
   const categories = useMemo(() => Array.from(new Set(products.map((product) => product.category).filter(Boolean))).sort(), [products]);
   const visibleProducts = searchTerm
@@ -199,9 +201,21 @@ export default function CustomerChatPage() {
 
   function chooseProduct(productId: string) {
     setSelectedId(productId);
+    setSelectedProductIds((current) => (current.includes(productId) ? current : [...current, productId]));
     window.setTimeout(() => {
       chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
+  }
+
+  function toggleChatProduct(productId: string) {
+    setSelectedId(productId);
+    setSelectedProductIds((current) => {
+      if (current.includes(productId)) {
+        const next = current.filter((id) => id !== productId);
+        return next.length > 0 ? next : [productId];
+      }
+      return [...current, productId].slice(0, 6);
+    });
   }
 
   function startCustomerChat(event: FormEvent<HTMLFormElement>) {
@@ -253,7 +267,7 @@ export default function CustomerChatPage() {
           sellerId: profile.user_id,
           storeSlug: slug,
           productId: selectedProduct.id,
-          productName: selectedProduct.name,
+          productName: selectedChatProducts.length > 1 ? selectedChatProducts.map((product) => product.name).join(", ") : selectedProduct.name,
           customerName,
           customerPhone,
           message,
@@ -281,7 +295,7 @@ export default function CustomerChatPage() {
     const savedMessage = {
       id: data.id,
       product_id: selectedProduct.id,
-      product_name: selectedProduct.name,
+      product_name: selectedChatProducts.length > 1 ? selectedChatProducts.map((product) => product.name).join(", ") : selectedProduct.name,
       customer_name: customerName,
       customer_phone: customerPhone,
       message,
@@ -381,6 +395,27 @@ export default function CustomerChatPage() {
                   </div>
                 ) : null}
               </div>
+            </div>
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              {products.slice(0, 12).map((product) => {
+                const isSelected = selectedProductIds.includes(product.id);
+                return (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => toggleChatProduct(product.id)}
+                    className={`flex min-w-[8.5rem] items-center gap-2 rounded-lg border p-2 text-left transition ${isSelected ? "border-emerald-400 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-200"}`}
+                  >
+                    <span className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                      {product.image_url ? <img src={product.image_url} alt="" className="h-full w-full object-cover" /> : null}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-black text-slate-950">{product.name}</span>
+                      <span className="block text-[11px] font-bold text-emerald-700">{formatNaira(product.price)}</span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
