@@ -83,6 +83,7 @@ export default function CustomerChatPage() {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(() => (selectedProductId ? [selectedProductId] : []));
   const [replyingToId, setReplyingToId] = useState("");
   const [replySwipeStart, setReplySwipeStart] = useState<number | null>(null);
+  const [replySwipeDelta, setReplySwipeDelta] = useState(0);
   const chatPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -248,10 +249,24 @@ export default function CustomerChatPage() {
 
   function handleReplySwipeEnd(clientX: number, reply: SellerReply) {
     if (replySwipeStart === null) return;
-    if (Math.abs(clientX - replySwipeStart) > 52) {
+    const delta = clientX - replySwipeStart;
+    if (Math.abs(delta) > 42) {
       setReplyingToId(reply.id);
     }
     setReplySwipeStart(null);
+    setReplySwipeDelta(0);
+  }
+
+  function handleReplySwipeMove(clientX: number) {
+    if (replySwipeStart === null) return;
+    const delta = Math.max(-88, Math.min(88, clientX - replySwipeStart));
+    setReplySwipeDelta(delta);
+  }
+
+  function replyMessageTransform(replyId: string) {
+    if (replyingToId === replyId) return "translateX(-5rem)";
+    if (replySwipeStart !== null) return `translateX(${replySwipeDelta}px)`;
+    return "translateX(0)";
   }
 
   function startCustomerChat(event: FormEvent<HTMLFormElement>) {
@@ -480,11 +495,21 @@ export default function CustomerChatPage() {
                             <button
                               type="button"
                               onClick={() => setReplyingToId(replyingToId === reply.id ? "" : reply.id)}
-                              onTouchStart={(event) => setReplySwipeStart(event.touches[0]?.clientX ?? null)}
+                              onTouchStart={(event) => {
+                                setReplySwipeStart(event.touches[0]?.clientX ?? null);
+                                setReplySwipeDelta(0);
+                              }}
+                              onTouchMove={(event) => handleReplySwipeMove(event.touches[0]?.clientX ?? 0)}
                               onTouchEnd={(event) => handleReplySwipeEnd(event.changedTouches[0]?.clientX ?? 0, reply)}
-                              onMouseDown={(event) => setReplySwipeStart(event.clientX)}
+                              onMouseDown={(event) => {
+                                setReplySwipeStart(event.clientX);
+                                setReplySwipeDelta(0);
+                              }}
+                              onMouseMove={(event) => handleReplySwipeMove(event.clientX)}
                               onMouseUp={(event) => handleReplySwipeEnd(event.clientX, reply)}
-                              className={`relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition ${replyingToId === reply.id ? "-translate-x-20" : "translate-x-0"}`}
+                              onMouseLeave={(event) => handleReplySwipeEnd(event.clientX, reply)}
+                              style={{ transform: replyMessageTransform(reply.id) }}
+                              className="relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition-transform"
                             >
                               <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</span>
                               <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>
@@ -677,11 +702,21 @@ export default function CustomerChatPage() {
                             <button
                               type="button"
                               onClick={() => setReplyingToId(replyingToId === reply.id ? "" : reply.id)}
-                              onTouchStart={(event) => setReplySwipeStart(event.touches[0]?.clientX ?? null)}
+                              onTouchStart={(event) => {
+                                setReplySwipeStart(event.touches[0]?.clientX ?? null);
+                                setReplySwipeDelta(0);
+                              }}
+                              onTouchMove={(event) => handleReplySwipeMove(event.touches[0]?.clientX ?? 0)}
                               onTouchEnd={(event) => handleReplySwipeEnd(event.changedTouches[0]?.clientX ?? 0, reply)}
-                              onMouseDown={(event) => setReplySwipeStart(event.clientX)}
+                              onMouseDown={(event) => {
+                                setReplySwipeStart(event.clientX);
+                                setReplySwipeDelta(0);
+                              }}
+                              onMouseMove={(event) => handleReplySwipeMove(event.clientX)}
                               onMouseUp={(event) => handleReplySwipeEnd(event.clientX, reply)}
-                              className={`relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition ${replyingToId === reply.id ? "-translate-x-20" : "translate-x-0"}`}
+                              onMouseLeave={(event) => handleReplySwipeEnd(event.clientX, reply)}
+                              style={{ transform: replyMessageTransform(reply.id) }}
+                              className="relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition-transform"
                             >
                               <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</span>
                               <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>

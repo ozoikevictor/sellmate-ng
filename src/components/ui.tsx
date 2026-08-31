@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { LogoutButton, useAuth } from "@/components/auth";
@@ -85,6 +85,7 @@ function makeStoreSlug(businessName: string, userId: string) {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [storeSlug, setStoreSlug] = useState("store");
   const [storeReady, setStoreReady] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -103,6 +104,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
   ];
   const activeLink = links.find((link) => (link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href))) ?? links[0];
+  const isDashboardChatOpen = pathname === "/dashboard/messages" && Boolean(searchParams.get("chat"));
 
   useEffect(() => {
     if (!user?.id) {
@@ -256,7 +258,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </header>
-        <div className="mx-auto max-w-[1500px] px-4 pb-6 pt-40 sm:px-6 sm:pt-36 lg:pb-8 lg:pt-28">{children}</div>
+        <div className={isDashboardChatOpen ? "mx-auto max-w-[1500px] px-0 pb-0 pt-36 sm:pt-32 lg:pt-24" : "mx-auto max-w-[1500px] px-4 pb-6 pt-40 sm:px-6 sm:pt-36 lg:pb-8 lg:pt-28"}>{children}</div>
       </section>
     </main>
   );
