@@ -81,8 +81,8 @@ export default function CustomerChatPage() {
   const [customerIdentity, setCustomerIdentity] = useState<CustomerChatIdentity | null>(() => (typeof window === "undefined" ? null : readCustomerChatIdentity(slug)));
   const [messageDraft, setMessageDraft] = useState("");
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(() => (selectedProductId ? [selectedProductId] : []));
-  const [productReplyOpen, setProductReplyOpen] = useState(false);
-  const [productSwipeStart, setProductSwipeStart] = useState<number | null>(null);
+  const [replyingToId, setReplyingToId] = useState("");
+  const [replySwipeStart, setReplySwipeStart] = useState<number | null>(null);
   const chatPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -240,23 +240,18 @@ export default function CustomerChatPage() {
     });
   }
 
-  function openProductReply(product?: StoreProduct) {
-    if (!product) return;
-    setProductReplyOpen(true);
+  function replyToSellerMessage(reply: SellerReply) {
+    const shortReply = reply.seller_reply.length > 58 ? `${reply.seller_reply.slice(0, 58)}...` : reply.seller_reply;
+    setMessageDraft(`Replying to seller: "${shortReply}" `);
+    setReplyingToId("");
   }
 
-  function replyToProduct(product?: StoreProduct) {
-    if (!product) return;
-    setMessageDraft(`I'm interested in ${product.name}. `);
-    setProductReplyOpen(false);
-  }
-
-  function handleProductTouchEnd(clientX: number) {
-    if (productSwipeStart === null) return;
-    if (Math.abs(clientX - productSwipeStart) > 52) {
-      openProductReply(selectedProduct);
+  function handleReplySwipeEnd(clientX: number, reply: SellerReply) {
+    if (replySwipeStart === null) return;
+    if (Math.abs(clientX - replySwipeStart) > 52) {
+      setReplyingToId(reply.id);
     }
-    setProductSwipeStart(null);
+    setReplySwipeStart(null);
   }
 
   function startCustomerChat(event: FormEvent<HTMLFormElement>) {
@@ -412,7 +407,7 @@ export default function CustomerChatPage() {
 
           <div className="shrink-0 border-b border-slate-100 bg-white px-3 py-2 sm:px-5">
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {products.slice(0, 12).map((product) => {
+              {visibleProducts.map((product) => {
                 const isSelected = selectedProductIds.includes(product.id);
                 return (
                   <button
@@ -437,36 +432,17 @@ export default function CustomerChatPage() {
           <div className="min-h-0 flex-1 overflow-y-auto bg-[#F5F7FB] px-3 py-4 sm:px-5">
             {selectedProduct ? (
               <div className="mb-4 mr-auto max-w-[92%] sm:max-w-lg">
-                <div className="relative overflow-hidden rounded-2xl rounded-bl-md bg-emerald-50 ring-1 ring-emerald-100">
-                  <button
-                    type="button"
-                    onClick={() => replyToProduct(selectedProduct)}
-                    className={`absolute inset-y-0 right-3 my-auto h-10 rounded-full bg-[#16A34A] px-4 text-sm font-black text-white shadow-sm transition ${productReplyOpen ? "translate-x-0 opacity-100" : "translate-x-5 opacity-0 pointer-events-none"}`}
-                  >
-                    Reply
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openProductReply(selectedProduct)}
-                    onTouchStart={(event) => setProductSwipeStart(event.touches[0]?.clientX ?? null)}
-                    onTouchEnd={(event) => handleProductTouchEnd(event.changedTouches[0]?.clientX ?? 0)}
-                    onMouseDown={(event) => setProductSwipeStart(event.clientX)}
-                    onMouseUp={(event) => handleProductTouchEnd(event.clientX)}
-                    className={`relative z-10 flex w-full touch-pan-y gap-3 rounded-2xl rounded-bl-md bg-white p-3 text-left shadow-sm ring-1 ring-slate-200 transition ${productReplyOpen ? "-translate-x-20" : "translate-x-0"}`}
-                    aria-label={`Reply about ${selectedProduct.name}`}
-                  >
-                    <span className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                      {selectedProduct.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-cover" /> : null}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Product you selected</span>
-                      <span className="mt-1 block truncate text-sm font-black text-slate-950">{selectedProduct.name}</span>
-                      <span className="block text-sm font-black text-emerald-700">{formatNaira(selectedProduct.price)}</span>
-                      {selectedProduct.variant_options ? <span className="mt-1 line-clamp-2 text-xs font-semibold text-slate-500">{selectedProduct.variant_options}</span> : null}
-                    </span>
-                  </button>
+                <div className="flex gap-3 rounded-2xl rounded-bl-md bg-white p-3 shadow-sm ring-1 ring-slate-200">
+                  <span className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                    {selectedProduct.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-cover" /> : null}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Product you selected</span>
+                    <span className="mt-1 block truncate text-sm font-black text-slate-950">{selectedProduct.name}</span>
+                    <span className="block text-sm font-black text-emerald-700">{formatNaira(selectedProduct.price)}</span>
+                    {selectedProduct.variant_options ? <span className="mt-1 line-clamp-2 text-xs font-semibold text-slate-500">{selectedProduct.variant_options}</span> : null}
+                  </span>
                 </div>
-                <p className="mt-1 px-2 text-[11px] font-bold text-slate-400">Swipe the product sideways to reply about it.</p>
               </div>
             ) : null}
 
@@ -492,10 +468,29 @@ export default function CustomerChatPage() {
                         <p className="mt-2 text-[11px] font-bold text-white/75">{new Date(message.created_at).toLocaleString()}</p>
                       </div>
                       {reply?.seller_reply ? (
-                        <div className="mr-auto max-w-[86%] rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-slate-800 shadow-sm ring-1 ring-slate-200 sm:max-w-xl">
-                          <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</p>
-                          <p className="mt-2 text-sm font-semibold leading-6">{reply.seller_reply}</p>
-                          {reply.replied_at ? <p className="mt-2 text-[11px] font-bold text-slate-400">{new Date(reply.replied_at).toLocaleString()}</p> : null}
+                        <div className="mr-auto max-w-[86%] sm:max-w-xl">
+                          <div className="relative overflow-hidden rounded-2xl rounded-bl-md bg-emerald-50 ring-1 ring-emerald-100">
+                            <button
+                              type="button"
+                              onClick={() => replyToSellerMessage(reply)}
+                              className={`absolute inset-y-0 right-3 my-auto h-10 rounded-full bg-[#16A34A] px-4 text-sm font-black text-white shadow-sm transition ${replyingToId === reply.id ? "translate-x-0 opacity-100" : "translate-x-5 opacity-0 pointer-events-none"}`}
+                            >
+                              Reply
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReplyingToId(replyingToId === reply.id ? "" : reply.id)}
+                              onTouchStart={(event) => setReplySwipeStart(event.touches[0]?.clientX ?? null)}
+                              onTouchEnd={(event) => handleReplySwipeEnd(event.changedTouches[0]?.clientX ?? 0, reply)}
+                              onMouseDown={(event) => setReplySwipeStart(event.clientX)}
+                              onMouseUp={(event) => handleReplySwipeEnd(event.clientX, reply)}
+                              className={`relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition ${replyingToId === reply.id ? "-translate-x-20" : "translate-x-0"}`}
+                            >
+                              <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</span>
+                              <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>
+                              {reply.replied_at ? <span className="mt-2 block text-[11px] font-bold text-slate-400">{new Date(reply.replied_at).toLocaleString()}</span> : null}
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <p className="ml-auto rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200">Sent to seller</p>
@@ -608,7 +603,7 @@ export default function CustomerChatPage() {
               </div>
             </div>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-              {products.slice(0, 12).map((product) => {
+              {visibleProducts.map((product) => {
                 const isSelected = selectedProductIds.includes(product.id);
                 return (
                   <button
