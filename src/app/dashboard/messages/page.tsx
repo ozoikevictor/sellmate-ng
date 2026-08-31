@@ -139,7 +139,7 @@ export default function MessagesPage() {
 
   if (openConversation) {
     return (
-      <section className="flex h-[calc(100dvh-9rem)] min-h-[34rem] flex-col overflow-hidden border-y border-slate-200 bg-white shadow-sm sm:h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-6rem)] lg:border-x">
+      <section className="flex h-[calc(100dvh-9rem)] min-h-0 flex-col overflow-hidden border-y border-slate-200 bg-white shadow-sm sm:h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-6rem)] lg:min-h-[34rem] lg:border-x">
         {notice ? <p className="m-3 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{notice}</p> : null}
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-white p-4">
             <div className="flex min-w-0 items-center gap-3">

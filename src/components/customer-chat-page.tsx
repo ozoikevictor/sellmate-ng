@@ -84,6 +84,7 @@ export default function CustomerChatPage() {
   const [replyingToId, setReplyingToId] = useState("");
   const [replySwipeStart, setReplySwipeStart] = useState<number | null>(null);
   const [replySwipeDelta, setReplySwipeDelta] = useState(0);
+  const [replySwipeWasDragged, setReplySwipeWasDragged] = useState(false);
   const chatPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -253,6 +254,7 @@ export default function CustomerChatPage() {
     const delta = clientX - replySwipeStart;
     if (Math.abs(delta) > 42) {
       setReplyingToId(reply.id);
+      setReplySwipeWasDragged(true);
     }
     setReplySwipeStart(null);
     setReplySwipeDelta(0);
@@ -261,7 +263,18 @@ export default function CustomerChatPage() {
   function handleReplySwipeMove(clientX: number) {
     if (replySwipeStart === null) return;
     const delta = Math.max(-88, Math.min(88, clientX - replySwipeStart));
+    if (Math.abs(delta) > 8) {
+      setReplySwipeWasDragged(true);
+    }
     setReplySwipeDelta(delta);
+  }
+
+  function toggleSellerReply(replyId: string) {
+    if (replySwipeWasDragged) {
+      setReplySwipeWasDragged(false);
+      return;
+    }
+    setReplyingToId(replyingToId === replyId ? "" : replyId);
   }
 
   function replyMessageTransform(replyId: string) {
@@ -495,16 +508,18 @@ export default function CustomerChatPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => setReplyingToId(replyingToId === reply.id ? "" : reply.id)}
+                              onClick={() => toggleSellerReply(reply.id)}
                               onTouchStart={(event) => {
                                 setReplySwipeStart(event.touches[0]?.clientX ?? null);
                                 setReplySwipeDelta(0);
+                                setReplySwipeWasDragged(false);
                               }}
                               onTouchMove={(event) => handleReplySwipeMove(event.touches[0]?.clientX ?? 0)}
                               onTouchEnd={(event) => handleReplySwipeEnd(event.changedTouches[0]?.clientX ?? 0, reply)}
                               onMouseDown={(event) => {
                                 setReplySwipeStart(event.clientX);
                                 setReplySwipeDelta(0);
+                                setReplySwipeWasDragged(false);
                               }}
                               onMouseMove={(event) => handleReplySwipeMove(event.clientX)}
                               onMouseUp={(event) => handleReplySwipeEnd(event.clientX, reply)}
@@ -702,16 +717,18 @@ export default function CustomerChatPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => setReplyingToId(replyingToId === reply.id ? "" : reply.id)}
+                              onClick={() => toggleSellerReply(reply.id)}
                               onTouchStart={(event) => {
                                 setReplySwipeStart(event.touches[0]?.clientX ?? null);
                                 setReplySwipeDelta(0);
+                                setReplySwipeWasDragged(false);
                               }}
                               onTouchMove={(event) => handleReplySwipeMove(event.touches[0]?.clientX ?? 0)}
                               onTouchEnd={(event) => handleReplySwipeEnd(event.changedTouches[0]?.clientX ?? 0, reply)}
                               onMouseDown={(event) => {
                                 setReplySwipeStart(event.clientX);
                                 setReplySwipeDelta(0);
+                                setReplySwipeWasDragged(false);
                               }}
                               onMouseMove={(event) => handleReplySwipeMove(event.clientX)}
                               onMouseUp={(event) => handleReplySwipeEnd(event.clientX, reply)}
