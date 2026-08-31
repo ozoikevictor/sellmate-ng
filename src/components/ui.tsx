@@ -966,7 +966,7 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
               </button>
             </div>
             {storeSlug ? (
-              <Link href={`/store/${storeSlug}/chat/${encodeURIComponent(product.id)}`} onClick={onClose} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
+              <Link href={`/store/${storeSlug}/chat?product=${encodeURIComponent(product.id)}`} onClick={onClose} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
                 <IconGlyph name="messages" className="h-4 w-4" />
                 Chat with seller
               </Link>
