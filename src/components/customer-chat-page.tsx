@@ -665,10 +665,29 @@ export default function CustomerChatPage() {
                         <p className="mt-2 text-[11px] font-bold text-white/75">{new Date(message.created_at).toLocaleString()}</p>
                       </div>
                       {reply?.seller_reply ? (
-                        <div className="mr-auto max-w-[82%] rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-slate-800 ring-1 ring-slate-200">
-                          <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</p>
-                          <p className="mt-2 text-sm font-semibold leading-6">{reply.seller_reply}</p>
-                          {reply.replied_at ? <p className="mt-2 text-[11px] font-bold text-slate-400">{new Date(reply.replied_at).toLocaleString()}</p> : null}
+                        <div className="mr-auto max-w-[82%]">
+                          <div className="relative overflow-hidden rounded-2xl rounded-bl-md bg-emerald-50 ring-1 ring-emerald-100">
+                            <button
+                              type="button"
+                              onClick={() => replyToSellerMessage(reply)}
+                              className={`absolute inset-y-0 right-3 my-auto h-10 rounded-full bg-[#16A34A] px-4 text-sm font-black text-white shadow-sm transition ${replyingToId === reply.id ? "translate-x-0 opacity-100" : "translate-x-5 opacity-0 pointer-events-none"}`}
+                            >
+                              Reply
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setReplyingToId(replyingToId === reply.id ? "" : reply.id)}
+                              onTouchStart={(event) => setReplySwipeStart(event.touches[0]?.clientX ?? null)}
+                              onTouchEnd={(event) => handleReplySwipeEnd(event.changedTouches[0]?.clientX ?? 0, reply)}
+                              onMouseDown={(event) => setReplySwipeStart(event.clientX)}
+                              onMouseUp={(event) => handleReplySwipeEnd(event.clientX, reply)}
+                              className={`relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition ${replyingToId === reply.id ? "-translate-x-20" : "translate-x-0"}`}
+                            >
+                              <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</span>
+                              <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>
+                              {reply.replied_at ? <span className="mt-2 block text-[11px] font-bold text-slate-400">{new Date(reply.replied_at).toLocaleString()}</span> : null}
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <p className="ml-auto rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200">Sent to seller</p>

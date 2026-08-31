@@ -137,18 +137,10 @@ export default function MessagesPage() {
     setSavingId("");
   }
 
-  return (
-    <>
-      <SectionTitle eyebrow="Inbox" title="Messages" />
-      {notice ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{notice}</p> : null}
-      {sessionNotice ? (
-        <button type="button" onClick={loadMessages} className="mb-5 inline-flex rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D]">
-          Refresh messages
-        </button>
-      ) : null}
-
-      {openConversation ? (
-        <section className="sellmate-card flex max-h-[calc(100dvh-11rem)] min-h-[32rem] flex-col overflow-hidden rounded-lg">
+  if (openConversation) {
+    return (
+      <section className="sellmate-card flex h-[calc(100dvh-10rem)] min-h-[34rem] flex-col overflow-hidden rounded-lg sm:h-[calc(100dvh-9rem)] lg:h-[calc(100dvh-8rem)]">
+        {notice ? <p className="m-3 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{notice}</p> : null}
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-white p-4">
             <div className="flex min-w-0 items-center gap-3">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-950 text-sm font-black text-white">{openConversation.customer_name.slice(0, 1).toUpperCase()}</span>
@@ -196,8 +188,19 @@ export default function MessagesPage() {
               </button>
             </div>
           </form>
-        </section>
-      ) : (
+      </section>
+    );
+  }
+
+  return (
+    <>
+      <SectionTitle eyebrow="Inbox" title="Messages" />
+      {notice ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{notice}</p> : null}
+      {sessionNotice ? (
+        <button type="button" onClick={loadMessages} className="mb-5 inline-flex rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D]">
+          Refresh messages
+        </button>
+      ) : null}
       <>
       <section className="mb-5 grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -278,7 +281,6 @@ export default function MessagesPage() {
         </section>
       )}
       </>
-      )}
     </>
   );
 }
