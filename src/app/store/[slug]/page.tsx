@@ -296,18 +296,54 @@ export default function DynamicStorefrontPage() {
         whatsappPhone={profile?.whatsapp_phone}
       />
       <section className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-5 lg:py-8">
-          <div className="grid min-h-[160px] grid-cols-[minmax(0,1fr)_42%] items-center gap-3 overflow-hidden rounded-lg border border-slate-200 bg-[#F7F9FC] px-4 py-4 shadow-sm sm:min-h-[250px] sm:gap-6 sm:px-8 sm:py-7 lg:grid-cols-[1fr_0.85fr] lg:py-8">
-            <div className="relative z-10 min-w-0 max-w-2xl">
-              <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">Welcome to {brandName}</p>
-              <h1 className="mt-2 text-[1.45rem] font-black leading-tight text-[#0F172A] sm:mt-3 sm:text-5xl">Great products from a trusted seller</h1>
-              <p className="mt-2 line-clamp-2 max-w-xl text-xs font-semibold leading-5 text-[#64748B] sm:mt-3 sm:text-base sm:leading-6">Discover quality items across different categories at great prices.</p>
-              <div className="mt-3 flex flex-wrap gap-2 sm:mt-5 sm:gap-3">
-                <a href="#products" className="rounded-md bg-[#16A34A] px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:px-5 sm:py-3 sm:text-sm">Shop Now</a>
-                <Link href={`${storeHomeHref}/products`} className="hidden rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800 transition hover:border-emerald-300 hover:text-emerald-700 sm:inline-flex">View Products</Link>
+        <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:py-4">
+          <aside className="hidden min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-sm lg:block">
+            <p className="px-2 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Categories</p>
+            <nav className="grid min-w-0 gap-1">
+              {(categories.length ? categories.slice(0, 8) : ["Products"]).map((category) => (
+                <Link
+                  key={category}
+                  href={`${storeHomeHref}/products${category === "Products" ? "" : `?category=${encodeURIComponent(category)}`}`}
+                  className="flex min-w-0 items-center justify-between gap-2 overflow-hidden rounded-md px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
+                  title={category}
+                >
+                  <span className="min-w-0 flex-1 truncate">{category}</span>
+                  <span className="shrink-0 text-xs text-slate-400">{products.filter((item) => item.category === category).length || ""}</span>
+                </Link>
+              ))}
+            </nav>
+          </aside>
+          <div className="grid gap-3">
+            <div className="grid min-h-[170px] grid-cols-[minmax(0,1fr)_42%] items-center gap-2 overflow-hidden rounded-lg border border-slate-200 bg-[#F3FBF6] px-4 py-4 shadow-sm sm:min-h-[230px] sm:grid-cols-[minmax(0,1fr)_45%] sm:gap-5 sm:px-6 lg:min-h-[250px]">
+              <div className="relative z-10 min-w-0">
+                <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">{brandName}</p>
+                <h1 className="mt-2 max-w-xl text-[1.45rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-5xl">Shop trusted products from this seller</h1>
+                <p className="mt-2 line-clamp-2 max-w-lg text-xs font-semibold leading-5 text-[#64748B] sm:text-sm sm:leading-6">Browse categories, check prices, add to cart, and ask the seller questions before you buy.</p>
+                <div className="mt-3 flex flex-wrap gap-2 sm:mt-5 sm:gap-3">
+                  <a href="#products" className="rounded-md bg-[#16A34A] px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:px-5 sm:py-3 sm:text-sm">Shop Now</a>
+                  <Link href={`${storeHomeHref}/chat`} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 transition hover:border-emerald-300 hover:text-emerald-700 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</Link>
+                </div>
               </div>
+              <HeroCollage products={heroProducts} activeIndex={heroIndex} />
             </div>
-            <HeroCollage products={heroProducts} activeIndex={heroIndex} />
+            <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+              {(heroProducts.length ? heroProducts : products.slice(0, 6)).slice(0, 6).map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  onClick={() => setSelectedProduct(product)}
+                  className="flex min-w-[8.5rem] items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                >
+                  <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-md bg-[#F7F9FC]">
+                    {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-contain p-1" /> : <IconGlyph name="cart" className="h-4 w-4 text-slate-400" />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-xs font-black text-slate-950">{product.name}</span>
+                    <span className="block text-[11px] font-black text-[#16A34A]">{formatNaira(product.price)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -389,28 +425,27 @@ export default function DynamicStorefrontPage() {
 function HeroCollage({ products, activeIndex }: { products: StoreProduct[]; activeIndex: number }) {
   if (products.length === 0) {
     return (
-      <div className="relative min-h-[120px] rounded-lg border border-slate-200 bg-white sm:min-h-[190px]">
-        <div className="absolute inset-6 rounded-lg bg-[#F0FDF4]" />
-        <div className="absolute left-8 top-8 h-24 w-24 rounded-lg border border-slate-200 bg-white shadow-sm" />
-        <div className="absolute bottom-8 right-8 h-32 w-32 rounded-lg border border-slate-200 bg-white shadow-sm" />
+      <div className="relative min-h-[120px] rounded-lg bg-white/70 sm:min-h-[190px]">
+        <div className="absolute left-2 top-4 h-16 w-16 rounded-lg border border-slate-200 bg-white shadow-sm sm:left-8 sm:top-8 sm:h-24 sm:w-24" />
+        <div className="absolute bottom-4 right-2 h-20 w-20 rounded-lg border border-slate-200 bg-white shadow-sm sm:bottom-8 sm:right-8 sm:h-32 sm:w-32" />
       </div>
     );
   }
 
   const orderedProducts = products.map((_, index) => products[(activeIndex + index) % products.length]).slice(0, 5);
   const slots = [
-    "left-[2%] top-[20%] h-14 w-14 sm:left-[6%] sm:top-[18%] sm:h-32 sm:w-32",
-    "left-[28%] top-[8%] h-20 w-20 sm:left-[34%] sm:top-[6%] sm:h-44 sm:w-44",
-    "right-[2%] top-[28%] h-14 w-14 sm:right-[4%] sm:top-[24%] sm:h-36 sm:w-36",
-    "bottom-[8%] left-[18%] hidden h-24 w-28 sm:block",
-    "bottom-[10%] right-[18%] hidden h-20 w-28 lg:block",
+    "left-[2%] top-[20%] h-14 w-14 sm:left-[6%] sm:top-[18%] sm:h-24 sm:w-24",
+    "left-[30%] top-[4%] h-20 w-20 sm:left-[34%] sm:top-[8%] sm:h-36 sm:w-36",
+    "right-[2%] top-[30%] h-14 w-14 sm:right-[4%] sm:top-[24%] sm:h-28 sm:w-28",
+    "bottom-[7%] left-[18%] hidden h-20 w-24 sm:block",
+    "bottom-[10%] right-[18%] hidden h-16 w-24 lg:block",
   ];
 
   return (
-    <div className="relative min-h-[120px] sm:min-h-[230px]">
-      <div className="absolute inset-0 rounded-lg bg-white/75" />
+    <div className="relative min-h-[120px] sm:min-h-[220px]">
+      <div className="absolute inset-0 rounded-lg bg-white/55" />
       {orderedProducts.map((product, index) => (
-        <div key={product.id} className={`absolute ${slots[index]} overflow-hidden rounded-lg border border-slate-200 bg-white p-2 shadow-lg`}>
+        <div key={product.id} className={`absolute ${slots[index]} overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg`}>
           {product.image_url ? (
             <img src={product.image_url} alt={product.name} loading={index > 1 ? "lazy" : "eager"} className="h-full w-full object-contain" />
           ) : null}
