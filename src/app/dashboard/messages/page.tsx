@@ -139,7 +139,7 @@ export default function MessagesPage() {
 
   if (openConversation) {
     return (
-      <section className="flex h-[calc(100dvh-9rem)] min-h-0 flex-col overflow-hidden border-y border-slate-200 bg-white shadow-sm sm:h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-6rem)] lg:min-h-[34rem] lg:border-x">
+      <section className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-white shadow-sm">
         {notice ? <p className="m-3 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{notice}</p> : null}
           <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-3 py-3 sm:px-4">
             <Link href="/dashboard/messages" aria-label="Back to messages" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700">

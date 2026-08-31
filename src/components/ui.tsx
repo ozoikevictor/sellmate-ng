@@ -139,6 +139,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   const sellerInitial = (user?.business || user?.name || "V").trim().charAt(0).toUpperCase();
 
+  if (isDashboardChatOpen) {
+    return <main className="min-h-screen overflow-hidden bg-slate-50">{children}</main>;
+  }
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#EEF6F3_45%,#F8FAFC_100%)]">
       <aside className={`fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-slate-200/80 bg-[#07111F] text-white shadow-[18px_0_60px_rgba(15,23,42,0.12)] transition-[width] duration-300 lg:block ${sidebarCollapsed ? "w-20 p-3" : "w-72 p-5"}`}>
