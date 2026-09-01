@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, IconGlyph, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/components/auth";
+import { encodeChatOffer, parseChatOffer } from "@/lib/cart";
+import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
 type CustomerMessage = {
@@ -44,6 +46,11 @@ export default function MessagesPage() {
   const [sessionNotice, setSessionNotice] = useState(false);
   const [savingId, setSavingId] = useState("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [offerDrafts, setOfferDrafts] = useState<Record<string, { price: string; delivery: string }>>({});
+  const [replyingToMessageId, setReplyingToMessageId] = useState("");
+  const [swipeStart, setSwipeStart] = useState<number | null>(null);
+  const [swipeMessageId, setSwipeMessageId] = useState("");
+  const [swipeDelta, setSwipeDelta] = useState(0);
 
   const loadMessages = useCallback(async () => {
     if (!ready) {
@@ -116,9 +123,24 @@ export default function MessagesPage() {
 
   async function sendReply(event: React.FormEvent<HTMLFormElement>, message: CustomerMessage) {
     event.preventDefault();
-    const reply = (replyDrafts[message.id] ?? "").trim();
-    if (!reply) {
-      setNotice("Write a reply before sending.");
+    const plainReply = (replyDrafts[message.id] ?? "").trim();
+    const offerDraft = offerDrafts[message.id];
+    const agreedPrice = Number(offerDraft?.price || 0);
+    const agreedDelivery = Number(offerDraft?.delivery || 0);
+    const hasOffer = agreedPrice > 0 || agreedDelivery > 0;
+    const reply = hasOffer
+      ? encodeChatOffer({
+          seller_id: userId,
+          store_slug: message.store_slug,
+          product_id: message.product_id,
+          product_name: message.product_name,
+          agreed_price: agreedPrice > 0 ? agreedPrice : undefined,
+          delivery_fee: agreedDelivery > 0 ? agreedDelivery : undefined,
+          note: plainReply,
+        })
+      : plainReply;
+    if (!reply || (hasOffer && agreedPrice <= 0 && agreedDelivery <= 0)) {
+      setNotice("Write a reply or add an agreed price/delivery offer before sending.");
       return;
     }
 
@@ -134,14 +156,45 @@ export default function MessagesPage() {
     const repliedAt = new Date().toISOString();
     setMessages((current) => current.map((item) => (item.id === message.id ? { ...item, status: "Replied", seller_reply: reply, replied_at: repliedAt } : item)));
     setReplyDrafts((current) => ({ ...current, [message.id]: "" }));
+    setOfferDrafts((current) => ({ ...current, [message.id]: { price: "", delivery: "" } }));
     setSavingId("");
   }
 
+  function beginMessageSwipe(messageId: string, clientX: number | null) {
+    setSwipeMessageId(messageId);
+    setSwipeStart(clientX);
+    setSwipeDelta(0);
+  }
+
+  function moveMessageSwipe(clientX: number) {
+    if (swipeStart === null) return;
+    setSwipeDelta(Math.max(-92, Math.min(92, clientX - swipeStart)));
+  }
+
+  function endMessageSwipe(clientX: number, messageId: string) {
+    if (swipeStart === null) return;
+    const delta = clientX - swipeStart;
+    if (Math.abs(delta) > 38) {
+      setReplyingToMessageId(messageId);
+    }
+    setSwipeStart(null);
+    setSwipeMessageId("");
+    setSwipeDelta(0);
+  }
+
+  function messageSwipeStyle(messageId: string) {
+    if (swipeMessageId === messageId && swipeStart !== null) return `translateX(${swipeDelta}px)`;
+    return "translateX(0)";
+  }
+
   if (openConversation) {
+    const replyTarget = openConversation.messages.find((message) => message.id === replyingToMessageId) ?? openConversation.latest;
+    const offerDraft = offerDrafts[replyTarget.id] ?? { price: "", delivery: "" };
+
     return (
-      <section className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-white shadow-sm">
+      <section className="flex h-[100svh] min-h-0 flex-col overflow-hidden bg-white shadow-sm">
         {notice ? <p className="m-3 rounded-md bg-rose-50 p-3 text-sm font-semibold text-rose-700">{notice}</p> : null}
-          <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-3 py-3 sm:px-4">
+          <div className="shrink-0 flex items-center gap-3 border-b border-slate-100 bg-white px-3 py-3 sm:px-4">
             <Link href="/dashboard/messages" aria-label="Back to messages" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-lg font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className="h-5 w-5" aria-hidden="true">
                 <path d="M15 18l-6-6 6-6" />
@@ -156,37 +209,103 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto bg-slate-50 p-4">
+          <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto overscroll-contain bg-slate-50 p-4">
             {openConversation.messages.slice().reverse().map((message) => (
               <div key={message.id} className="grid gap-3">
-                <div className="mr-auto max-w-[88%] rounded-2xl rounded-bl-md bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-700 ring-1 ring-slate-200">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</p>
-                  <p className="mt-2 whitespace-pre-wrap">{message.message}</p>
-                  <p className="mt-2 text-[11px] font-bold text-slate-400">{new Date(message.created_at).toLocaleString()}</p>
+                <div className="mr-auto max-w-[88%]">
+                  <div className="relative overflow-hidden rounded-2xl rounded-bl-md">
+                    <span className={`absolute inset-y-0 left-0 my-auto grid h-9 w-12 place-items-center rounded-full bg-emerald-100 text-xs font-black text-emerald-700 transition ${swipeMessageId === message.id && Math.abs(swipeDelta) > 18 ? "opacity-100" : "opacity-0"}`}>Reply</span>
+                    <button
+                      type="button"
+                      onClick={() => setReplyingToMessageId(message.id)}
+                      onTouchStart={(event) => beginMessageSwipe(message.id, event.touches[0]?.clientX ?? null)}
+                      onTouchMove={(event) => moveMessageSwipe(event.touches[0]?.clientX ?? 0)}
+                      onTouchEnd={(event) => endMessageSwipe(event.changedTouches[0]?.clientX ?? 0, message.id)}
+                      onMouseDown={(event) => beginMessageSwipe(message.id, event.clientX)}
+                      onMouseMove={(event) => moveMessageSwipe(event.clientX)}
+                      onMouseUp={(event) => endMessageSwipe(event.clientX, message.id)}
+                      onMouseLeave={(event) => endMessageSwipe(event.clientX, message.id)}
+                      style={{ transform: messageSwipeStyle(message.id) }}
+                      className={`relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-4 py-3 text-left text-sm font-semibold leading-6 text-slate-700 shadow-sm ring-1 transition ${replyingToMessageId === message.id ? "ring-emerald-300" : "ring-slate-200"}`}
+                    >
+                      <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</span>
+                      <span className="mt-2 block whitespace-pre-wrap">{message.message}</span>
+                      <span className="mt-2 block text-[11px] font-bold text-slate-400">{new Date(message.created_at).toLocaleString()}</span>
+                    </button>
+                  </div>
                 </div>
                 {message.seller_reply ? (
-                  <div className="ml-auto max-w-[88%] rounded-2xl rounded-br-md bg-[#16A34A] px-4 py-3 text-sm font-semibold leading-6 text-white">
-                    <p className="whitespace-pre-wrap">{message.seller_reply}</p>
-                    {message.replied_at ? <p className="mt-2 text-[11px] font-bold text-white/75">{new Date(message.replied_at).toLocaleString()}</p> : null}
+                  <div className="ml-auto max-w-[88%]">
+                    <button
+                      type="button"
+                      onClick={() => setReplyingToMessageId(message.id)}
+                      onTouchStart={(event) => beginMessageSwipe(message.id, event.touches[0]?.clientX ?? null)}
+                      onTouchMove={(event) => moveMessageSwipe(event.touches[0]?.clientX ?? 0)}
+                      onTouchEnd={(event) => endMessageSwipe(event.changedTouches[0]?.clientX ?? 0, message.id)}
+                      onMouseDown={(event) => beginMessageSwipe(message.id, event.clientX)}
+                      onMouseMove={(event) => moveMessageSwipe(event.clientX)}
+                      onMouseUp={(event) => endMessageSwipe(event.clientX, message.id)}
+                      onMouseLeave={(event) => endMessageSwipe(event.clientX, message.id)}
+                      style={{ transform: messageSwipeStyle(message.id) }}
+                      className={`w-full touch-pan-y rounded-2xl rounded-br-md bg-[#16A34A] px-4 py-3 text-left text-sm font-semibold leading-6 text-white transition ${replyingToMessageId === message.id ? "ring-2 ring-emerald-200" : ""}`}
+                    >
+                      {parseChatOffer(message.seller_reply, message.id) ? (
+                        <OfferBubble offer={parseChatOffer(message.seller_reply, message.id)!} />
+                      ) : (
+                        <span className="block whitespace-pre-wrap">{message.seller_reply}</span>
+                      )}
+                      {message.replied_at ? <span className="mt-2 block text-[11px] font-bold text-white/75">{new Date(message.replied_at).toLocaleString()}</span> : null}
+                    </button>
                   </div>
                 ) : null}
               </div>
             ))}
           </div>
 
-          <form onSubmit={(event) => sendReply(event, openConversation.latest)} className="sticky bottom-0 border-t border-slate-100 bg-white p-3 shadow-[0_-10px_24px_rgba(15,23,42,0.06)] sm:p-4">
-            <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Replying about {openConversation.latest.product_name}</p>
+          <form onSubmit={(event) => sendReply(event, replyTarget)} className="shrink-0 border-t border-slate-100 bg-white p-3 shadow-[0_-10px_24px_rgba(15,23,42,0.06)] sm:p-4">
+            <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
+              <p className="min-w-0 truncate text-xs font-black uppercase tracking-[0.14em] text-slate-500">Replying about {replyTarget.product_name}</p>
+              {replyingToMessageId ? (
+                <button type="button" onClick={() => setReplyingToMessageId("")} className="shrink-0 text-xs font-black text-slate-500 hover:text-rose-600">
+                  Cancel
+                </button>
+              ) : null}
+            </div>
+            <div className="mb-2 grid gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 sm:grid-cols-2">
+              <label className="grid gap-1 text-[11px] font-black uppercase tracking-[0.12em] text-emerald-800">
+                Agreed product price
+                <input
+                  type="number"
+                  min="0"
+                  value={offerDraft.price}
+                  onChange={(event) => setOfferDrafts((current) => ({ ...current, [replyTarget.id]: { ...(current[replyTarget.id] ?? { price: "", delivery: "" }), price: event.target.value } }))}
+                  placeholder="Example 8000"
+                  className="rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-slate-950 outline-none focus:border-emerald-600"
+                />
+              </label>
+              <label className="grid gap-1 text-[11px] font-black uppercase tracking-[0.12em] text-emerald-800">
+                Agreed delivery fee
+                <input
+                  type="number"
+                  min="0"
+                  value={offerDraft.delivery}
+                  onChange={(event) => setOfferDrafts((current) => ({ ...current, [replyTarget.id]: { ...(current[replyTarget.id] ?? { price: "", delivery: "" }), delivery: event.target.value } }))}
+                  placeholder="Example 10000"
+                  className="rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-slate-950 outline-none focus:border-emerald-600"
+                />
+              </label>
+            </div>
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
               <textarea
-                value={replyDrafts[openConversation.latest.id] ?? ""}
-                onChange={(event) => setReplyDrafts((current) => ({ ...current, [openConversation.latest.id]: event.target.value }))}
+                value={replyDrafts[replyTarget.id] ?? ""}
+                onChange={(event) => setReplyDrafts((current) => ({ ...current, [replyTarget.id]: event.target.value }))}
                 maxLength={800}
                 rows={2}
                 placeholder={`Reply to ${openConversation.customer_name}...`}
                 className="max-h-28 min-h-12 resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-semibold text-slate-900 outline-none focus:border-emerald-600"
               />
-              <button disabled={savingId === openConversation.latest.id} aria-label="Send reply" className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#16A34A] text-lg font-black text-white transition hover:bg-[#15803D] disabled:bg-slate-400">
-                {savingId === openConversation.latest.id ? "..." : "➤"}
+              <button disabled={savingId === replyTarget.id} aria-label="Send reply" className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#16A34A] text-lg font-black text-white transition hover:bg-[#15803D] disabled:bg-slate-400">
+                {savingId === replyTarget.id ? "..." : "➤"}
               </button>
             </div>
           </form>
@@ -387,4 +506,16 @@ function buildConversations(messages: CustomerMessage[]) {
       messages: conversation.messages.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
     }))
     .sort((a, b) => new Date(b.latest.created_at).getTime() - new Date(a.latest.created_at).getTime());
+}
+
+function OfferBubble({ offer }: { offer: NonNullable<ReturnType<typeof parseChatOffer>> }) {
+  return (
+    <span className="block rounded-xl bg-white/15 p-3">
+      <span className="block text-xs font-black uppercase tracking-[0.14em] text-white/80">Offer sent</span>
+      <span className="mt-2 block text-sm font-black">{offer.product_name}</span>
+      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold">Agreed price: {formatNaira(offer.agreed_price)}</span> : null}
+      {offer.delivery_fee !== undefined ? <span className="mt-1 block text-sm font-bold">Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
+      {offer.note ? <span className="mt-2 block whitespace-pre-wrap text-sm font-semibold">{offer.note}</span> : null}
+    </span>
+  );
 }

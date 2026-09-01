@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckoutHeader, IconGlyph, PublicFooter } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
-import { CartItem, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
+import { CartItem, cartItemPrice, cartTotal, readCart, readCurrentStoreHref, updateCartQty, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -26,7 +26,9 @@ export default function CartPage() {
   const [sellerLogoUrl, setSellerLogoUrl] = useState("");
   const [storeHref, setStoreHref] = useState("/");
   const subtotal = cartTotal(items);
-  const total = items.length > 0 ? subtotal + delivery : 0;
+  const agreedDelivery = getAgreedDelivery(items);
+  const activeDelivery = agreedDelivery ?? delivery;
+  const total = items.length > 0 ? subtotal + activeDelivery : 0;
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
@@ -82,7 +84,7 @@ export default function CartPage() {
             <div className="grid grid-cols-2 gap-3">
               <CartStat label="Items" value={`${itemCount}`} tone="slate" />
               <CartStat label="Subtotal" value={formatNaira(subtotal)} tone="green" />
-              <CartStat label="Delivery" value={formatNaira(items.length > 0 ? delivery : 0)} tone="orange" />
+              <CartStat label="Delivery" value={formatNaira(items.length > 0 ? activeDelivery : 0)} tone="orange" />
               <CartStat label="Total" value={formatNaira(total)} tone="dark" />
             </div>
           </div>
@@ -127,7 +129,8 @@ export default function CartPage() {
                       <div className="min-w-0">
                         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">{item.category}</span>
                         <p className="mt-3 break-words text-xl font-black leading-tight text-slate-950 sm:text-2xl">{item.name}</p>
-                        <p className="mt-1 text-sm font-semibold text-slate-500">{formatNaira(item.price)} each</p>
+                        <p className="mt-1 text-sm font-semibold text-slate-500">{formatNaira(cartItemPrice(item))} each</p>
+                        {item.agreed_price ? <p className="mt-1 text-xs font-black text-emerald-700">Chat agreed price applied</p> : null}
                         {item.variant_options ? <p className="mt-1 break-words text-xs font-semibold leading-5 text-slate-500">{item.variant_options}</p> : null}
                         <p className="mt-2 text-xs font-black uppercase tracking-wide text-emerald-700">{item.stock} available</p>
                       </div>
@@ -137,7 +140,7 @@ export default function CartPage() {
                           <span className="min-w-10 border-x border-slate-200 px-3 py-2 text-center text-sm font-black text-slate-950">{item.qty}</span>
                           <button onClick={() => changeQty(item.id, Math.min(item.stock, item.qty + 1))} className="px-3 py-2 text-sm font-black text-slate-700 hover:bg-emerald-50" aria-label="Increase quantity">+</button>
                         </div>
-                        <p className="w-full text-left text-xl font-black text-slate-950 md:text-right">{formatNaira(item.price * item.qty)}</p>
+                        <p className="w-full text-left text-xl font-black text-slate-950 md:text-right">{formatNaira(cartItemPrice(item) * item.qty)}</p>
                         <button onClick={() => changeQty(item.id, 0)} className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-black text-rose-700 hover:bg-rose-100">Remove</button>
                       </div>
                     </div>
@@ -152,7 +155,8 @@ export default function CartPage() {
                 <h2 className="mt-2 text-2xl font-black text-slate-950">Payment total</h2>
                 <div className="mt-5 grid gap-3 text-sm text-slate-600">
                   <div className="flex justify-between"><span>Subtotal</span><strong className="text-slate-950">{formatNaira(subtotal)}</strong></div>
-                  <div className="flex justify-between"><span>Delivery</span><strong className="text-slate-950">{formatNaira(delivery)}</strong></div>
+                  <div className="flex justify-between"><span>Delivery</span><strong className="text-slate-950">{formatNaira(activeDelivery)}</strong></div>
+                  {agreedDelivery !== null ? <p className="rounded-lg bg-emerald-50 p-3 text-xs font-black text-emerald-800">Chat agreed delivery fee applied</p> : null}
                   <div className="flex justify-between"><span>Items</span><strong className="text-slate-950">{itemCount}</strong></div>
                 </div>
                 <div className="mt-5 flex justify-between border-t border-slate-200 pt-5 text-2xl font-black text-slate-950">
@@ -200,6 +204,11 @@ function CartStat({ label, value, tone }: { label: string; value: string; tone: 
       <p className="mt-2 truncate text-2xl font-black">{value}</p>
     </div>
   );
+}
+
+function getAgreedDelivery(items: CartItem[]) {
+  const fees = items.map((item) => item.agreed_delivery_fee).filter((fee): fee is number => typeof fee === "number" && fee >= 0);
+  return fees.length > 0 ? Math.max(...fees) : null;
 }
 
 async function loadSellerDetails(

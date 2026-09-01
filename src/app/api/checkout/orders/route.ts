@@ -1,10 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { parseChatOffer } from "@/lib/cart";
 import { rateLimit } from "@/lib/server-security";
 
 type CheckoutItem = {
   id: string;
   qty: number;
+  agreedPrice?: number;
+  agreedDeliveryFee?: number;
+  bargainMessageId?: string;
 };
 
 type ProductRow = {
@@ -16,6 +20,18 @@ type ProductRow = {
   status: string;
 };
 
+type MessageOfferRow = {
+  id: string;
+  seller_reply: string | null;
+  customer_phone: string;
+  product_id: string;
+  store_slug: string;
+};
+
+type ValidOffer = NonNullable<ReturnType<typeof parseChatOffer>> & {
+  customer_phone: string;
+};
+
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -23,6 +39,13 @@ function getSupabaseAdmin() {
     throw new Error("Supabase server key is not configured.");
   }
   return createClient(url, key);
+}
+
+function normalizePhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("234")) return digits;
+  if (digits.startsWith("0")) return `234${digits.slice(1)}`;
+  return digits;
 }
 
 export async function POST(request: Request) {
@@ -90,7 +113,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: productsError.message }, { status: 400 });
   }
 
+  const bargainIds = checkoutItems.map((item) => String(item.bargainMessageId ?? "").trim()).filter(Boolean);
+  let offersByMessageId = new Map<string, ValidOffer>();
+  if (bargainIds.length > 0) {
+    const { data: offerMessages, error: offerError } = await supabase
+      .from("customer_messages")
+      .select("id,seller_reply,customer_phone,product_id,store_slug")
+      .eq("seller_id", sellerId)
+      .in("id", bargainIds);
+
+    if (offerError) {
+      return NextResponse.json({ message: offerError.message }, { status: 400 });
+    }
+
+    offersByMessageId = new Map(
+      (offerMessages ?? [])
+        .map((message: MessageOfferRow) => {
+          const offer = parseChatOffer(message.seller_reply, message.id);
+          return offer ? [message.id, { ...offer, customer_phone: message.customer_phone }] as const : null;
+        })
+        .filter((entry): entry is readonly [string, ValidOffer] => Boolean(entry)),
+    );
+  }
+
   const productsById = new Map((products ?? []).map((product: ProductRow) => [product.id, product]));
+  let agreedDeliveryFee: number | null = null;
   const orderItems = checkoutItems.map((item) => {
     const product = productsById.get(item.id);
     const quantity = Math.max(1, Number(item.qty) || 1);
@@ -98,13 +145,28 @@ export async function POST(request: Request) {
       return null;
     }
 
+    let unitPrice = Number(product.price);
+    const bargainMessageId = String(item.bargainMessageId ?? "").trim();
+    if (bargainMessageId) {
+      const offer = offersByMessageId.get(bargainMessageId);
+      if (!offer || offer.seller_id !== sellerId || offer.product_id !== product.id || normalizePhone(customerPhone) !== normalizePhone(offer.customer_phone)) {
+        return null;
+      }
+      if (typeof offer.agreed_price === "number" && offer.agreed_price > 0) {
+        unitPrice = offer.agreed_price;
+      }
+      if (typeof offer.delivery_fee === "number" && offer.delivery_fee >= 0) {
+        agreedDeliveryFee = Math.max(agreedDeliveryFee ?? 0, offer.delivery_fee);
+      }
+    }
+
     return {
       order_id: "",
       product_id: product.id,
       product_name: product.name,
       quantity,
-      unit_price: Number(product.price),
-      line_total: Number(product.price) * quantity,
+      unit_price: unitPrice,
+      line_total: unitPrice * quantity,
     };
   });
 
@@ -113,7 +175,7 @@ export async function POST(request: Request) {
   }
 
   const subtotal = orderItems.reduce((sum, item) => sum + (item?.line_total ?? 0), 0);
-  const deliveryFee = Number(profile?.delivery_fee ?? 0);
+  const deliveryFee = agreedDeliveryFee ?? Number(profile?.delivery_fee ?? 0);
   const total = subtotal + deliveryFee;
 
   const { data: order, error: orderError } = await supabase

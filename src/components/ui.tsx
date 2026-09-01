@@ -140,7 +140,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const sellerInitial = (user?.business || user?.name || "V").trim().charAt(0).toUpperCase();
 
   if (isDashboardChatOpen) {
-    return <main className="min-h-screen overflow-hidden bg-slate-50">{children}</main>;
+    return <main className="fixed inset-0 overflow-hidden bg-slate-50">{children}</main>;
   }
 
   return (

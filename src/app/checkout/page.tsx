@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { LoadingScreen } from "@/components/loading-screen";
-import { CartItem, cartTotal, readCart, readCurrentStoreHref, saveCustomerOrder, writeCart, writeCurrentStoreHref } from "@/lib/cart";
+import { CartItem, cartItemPrice, cartTotal, readCart, readCurrentStoreHref, saveCustomerOrder, writeCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -40,7 +40,9 @@ export default function CheckoutPage() {
   const [sellerLogoUrl, setSellerLogoUrl] = useState("");
   const [storeHref, setStoreHref] = useState("/");
   const subtotal = cartTotal(items);
-  const total = items.length > 0 ? subtotal + delivery : 0;
+  const agreedDelivery = getAgreedDelivery(items);
+  const activeDelivery = agreedDelivery ?? delivery;
+  const total = items.length > 0 ? subtotal + activeDelivery : 0;
   const itemCount = items.reduce((sum, item) => sum + item.qty, 0);
   const storeSlug = storeHref.startsWith("/store/") ? storeHref.replace("/store/", "").split(/[?#]/)[0] : "";
   const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
@@ -109,6 +111,9 @@ export default function CheckoutPage() {
         items: validatedItems.map((item) => ({
           id: item.id,
           qty: item.qty,
+          agreedPrice: item.agreed_price,
+          agreedDeliveryFee: item.agreed_delivery_fee,
+          bargainMessageId: item.bargain_message_id,
         })),
       }),
     });
@@ -162,7 +167,7 @@ export default function CheckoutPage() {
         id: item.id,
         name: item.name,
         qty: item.qty,
-        price: item.price,
+        price: cartItemPrice(item),
       })),
     });
 
@@ -261,15 +266,16 @@ export default function CheckoutPage() {
             {items.map((item) => (
               <div key={item.id} className="flex justify-between gap-4">
                 <span>{item.name} x {item.qty}</span>
-                <strong className="text-slate-950">{formatNaira(item.price * item.qty)}</strong>
+                <strong className="text-slate-950">{formatNaira(cartItemPrice(item) * item.qty)}</strong>
               </div>
             ))}
             {items.length > 0 ? (
               <>
                 <div className="flex justify-between gap-4 border-t border-slate-100 pt-3">
                   <span>Delivery</span>
-                  <strong className="text-slate-950">{formatNaira(delivery)}</strong>
+                  <strong className="text-slate-950">{formatNaira(activeDelivery)}</strong>
                 </div>
+                {agreedDelivery !== null ? <div className="rounded-lg bg-emerald-50 p-3 text-xs font-black text-emerald-800">Chat agreed delivery fee applied.</div> : null}
                 <div className="rounded-lg bg-slate-50 p-3 text-xs font-semibold leading-5 text-slate-500">After payment, SellMate prepares a neat WhatsApp receipt for the seller.</div>
               </>
             ) : null}
@@ -412,7 +418,11 @@ async function syncCartWithProducts(
       name: product.name,
       category: product.category,
       variant_options: product.variant_options,
-      price: product.price,
+      original_price: item.original_price ?? product.price,
+      agreed_price: item.agreed_price,
+      agreed_delivery_fee: item.agreed_delivery_fee,
+      bargain_message_id: item.bargain_message_id,
+      price: item.agreed_price ?? product.price,
       stock: product.stock,
       qty: Math.min(item.qty, product.stock),
     });
@@ -432,6 +442,11 @@ function formatCheckoutError(message: string) {
     return "One item in your cart is no longer available. Remove it from the cart, add the product again from the store, then place the order.";
   }
   return message;
+}
+
+function getAgreedDelivery(items: CartItem[]) {
+  const fees = items.map((item) => item.agreed_delivery_fee).filter((fee): fee is number => typeof fee === "number" && fee >= 0);
+  return fees.length > 0 ? Math.max(...fees) : null;
 }
 
 function isValidEmail(email: string) {

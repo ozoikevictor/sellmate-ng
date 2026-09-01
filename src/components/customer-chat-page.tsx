@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
 import { IconGlyph, PublicFooter, StoreHeader } from "@/components/ui";
-import { readCart, writeCurrentStoreHref } from "@/lib/cart";
+import { applyOfferToCart, parseChatOffer, readAcceptedOffers, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -78,6 +78,7 @@ export default function CustomerChatPage() {
   const [sending, setSending] = useState(false);
   const [localMessages, setLocalMessages] = useState<LocalChatMessage[]>(() => (typeof window === "undefined" ? [] : readLocalChat(slug)));
   const [sellerReplies, setSellerReplies] = useState<SellerReply[]>([]);
+  const [acceptedOfferIds, setAcceptedOfferIds] = useState<string[]>(() => (typeof window === "undefined" ? [] : readAcceptedOffers(slug).map((offer) => offer.message_id)));
   const [customerIdentity, setCustomerIdentity] = useState<CustomerChatIdentity | null>(() => (typeof window === "undefined" ? null : readCustomerChatIdentity(slug)));
   const [messageDraft, setMessageDraft] = useState("");
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>(() => (selectedProductId ? [selectedProductId] : []));
@@ -244,9 +245,47 @@ export default function CustomerChatPage() {
   }
 
   function replyToSellerMessage(reply: SellerReply) {
+    const offer = parseChatOffer(reply.seller_reply, reply.id);
+    if (offer) {
+      setMessageDraft(`About your offer for ${offer.product_name}: `);
+      setReplyingToId("");
+      return;
+    }
     const shortReply = reply.seller_reply.length > 58 ? `${reply.seller_reply.slice(0, 58)}...` : reply.seller_reply;
     setMessageDraft(`Replying to seller: "${shortReply}" `);
     setReplyingToId("");
+  }
+
+  function acceptSellerOffer(reply: SellerReply) {
+    const offer = parseChatOffer(reply.seller_reply, reply.id);
+    if (!offer) return;
+    const product = products.find((item) => item.id === offer.product_id) ?? selectedProduct;
+    if (!product) {
+      setNotice("This offer product is no longer available.");
+      return;
+    }
+
+    const nextCart = applyOfferToCart(
+      {
+        id: product.id,
+        user_id: product.user_id,
+        store_slug: slug,
+        name: product.name,
+        category: product.category,
+        variant_options: product.variant_options,
+        price: product.price,
+        stock: product.stock,
+        image_url: product.image_url,
+        agreed_price: offer.agreed_price,
+        agreed_delivery_fee: offer.delivery_fee,
+        bargain_message_id: offer.message_id,
+      },
+      offer,
+    );
+    setAcceptedOfferIds(readAcceptedOffers(slug).map((item) => item.message_id));
+    setCartCount(nextCart.filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
+    setNotice("Offer accepted. Your cart and checkout now use the agreed price.");
+    window.setTimeout(() => setNotice(""), 3000);
   }
 
   function handleReplySwipeEnd(clientX: number, reply: SellerReply) {
@@ -528,7 +567,11 @@ export default function CustomerChatPage() {
                               className="relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition-transform"
                             >
                               <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</span>
-                              <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>
+                              {parseChatOffer(reply.seller_reply, reply.id) ? (
+                                <CustomerOfferCard offer={parseChatOffer(reply.seller_reply, reply.id)!} accepted={acceptedOfferIds.includes(reply.id)} onAccept={() => acceptSellerOffer(reply)} />
+                              ) : (
+                                <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>
+                              )}
                               {reply.replied_at ? <span className="mt-2 block text-[11px] font-bold text-slate-400">{new Date(reply.replied_at).toLocaleString()}</span> : null}
                             </button>
                           </div>
@@ -737,7 +780,11 @@ export default function CustomerChatPage() {
                               className="relative z-10 w-full touch-pan-y rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-left text-slate-800 shadow-sm ring-1 ring-slate-200 transition-transform"
                             >
                               <span className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller replied</span>
-                              <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>
+                              {parseChatOffer(reply.seller_reply, reply.id) ? (
+                                <CustomerOfferCard offer={parseChatOffer(reply.seller_reply, reply.id)!} accepted={acceptedOfferIds.includes(reply.id)} onAccept={() => acceptSellerOffer(reply)} />
+                              ) : (
+                                <span className="mt-2 block text-sm font-semibold leading-6">{reply.seller_reply}</span>
+                              )}
                               {reply.replied_at ? <span className="mt-2 block text-[11px] font-bold text-slate-400">{new Date(reply.replied_at).toLocaleString()}</span> : null}
                             </button>
                           </div>
@@ -799,6 +846,26 @@ function SellerAvatar({ name, imageUrl }: { name: string; imageUrl?: string | nu
   return (
     <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-950 text-sm font-black text-white ring-2 ring-emerald-100">
       {imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-cover" /> : name.slice(0, 1).toUpperCase()}
+    </span>
+  );
+}
+
+function CustomerOfferCard({ offer, accepted, onAccept }: { offer: NonNullable<ReturnType<typeof parseChatOffer>>; accepted: boolean; onAccept: () => void }) {
+  return (
+    <span className="mt-2 block rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+      <span className="block text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller offer</span>
+      <span className="mt-2 block text-sm font-black text-slate-950">{offer.product_name}</span>
+      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold text-slate-700">Agreed price: {formatNaira(offer.agreed_price)}</span> : null}
+      {offer.delivery_fee !== undefined ? <span className="mt-1 block text-sm font-bold text-slate-700">Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
+      {offer.note ? <span className="mt-2 block whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">{offer.note}</span> : null}
+      <button
+        type="button"
+        onClick={onAccept}
+        disabled={accepted}
+        className="mt-3 w-full rounded-md bg-[#16A34A] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#15803D] disabled:bg-slate-400"
+      >
+        {accepted ? "Offer accepted" : "Accept offer"}
+      </button>
     </span>
   );
 }

@@ -6,9 +6,24 @@ export type CartItem = {
   category: string;
   variant_options?: string | null;
   price: number;
+  original_price?: number;
+  agreed_price?: number;
+  agreed_delivery_fee?: number;
+  bargain_message_id?: string;
   stock: number;
   image_url?: string | null;
   qty: number;
+};
+
+export type ChatOffer = {
+  message_id: string;
+  seller_id: string;
+  store_slug: string;
+  product_id: string;
+  product_name: string;
+  agreed_price?: number;
+  delivery_fee?: number;
+  note?: string;
 };
 
 export type WishlistItem = Omit<CartItem, "qty">;
@@ -39,6 +54,8 @@ const CART_KEY = "sellmate-ng-cart";
 const STORE_KEY = "sellmate-ng-current-store";
 const WISHLIST_KEY = "sellmate-ng-wishlist";
 const CUSTOMER_ORDERS_KEY = "sellmate-ng-customer-orders";
+const ACCEPTED_OFFERS_KEY = "sellmate-ng-accepted-offers";
+export const CHAT_OFFER_PREFIX = "SELLMATE_OFFER:";
 
 export function readCurrentStoreHref() {
   try {
@@ -80,6 +97,10 @@ export function addToCart(item: Omit<CartItem, "qty">) {
   return next;
 }
 
+export function cartItemPrice(item: CartItem) {
+  return Number(item.agreed_price ?? item.price ?? 0);
+}
+
 export function updateCartQty(id: string, qty: number) {
   const next = readCart()
     .map((item) => (item.id === id ? { ...item, qty } : item))
@@ -93,7 +114,55 @@ export function clearCart() {
 }
 
 export function cartTotal(items: CartItem[]) {
-  return items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  return items.reduce((sum, item) => sum + cartItemPrice(item) * item.qty, 0);
+}
+
+export function readAcceptedOffers(storeSlug?: string): ChatOffer[] {
+  try {
+    const stored = localStorage.getItem(ACCEPTED_OFFERS_KEY);
+    const offers = stored ? (JSON.parse(stored) as ChatOffer[]) : [];
+    return storeSlug ? offers.filter((offer) => offer.store_slug === storeSlug) : offers;
+  } catch {
+    return [];
+  }
+}
+
+export function saveAcceptedOffer(offer: ChatOffer) {
+  const current = readAcceptedOffers().filter((item) => item.message_id !== offer.message_id);
+  localStorage.setItem(ACCEPTED_OFFERS_KEY, JSON.stringify([offer, ...current].slice(0, 50)));
+  window.dispatchEvent(new Event("sellmate-accepted-offer-updated"));
+}
+
+export function encodeChatOffer(offer: Omit<ChatOffer, "message_id">) {
+  return `${CHAT_OFFER_PREFIX}${JSON.stringify(offer)}`;
+}
+
+export function parseChatOffer(text?: string | null, messageId = ""): ChatOffer | null {
+  if (!text?.startsWith(CHAT_OFFER_PREFIX)) return null;
+  try {
+    const offer = JSON.parse(text.slice(CHAT_OFFER_PREFIX.length)) as Omit<ChatOffer, "message_id">;
+    return { ...offer, message_id: messageId };
+  } catch {
+    return null;
+  }
+}
+
+export function applyOfferToCart(product: Omit<CartItem, "qty">, offer: ChatOffer) {
+  const current = readCart().filter((item) => !product.store_slug || !item.store_slug || item.store_slug === product.store_slug);
+  const existing = current.find((item) => item.id === product.id);
+  const nextItem = {
+    ...(existing ?? product),
+    ...product,
+    original_price: product.price,
+    agreed_price: offer.agreed_price,
+    agreed_delivery_fee: offer.delivery_fee,
+    bargain_message_id: offer.message_id,
+    qty: existing?.qty ?? 1,
+  };
+  const next = existing ? current.map((item) => (item.id === product.id ? nextItem : item)) : [...current, nextItem];
+  saveAcceptedOffer(offer);
+  writeCart(next);
+  return next;
 }
 
 export function readWishlist(storeSlug?: string): WishlistItem[] {
