@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { LogoutButton, useAuth } from "@/components/auth";
+import { parseChatOffer, type ChatOffer } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 
@@ -771,32 +772,49 @@ export function StoreHeader({
               <p className="py-8 text-sm font-semibold leading-6 text-slate-500">No seller replies yet. When a seller replies to your product question, it will show here.</p>
             ) : (
               <div className="grid gap-3 py-4">
-                {replyMessages.map((message) => (
-                  <article key={message.id} className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</p>
-                      {readReplyIds.includes(message.id) ? <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500 ring-1 ring-emerald-100">Read</span> : null}
-                    </div>
-                    <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">{message.seller_reply}</p>
-                    {message.replied_at ? <p className="mt-3 text-xs font-bold text-slate-500">{new Date(message.replied_at).toLocaleString()}</p> : null}
-                    <Link
-                      href={`${chatHref}?message=${encodeURIComponent(message.id)}${message.product_id ? `&product=${encodeURIComponent(message.product_id)}` : ""}`}
-                      onClick={() => {
-                        markReplyRead(message.id);
-                        setIsRepliesOpen(false);
-                      }}
-                      className="mt-3 inline-flex rounded-md bg-[#16A34A] px-4 py-2 text-xs font-black text-white transition hover:bg-[#15803D]"
-                    >
-                      Reply in chat
-                    </Link>
-                  </article>
-                ))}
+                {replyMessages.map((message) => {
+                  const offer = parseChatOffer(message.seller_reply, message.id);
+                  return (
+                    <article key={message.id} className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">{message.product_name}</p>
+                        {readReplyIds.includes(message.id) ? <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black text-slate-500 ring-1 ring-emerald-100">Read</span> : null}
+                      </div>
+                      {offer ? <ReplyOfferSummary offer={offer} /> : <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">{message.seller_reply}</p>}
+                      {message.replied_at ? <p className="mt-3 text-xs font-bold text-slate-500">{new Date(message.replied_at).toLocaleString()}</p> : null}
+                      <Link
+                        href={`${chatHref}?message=${encodeURIComponent(message.id)}${message.product_id ? `&product=${encodeURIComponent(message.product_id)}` : ""}`}
+                        onClick={() => {
+                          markReplyRead(message.id);
+                          setIsRepliesOpen(false);
+                        }}
+                        className="mt-3 inline-flex rounded-md bg-[#16A34A] px-4 py-2 text-xs font-black text-white transition hover:bg-[#15803D]"
+                      >
+                        Reply in chat
+                      </Link>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </section>
         </div>
       ) : null}
     </header>
+  );
+}
+
+function ReplyOfferSummary({ offer }: { offer: ChatOffer }) {
+  return (
+    <div className="mt-3 rounded-lg border border-emerald-200 bg-white p-3">
+      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">Seller offer</p>
+      <p className="mt-1 text-sm font-black text-slate-950">{offer.product_name}</p>
+      <div className="mt-2 grid gap-1 text-sm font-bold text-slate-700">
+        {typeof offer.agreed_price === "number" ? <span>Agreed price: {formatNaira(offer.agreed_price)}</span> : null}
+        {typeof offer.delivery_fee === "number" ? <span>Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
+      </div>
+      {offer.note ? <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-600">{offer.note}</p> : null}
+    </div>
   );
 }
 
