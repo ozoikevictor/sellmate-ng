@@ -640,7 +640,7 @@ export function StoreHeader({
           </Link>
         </div>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
-          <button type="button" onClick={() => setIsRepliesOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]" aria-label="View seller replies">
+          <button type="button" onClick={() => setIsRepliesOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]" aria-label="View seller messages">
             <IconGlyph name="messages" className="h-5 w-5" />
             {unreadReplyMessages.length > 0 ? (
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-[#16A34A] px-1 text-[10px] font-black text-white">
@@ -757,19 +757,19 @@ export function StoreHeader({
       ) : null}
       {isRepliesOpen ? (
         <div className="fixed inset-0 z-[1000] grid place-items-end bg-slate-950/35 p-0 sm:place-items-center sm:p-4">
-          <button type="button" className="absolute inset-0" aria-label="Close seller replies" onClick={() => setIsRepliesOpen(false)} />
+          <button type="button" className="absolute inset-0" aria-label="Close seller messages" onClick={() => setIsRepliesOpen(false)} />
           <section className="relative max-h-[88dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Seller replies</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Seller messages</p>
                 <h2 className="mt-1 text-xl font-black text-slate-950">Your messages</h2>
               </div>
-              <button type="button" onClick={() => setIsRepliesOpen(false)} aria-label="Close seller replies" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700">
+              <button type="button" onClick={() => setIsRepliesOpen(false)} aria-label="Close seller messages" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700">
                 <IconGlyph name="x" className="h-5 w-5" />
               </button>
             </div>
             {replyMessages.length === 0 ? (
-              <p className="py-8 text-sm font-semibold leading-6 text-slate-500">No seller replies yet. When a seller replies to your product question, it will show here.</p>
+              <p className="py-8 text-sm font-semibold leading-6 text-slate-500">No seller messages yet. When the seller replies or sends a deal price, it will show here.</p>
             ) : (
               <div className="grid gap-3 py-4">
                 {replyMessages.map((message) => {
@@ -807,10 +807,10 @@ export function StoreHeader({
 function ReplyOfferSummary({ offer }: { offer: ChatOffer }) {
   return (
     <div className="mt-3 rounded-lg border border-emerald-200 bg-white p-3">
-      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">Seller offer</p>
+      <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">Seller sent a deal price</p>
       <p className="mt-1 text-sm font-black text-slate-950">{offer.product_name}</p>
       <div className="mt-2 grid gap-1 text-sm font-bold text-slate-700">
-        {typeof offer.agreed_price === "number" ? <span>Agreed price: {formatNaira(offer.agreed_price)}</span> : null}
+        {typeof offer.agreed_price === "number" ? <span>Item price: {formatNaira(offer.agreed_price)}</span> : null}
         {typeof offer.delivery_fee === "number" ? <span>Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
       </div>
       {offer.note ? <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-600">{offer.note}</p> : null}

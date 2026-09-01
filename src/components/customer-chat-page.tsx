@@ -247,7 +247,7 @@ export default function CustomerChatPage() {
   function replyToSellerMessage(reply: SellerReply) {
     const offer = parseChatOffer(reply.seller_reply, reply.id);
     if (offer) {
-      setMessageDraft(`About your offer for ${offer.product_name}: `);
+      setMessageDraft(`About the deal price for ${offer.product_name}: `);
       setReplyingToId("");
       return;
     }
@@ -261,7 +261,7 @@ export default function CustomerChatPage() {
     if (!offer) return;
     const product = products.find((item) => item.id === offer.product_id) ?? selectedProduct;
     if (!product) {
-      setNotice("This offer product is no longer available.");
+      setNotice("This deal product is no longer available.");
       return;
     }
 
@@ -284,7 +284,7 @@ export default function CustomerChatPage() {
     );
     setAcceptedOfferIds(readAcceptedOffers(slug).map((item) => item.message_id));
     setCartCount(nextCart.filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
-    setNotice("Offer accepted. Your cart and checkout now use the agreed price.");
+    setNotice("Deal price added. Your cart and checkout now use this price.");
     window.setTimeout(() => setNotice(""), 3000);
   }
 
@@ -853,18 +853,21 @@ function SellerAvatar({ name, imageUrl }: { name: string; imageUrl?: string | nu
 function CustomerOfferCard({ offer, accepted, onAccept }: { offer: NonNullable<ReturnType<typeof parseChatOffer>>; accepted: boolean; onAccept: () => void }) {
   return (
     <span className="mt-2 block rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-      <span className="block text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller offer</span>
+      <span className="block text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Deal price from seller</span>
       <span className="mt-2 block text-sm font-black text-slate-950">{offer.product_name}</span>
-      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold text-slate-700">Agreed price: {formatNaira(offer.agreed_price)}</span> : null}
+      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold text-slate-700">Item price: {formatNaira(offer.agreed_price)}</span> : null}
       {offer.delivery_fee !== undefined ? <span className="mt-1 block text-sm font-bold text-slate-700">Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
       {offer.note ? <span className="mt-2 block whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">{offer.note}</span> : null}
+      <span className="mt-3 block rounded-lg bg-white px-3 py-2 text-xs font-bold leading-5 text-slate-600">
+        Use this bargain price when you are ready to pay.
+      </span>
       <button
         type="button"
         onClick={onAccept}
         disabled={accepted}
         className="mt-3 w-full rounded-md bg-[#16A34A] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#15803D] disabled:bg-slate-400"
       >
-        {accepted ? "Offer accepted" : "Accept offer"}
+        {accepted ? "Deal price added" : "Checkout with deal price"}
       </button>
     </span>
   );

@@ -140,7 +140,7 @@ export default function MessagesPage() {
         })
       : plainReply;
     if (!reply || (hasOffer && agreedPrice <= 0 && agreedDelivery <= 0)) {
-      setNotice("Write a reply or add an agreed price/delivery offer before sending.");
+      setNotice("Write a reply or add a deal price before sending.");
       return;
     }
 
@@ -271,9 +271,14 @@ export default function MessagesPage() {
                 </button>
               ) : null}
             </div>
-            <div className="mb-2 grid gap-2 rounded-lg border border-emerald-100 bg-emerald-50 p-2 sm:grid-cols-2">
+            <div className="mb-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-2">
+              <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-800">Send deal price</p>
+                <p className="text-[11px] font-bold text-emerald-700">Optional</p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
               <label className="grid gap-1 text-[11px] font-black uppercase tracking-[0.12em] text-emerald-800">
-                Agreed product price
+                Item price
                 <input
                   type="number"
                   min="0"
@@ -284,7 +289,7 @@ export default function MessagesPage() {
                 />
               </label>
               <label className="grid gap-1 text-[11px] font-black uppercase tracking-[0.12em] text-emerald-800">
-                Agreed delivery fee
+                Delivery fee
                 <input
                   type="number"
                   min="0"
@@ -294,6 +299,7 @@ export default function MessagesPage() {
                   className="rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-black text-slate-950 outline-none focus:border-emerald-600"
                 />
               </label>
+              </div>
             </div>
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
               <textarea
@@ -511,9 +517,9 @@ function buildConversations(messages: CustomerMessage[]) {
 function OfferBubble({ offer }: { offer: NonNullable<ReturnType<typeof parseChatOffer>> }) {
   return (
     <span className="block rounded-xl bg-white/15 p-3">
-      <span className="block text-xs font-black uppercase tracking-[0.14em] text-white/80">Offer sent</span>
+      <span className="block text-xs font-black uppercase tracking-[0.14em] text-white/80">Deal price sent</span>
       <span className="mt-2 block text-sm font-black">{offer.product_name}</span>
-      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold">Agreed price: {formatNaira(offer.agreed_price)}</span> : null}
+      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold">Item price: {formatNaira(offer.agreed_price)}</span> : null}
       {offer.delivery_fee !== undefined ? <span className="mt-1 block text-sm font-bold">Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
       {offer.note ? <span className="mt-2 block whitespace-pre-wrap text-sm font-semibold">{offer.note}</span> : null}
     </span>
