@@ -623,10 +623,10 @@ export function StoreHeader({
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-emerald-900/10 bg-white shadow-sm">
-      <div className="bg-[#0EA65A] text-white">
-        <div className="mx-auto flex h-8 max-w-7xl items-center justify-between gap-3 px-3 text-[11px] font-black uppercase tracking-[0.12em] sm:px-5">
-          <span className="truncate">WhatsApp-style store</span>
-          <span className="hidden sm:inline">Browse, bargain, checkout</span>
+      <div className="w-full bg-[#0EA65A] text-white">
+        <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between gap-2 px-3 text-[10px] font-black uppercase tracking-[0.1em] sm:px-5 sm:text-[11px] sm:tracking-[0.12em]">
+          <span className="min-w-0 truncate">VENDORAQ Store</span>
+          <span className="shrink-0">Browse / Bargain / Checkout</span>
         </div>
       </div>
       <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-5">
@@ -880,10 +880,10 @@ export function CheckoutHeader({
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-emerald-900/10 bg-white shadow-sm">
-      <div className="bg-[#0EA65A] text-white">
-        <div className="mx-auto flex h-8 max-w-7xl items-center justify-between gap-3 px-3 text-[11px] font-black uppercase tracking-[0.12em] sm:px-5">
+      <div className="w-full bg-[#0EA65A] text-white">
+        <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between gap-2 px-3 text-[10px] font-black uppercase tracking-[0.1em] sm:px-5 sm:text-[11px] sm:tracking-[0.12em]">
           <span className="truncate">{statusText}</span>
-          <span className="hidden sm:inline">Secure VENDORAQ checkout</span>
+          <span className="shrink-0">VENDORAQ Pay</span>
         </div>
       </div>
       <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-5">
