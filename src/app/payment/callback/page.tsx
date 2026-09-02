@@ -70,7 +70,7 @@ function PaymentCallbackContent() {
   }, [order, reference]);
 
   return (
-    <main className="min-h-screen bg-[#f2f6fb] pt-[128px]">
+    <main className="min-h-screen bg-[#f2f6fb] pt-[160px]">
       <CheckoutHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}

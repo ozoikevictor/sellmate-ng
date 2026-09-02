@@ -622,15 +622,21 @@ export function StoreHeader({
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white shadow-sm">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-3 sm:h-[68px] sm:px-5">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-emerald-900/10 bg-white shadow-sm">
+      <div className="bg-[#0EA65A] text-white">
+        <div className="mx-auto flex h-8 max-w-7xl items-center justify-between gap-3 px-3 text-[11px] font-black uppercase tracking-[0.12em] sm:px-5">
+          <span className="truncate">WhatsApp-style store</span>
+          <span className="hidden sm:inline">Browse, bargain, checkout</span>
+        </div>
+      </div>
+      <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-5">
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setIsMenuOpen(true)}
             aria-label="Open store menu"
             aria-expanded={isMenuOpen}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-white text-[#1F2937] transition hover:bg-[#F3F4F6] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-white text-[#1F2937] transition hover:bg-[#F3F4F6] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
           >
             <IconGlyph name="menu" className="h-5 w-5" />
           </button>
@@ -873,8 +879,14 @@ export function CheckoutHeader({
   const actionText = mode === "success" ? "Store home" : "Shop";
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-[#E5E7EB] bg-white shadow-sm">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-3 sm:h-[68px] sm:px-5">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-emerald-900/10 bg-white shadow-sm">
+      <div className="bg-[#0EA65A] text-white">
+        <div className="mx-auto flex h-8 max-w-7xl items-center justify-between gap-3 px-3 text-[11px] font-black uppercase tracking-[0.12em] sm:px-5">
+          <span className="truncate">{statusText}</span>
+          <span className="hidden sm:inline">Secure VENDORAQ checkout</span>
+        </div>
+      </div>
+      <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-3 sm:h-16 sm:px-5">
         <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-[#1F2937] sm:gap-3 sm:text-lg">
           <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
           <div className="min-w-0">

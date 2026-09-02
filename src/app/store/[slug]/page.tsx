@@ -284,7 +284,7 @@ export default function DynamicStorefrontPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[128px]">
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[160px]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}

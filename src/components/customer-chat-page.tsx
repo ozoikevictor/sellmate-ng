@@ -608,7 +608,7 @@ export default function CustomerChatPage() {
   }
 
   return (
-    <main className="h-[100dvh] overflow-hidden bg-[#F5F7FB] pt-[8.15rem] sm:pt-[8.25rem]">
+    <main className="h-[100dvh] overflow-hidden bg-[#F5F7FB] pt-[10rem]">
       <StoreHeader
         sellerName={profile?.business_name ?? "Store"}
         sellerLogoUrl={profile?.logo_url}
@@ -620,7 +620,7 @@ export default function CustomerChatPage() {
         whatsappPhone={profile?.whatsapp_phone}
       />
 
-      <section className={`mx-auto grid h-[calc(100dvh-8.15rem)] w-full max-w-6xl gap-3 px-3 pb-3 sm:h-[calc(100dvh-8.25rem)] sm:px-5 ${isFocusedProductChat || isGeneralSellerChat ? "" : "md:grid-cols-[17rem_minmax(0,1fr)]"}`}>
+      <section className={`mx-auto grid h-[calc(100dvh-10rem)] w-full max-w-6xl gap-3 px-3 pb-3 sm:px-5 ${isFocusedProductChat || isGeneralSellerChat ? "" : "md:grid-cols-[17rem_minmax(0,1fr)]"}`}>
         {!isFocusedProductChat && !isGeneralSellerChat ? <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 p-3">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Choose product</p>
