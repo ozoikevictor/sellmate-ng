@@ -444,7 +444,7 @@ function ProductTile({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const rating = productRating(product);
   const badge = productBadge(product);
   return (
-    <article className="group min-w-0">
+    <article className="group min-w-0 rounded-lg p-1 transition hover:bg-white hover:shadow-[0_10px_24px_rgba(15,23,42,0.10)] active:bg-white active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
       <div className="relative overflow-hidden rounded-md bg-[#F7F9FC]">
         <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center">
           {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
@@ -456,7 +456,7 @@ function ProductTile({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
       </div>
       <div className="pt-2">
         <button type="button" onClick={() => onViewDetails(product)} className="block text-left">
-          <h3 className="line-clamp-2 min-h-9 text-[13px] font-medium leading-[1.15rem] text-[#1F2937] transition hover:text-[#16A34A]">{product.name}</h3>
+          <h3 className="truncate text-[13px] font-medium leading-[1.15rem] text-[#1F2937] transition hover:text-[#16A34A]">{product.name}</h3>
         </button>
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <p className="min-w-0 truncate text-lg font-black leading-none text-[#0F172A]">{formatNaira(product.price)}</p>
