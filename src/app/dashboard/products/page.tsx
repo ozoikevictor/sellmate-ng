@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge, SectionTitle } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
@@ -33,11 +33,125 @@ const emptyForm = {
   status: "Live",
 };
 
+type DetailField = {
+  key: string;
+  label: string;
+  placeholder: string;
+};
+
+const categoryTemplates: Array<{ name: string; aliases: string[]; fields: DetailField[] }> = [
+  {
+    name: "Shoes",
+    aliases: ["shoe", "shoes", "sneaker", "slippers", "sandals"],
+    fields: [
+      { key: "type", label: "Shoe type", placeholder: "Sneakers, heels, palms" },
+      { key: "size", label: "Size", placeholder: "40, 41, 42" },
+      { key: "gender", label: "Gender", placeholder: "Men, women, unisex" },
+      { key: "color", label: "Color", placeholder: "Black, white, brown" },
+      { key: "condition", label: "Condition", placeholder: "Brand new, fairly used" },
+      { key: "brand", label: "Brand", placeholder: "Nike, Adidas, Zara" },
+    ],
+  },
+  {
+    name: "Phones & Tablets",
+    aliases: ["phone", "phones", "tablet", "iphone", "samsung", "android"],
+    fields: [
+      { key: "brand", label: "Brand", placeholder: "Apple, Samsung, Tecno" },
+      { key: "model", label: "Model", placeholder: "iPhone 13, Galaxy A16" },
+      { key: "storage", label: "Storage", placeholder: "64GB, 128GB, 256GB" },
+      { key: "ram", label: "RAM", placeholder: "4GB, 6GB, 8GB" },
+      { key: "condition", label: "Condition", placeholder: "New, UK used, neatly used" },
+      { key: "battery", label: "Battery health", placeholder: "100%, 89%, strong battery" },
+    ],
+  },
+  {
+    name: "Beauty / Cosmetics",
+    aliases: ["beauty", "cosmetic", "cosmetics", "makeup", "cream", "skincare", "deodorant"],
+    fields: [
+      { key: "type", label: "Product type", placeholder: "Cream, foundation, deodorant" },
+      { key: "brand", label: "Brand", placeholder: "Nivea, Dove, Fenty" },
+      { key: "shade", label: "Shade / color", placeholder: "Dark, light, nude, red" },
+      { key: "skin", label: "Skin type", placeholder: "Oily, dry, sensitive" },
+      { key: "size", label: "Size / volume", placeholder: "50ml, 100ml, 250g" },
+      { key: "expiry", label: "Expiry date", placeholder: "12/2027" },
+    ],
+  },
+  {
+    name: "Hair / Wigs",
+    aliases: ["hair", "wig", "wigs", "extension", "extensions"],
+    fields: [
+      { key: "type", label: "Hair type", placeholder: "Bone straight, frontal, closure" },
+      { key: "length", label: "Length", placeholder: "12 inches, 18 inches" },
+      { key: "texture", label: "Texture", placeholder: "Straight, curly, wavy" },
+      { key: "color", label: "Color", placeholder: "Black, brown, blonde" },
+      { key: "density", label: "Density", placeholder: "180%, 200%" },
+      { key: "condition", label: "Condition", placeholder: "New, used once" },
+    ],
+  },
+  {
+    name: "Perfume",
+    aliases: ["perfume", "fragrance", "body spray"],
+    fields: [
+      { key: "brand", label: "Brand", placeholder: "Dior, Lattafa, Smart Collection" },
+      { key: "scent", label: "Scent type", placeholder: "Oud, floral, fresh, sweet" },
+      { key: "size", label: "Bottle size", placeholder: "50ml, 100ml" },
+      { key: "gender", label: "For", placeholder: "Men, women, unisex" },
+      { key: "strength", label: "Strength", placeholder: "EDP, EDT, oil perfume" },
+      { key: "condition", label: "Condition", placeholder: "Sealed, opened once" },
+    ],
+  },
+  {
+    name: "Clothing / Fashion",
+    aliases: ["cloth", "clothes", "clothing", "fashion", "gown", "jeans", "shirt", "dress"],
+    fields: [
+      { key: "type", label: "Clothing type", placeholder: "Dress, jeans, shirt" },
+      { key: "size", label: "Size", placeholder: "S, M, L, XL, 32" },
+      { key: "gender", label: "Gender", placeholder: "Men, women, unisex" },
+      { key: "color", label: "Color", placeholder: "Blue, black, red" },
+      { key: "material", label: "Material", placeholder: "Cotton, denim, silk" },
+      { key: "condition", label: "Condition", placeholder: "Brand new, thrift" },
+    ],
+  },
+  {
+    name: "Other",
+    aliases: ["other", "general"],
+    fields: [
+      { key: "type", label: "Item type", placeholder: "What kind of item is it?" },
+      { key: "brand", label: "Brand / maker", placeholder: "Brand or maker name" },
+      { key: "condition", label: "Condition", placeholder: "New, used, refurbished" },
+      { key: "color", label: "Color", placeholder: "Main color" },
+    ],
+  },
+];
+
+const categorySuggestions = categoryTemplates.map((template) => template.name);
+
+function getCategoryTemplate(category: string) {
+  const normalized = category.toLowerCase().trim();
+  return categoryTemplates.find((template) => template.aliases.some((alias) => normalized.includes(alias))) ?? categoryTemplates[categoryTemplates.length - 1];
+}
+
+function buildVariantDetails(details: Record<string, string>, manualDetails: string) {
+  const smartDetails = Object.entries(details)
+    .map(([key, value]) => [key, value.trim()] as const)
+    .filter(([, value]) => value)
+    .map(([key, value]) => `${labelFromKey(key)}: ${value}`);
+  const extra = manualDetails.trim();
+  return [...smartDetails, extra].filter(Boolean).join(" / ");
+}
+
+function labelFromKey(key: string) {
+  return key
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export default function ProductsPage() {
   const { user } = useAuth();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [form, setForm] = useState(emptyForm);
+  const [smartDetails, setSmartDetails] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -89,8 +203,13 @@ export default function ProductsPage() {
     return () => window.clearTimeout(timer);
   }, [loadProducts]);
 
+  const activeTemplate = useMemo(() => getCategoryTemplate(form.category), [form.category]);
+
   function updateForm(name: string, value: string) {
     setForm((current) => ({ ...current, [name]: value }));
+    if (name === "category") {
+      setSmartDetails({});
+    }
   }
 
   function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -130,6 +249,7 @@ export default function ProductsPage() {
       image_url: product.image_url ?? "",
       status: product.status,
     });
+    setSmartDetails({});
     window.setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 0);
@@ -158,7 +278,7 @@ export default function ProductsPage() {
       name: String(formData.get("name") ?? "").trim(),
       sku: String(formData.get("sku") ?? "").trim(),
       category: String(formData.get("category") ?? "").trim(),
-      variant_options: String(formData.get("variant_options") ?? "").trim() || null,
+      variant_options: buildVariantDetails(smartDetails, String(formData.get("variant_options") ?? "")) || null,
       price: Number(formData.get("price") ?? 0),
       stock: Number(formData.get("stock") ?? 0),
       image_url: String(formData.get("image_url") ?? "").trim() || null,
@@ -237,8 +357,21 @@ export default function ProductsPage() {
         <div className="grid min-w-0 gap-4 md:grid-cols-3">
           <Field label="Product name" name="name" value={form.name} onChange={updateForm} placeholder="Blue Jeans, Cement, Lip Gloss, Human Hair Wig" />
           <Field label="SKU" name="sku" value={form.sku} onChange={updateForm} placeholder="SKU-001" />
-          <Field label="Category" name="category" value={form.category} onChange={updateForm} placeholder="Clothing, Shoes, Makeup, Building Materials" />
-          <Field label="Options / variants" name="variant_options" value={form.variant_options} onChange={updateForm} placeholder="Blue, Brown, Black / Size 40, 41, 42 / 50kg" required={false} />
+          <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
+            Category
+            <input
+              name="category"
+              list="product-category-suggestions"
+              value={form.category}
+              onChange={(event) => updateForm("category", event.target.value)}
+              required
+              className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600"
+              placeholder="Shoes, Phones, Cosmetics, Hair"
+            />
+            <datalist id="product-category-suggestions">
+              {categorySuggestions.map((category) => <option key={category} value={category} />)}
+            </datalist>
+          </label>
           <Field label="Price" name="price" value={form.price} onChange={updateForm} placeholder="38500" type="number" />
           <Field label="Stock" name="stock" value={form.stock} onChange={updateForm} placeholder="18" type="number" />
           <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
@@ -256,6 +389,39 @@ export default function ProductsPage() {
             </select>
           </label>
         </div>
+        <section className="mt-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Smart product details</p>
+              <h3 className="mt-1 text-lg font-black text-slate-950">{activeTemplate.name} form</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-600">Changes when you choose a category.</p>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {activeTemplate.fields.map((field) => (
+              <Field
+                key={field.key}
+                label={field.label}
+                name={`detail_${field.key}`}
+                value={smartDetails[field.key] ?? ""}
+                onChange={(_, value) => setSmartDetails((current) => ({ ...current, [field.key]: value }))}
+                placeholder={field.placeholder}
+                required={false}
+              />
+            ))}
+          </div>
+          <label className="mt-4 grid min-w-0 gap-2 text-sm font-bold text-slate-700">
+            Extra details
+            <textarea
+              name="variant_options"
+              value={form.variant_options}
+              onChange={(event) => updateForm("variant_options", event.target.value)}
+              rows={3}
+              className="w-full min-w-0 resize-none rounded-md border border-slate-300 bg-white px-3 py-3 font-normal outline-none focus:border-emerald-600"
+              placeholder="Anything else customers should know, like colors, sizes, warranty, or package content"
+            />
+          </label>
+        </section>
         {form.image_url ? (
           <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="mb-3 text-sm font-bold text-slate-700">Image preview</p>
