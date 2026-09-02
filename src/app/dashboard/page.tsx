@@ -34,6 +34,12 @@ type DashboardProduct = {
   category?: string | null;
 };
 
+type DashboardProfile = {
+  owner_name?: string | null;
+  business_name?: string | null;
+  logo_text?: string | null;
+};
+
 const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function DashboardPage() {
@@ -41,6 +47,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<DashboardOrder[]>([]);
   const [recentOrders, setRecentOrders] = useState<DashboardOrder[]>([]);
   const [products, setProducts] = useState<DashboardProduct[]>([]);
+  const [profileName, setProfileName] = useState("");
   const [greeting, setGreeting] = useState("Hello");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -54,6 +61,7 @@ export default function DashboardPage() {
       { data: orderData, error: orderError },
       { data: recentOrderData, error: recentOrderError },
       { data: productData, error: productError },
+      { data: profileData, error: profileError },
     ] = await Promise.all([
       supabase
         .from("orders")
@@ -71,14 +79,21 @@ export default function DashboardPage() {
         .select("id,name,sku,stock,status,price,category")
         .eq("user_id", userId)
         .order("stock", { ascending: true }),
+      supabase
+        .from("seller_profiles")
+        .select("owner_name,business_name,logo_text")
+        .eq("user_id", userId)
+        .maybeSingle(),
     ]);
 
-    if (orderError || recentOrderError || productError) {
-      setMessage(orderError?.message ?? recentOrderError?.message ?? productError?.message ?? "Could not load dashboard.");
+    if (orderError || recentOrderError || productError || profileError) {
+      setMessage(orderError?.message ?? recentOrderError?.message ?? productError?.message ?? profileError?.message ?? "Could not load dashboard.");
     } else {
       setOrders((orderData ?? []) as DashboardOrder[]);
       setRecentOrders((recentOrderData ?? []) as DashboardOrder[]);
       setProducts((productData ?? []) as DashboardProduct[]);
+      const savedProfile = profileData as DashboardProfile | null;
+      setProfileName(savedProfile?.logo_text || savedProfile?.business_name || savedProfile?.owner_name || "");
       setMessage("");
     }
     setLoading(false);
@@ -144,7 +159,7 @@ export default function DashboardPage() {
     };
   }, [orders, products]);
 
-  const displayName = user?.business || user?.name || "Seller";
+  const displayName = profileName || user?.business || user?.name || "Seller";
   const maxChartValue = Math.max(...summary.dailyRevenue.map((item) => item.value), 1);
   const liveProducts = products.filter((product) => product.status.toLowerCase() === "live").length;
 

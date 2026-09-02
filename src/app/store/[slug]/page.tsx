@@ -93,25 +93,8 @@ function productBadge(product: StoreProduct) {
 
 function pickHeroProducts(products: StoreProduct[]) {
   const withImages = products.filter((product) => Boolean(product.image_url));
-  const picked: StoreProduct[] = [];
-  const usedCategories = new Set<string>();
-
-  withImages.forEach((product) => {
-    if (picked.length >= 5) return;
-    if (!usedCategories.has(product.category)) {
-      picked.push(product);
-      usedCategories.add(product.category);
-    }
-  });
-
-  withImages.forEach((product) => {
-    if (picked.length >= 5) return;
-    if (!picked.some((item) => item.id === product.id)) {
-      picked.push(product);
-    }
-  });
-
-  return picked;
+  const withoutImages = products.filter((product) => !product.image_url);
+  return [...withImages, ...withoutImages];
 }
 
 export default function DynamicStorefrontPage() {
@@ -266,7 +249,7 @@ export default function DynamicStorefrontPage() {
     }
 
     const timer = window.setInterval(() => {
-      setHeroIndex((current) => (current + 1) % Math.min(products.length, 6));
+      setHeroIndex((current) => (current + 1) % products.length);
     }, 5500);
 
     return () => window.clearInterval(timer);
