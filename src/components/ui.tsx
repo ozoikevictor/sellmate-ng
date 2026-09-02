@@ -971,7 +971,9 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
         </div>
         <div className="mx-auto grid w-full max-w-7xl items-start gap-0 lg:min-h-[calc(100dvh-4.5rem)] lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
           <div className="relative min-w-0 bg-slate-100 lg:sticky lg:top-[4.5rem] lg:min-h-[calc(100dvh-4.5rem)]">
-            <div className="aspect-[4/3] w-full bg-[linear-gradient(135deg,#f8fafc,#e5e7eb)] bg-contain bg-center bg-no-repeat sm:aspect-[16/10] lg:h-[calc(100dvh-4.5rem)] lg:aspect-auto" style={product.image_url ? { backgroundImage: `url(${product.image_url})` } : undefined} />
+            <div className="grid aspect-[4/3] w-full place-items-center bg-[linear-gradient(135deg,#ffffff,#f1f5f9)] sm:aspect-[16/10] lg:h-[calc(100dvh-4.5rem)] lg:aspect-auto">
+              {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" className="max-h-full max-w-full object-contain" /> : null}
+            </div>
             <span className="absolute left-4 top-4 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#166534]">{product.category}</span>
           </div>
           <div className="flex min-w-0 flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-10">

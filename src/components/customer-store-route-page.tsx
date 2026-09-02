@@ -445,9 +445,9 @@ function ProductTile({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const badge = productBadge(product);
   return (
     <article className="group min-w-0 rounded-lg p-1 transition hover:bg-white hover:shadow-[0_10px_24px_rgba(15,23,42,0.10)] active:bg-white active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
-      <div className="relative overflow-hidden rounded-md bg-[#F7F9FC]">
+      <div className="relative overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
         <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center">
-          {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
+          {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
         </button>
         <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-500 hover:text-rose-600"}`}>
           <IconGlyph name="heart" className="h-3.5 w-3.5" />
@@ -491,8 +491,8 @@ function CategoriesView({ categories, products, storeHref }: { categories: strin
         const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
         return (
         <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[13rem] items-center gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
-          <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-[#F7F9FC]">
-            {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" className="h-full w-full object-contain p-1" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
+          <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
+            {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
           </span>
           <span className="min-w-0">
             <span className="block truncate text-lg font-black text-slate-950">{category}</span>
