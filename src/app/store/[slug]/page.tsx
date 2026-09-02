@@ -253,6 +253,7 @@ export default function DynamicStorefrontPage() {
   const logoUrl = profile?.logo_url || "";
   const categories = Array.from(new Set(products.map((product) => product.category).filter(Boolean))).slice(0, 10);
   const heroProducts = pickHeroProducts(products);
+  const heroFeature = heroProducts[heroIndex % Math.max(heroProducts.length, 1)] || products[0];
   const featuredProducts = products.slice(0, 6);
   const newArrivalProducts = products.slice(0, 6);
   const activeStoreSlug = profile?.store_slug || slug;
@@ -296,7 +297,7 @@ export default function DynamicStorefrontPage() {
         whatsappPhone={profile?.whatsapp_phone}
       />
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:py-4">
+        <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[12rem_minmax(0,1fr)] lg:py-4">
           <aside className="hidden min-w-0 overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm lg:block">
             <p className="border-b border-slate-100 px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Categories</p>
             <nav className="grid min-w-0 gap-1">
@@ -313,29 +314,39 @@ export default function DynamicStorefrontPage() {
               ))}
             </nav>
           </aside>
-          <div className="grid gap-3">
-            <div className="grid min-h-[168px] grid-cols-[minmax(0,1fr)_40%] items-center gap-2 overflow-hidden rounded-md border border-slate-200 bg-[#F8FAFC] px-4 py-4 shadow-sm sm:min-h-[220px] sm:grid-cols-[minmax(0,1fr)_44%] sm:gap-5 sm:px-6 lg:min-h-[238px]">
-              <div className="relative z-10 min-w-0">
-                <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">{brandName}</p>
-                <h1 className="mt-2 max-w-xl text-[1.35rem] font-black leading-tight text-[#0F172A] sm:text-3xl lg:text-4xl">Shop products, chat prices, checkout fast.</h1>
-                <p className="mt-2 line-clamp-2 max-w-lg text-xs font-semibold leading-5 text-[#64748B] sm:text-sm sm:leading-6">Browse this seller’s products, add items, bargain in chat, and pay with your agreed deal price.</p>
-                <div className="mt-3 flex flex-wrap gap-2 sm:mt-5 sm:gap-3">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <div className="grid min-h-[168px] grid-cols-[minmax(0,1fr)_42%] items-stretch overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm sm:min-h-[210px] lg:min-h-[232px]">
+              <div className="flex min-w-0 flex-col justify-between bg-[#EAFBF1] px-4 py-4 sm:px-6 sm:py-5">
+                <div>
+                  <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">{brandName}</p>
+                  <h1 className="mt-2 max-w-lg text-[1.45rem] font-black leading-tight text-[#0F172A] sm:text-3xl lg:text-[2.35rem]">Shop this seller’s best picks.</h1>
+                  <p className="mt-2 line-clamp-2 max-w-md text-xs font-semibold leading-5 text-[#475569] sm:text-sm sm:leading-6">Browse real products, ask the seller questions, bargain your price, and checkout fast.</p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 sm:gap-3">
                   <a href="#products" className="rounded-md bg-[#16A34A] px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:px-5 sm:py-3 sm:text-sm">Shop Now</a>
-                  <Link href={`${storeHomeHref}/chat`} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-800 transition hover:border-emerald-300 hover:text-emerald-700 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</Link>
+                  <Link href={`${storeHomeHref}/chat`} className="rounded-md border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-slate-800 transition hover:border-emerald-300 hover:text-emerald-700 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</Link>
                 </div>
               </div>
-              <HeroCollage products={heroProducts} activeIndex={heroIndex} />
+              <button type="button" onClick={() => heroFeature ? setSelectedProduct(heroFeature) : undefined} className="group relative min-w-0 overflow-hidden bg-[#F8FAFC] text-left" disabled={!heroFeature}>
+                {heroFeature?.image_url ? <img src={heroFeature.image_url} alt={heroFeature.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /> : <div className="h-full w-full bg-slate-100" />}
+                {heroFeature ? (
+                  <span className="absolute inset-x-2 bottom-2 rounded-md bg-white/95 p-2 shadow-sm">
+                    <span className="block truncate text-xs font-black text-slate-950">{heroFeature.name}</span>
+                    <span className="mt-0.5 block text-sm font-black text-[#16A34A]">{formatNaira(heroFeature.price)}</span>
+                  </span>
+                ) : null}
+              </button>
             </div>
-            <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+            <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 lg:mx-0 lg:grid lg:grid-cols-1 lg:overflow-visible lg:px-0 lg:pb-0">
               {(heroProducts.length ? heroProducts : products.slice(0, 6)).slice(0, 6).map((product) => (
                 <button
                   key={product.id}
                   type="button"
                   onClick={() => setSelectedProduct(product)}
-                  className="flex min-w-[8.5rem] items-center gap-2 rounded-md border border-slate-200 bg-white p-2 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                  className="flex min-w-[8.5rem] items-center gap-2 rounded-md border border-slate-200 bg-white p-2 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md lg:min-w-0"
                 >
                   <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-md bg-[#F7F9FC]">
-                    {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-contain p-1" /> : <IconGlyph name="cart" className="h-4 w-4 text-slate-400" />}
+                    {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-cover" /> : <IconGlyph name="cart" className="h-4 w-4 text-slate-400" />}
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-xs font-black text-slate-950">{product.name}</span>
