@@ -197,7 +197,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[72px]">
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[128px]">
       <CheckoutHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
@@ -207,12 +207,12 @@ export default function CheckoutPage() {
         mode="checkout"
       />
 
-      <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#f8fafc_0%,#e7f8ef_55%,#fff4df_100%)]">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_420px] lg:items-center">
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[1fr_390px] lg:items-center">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700">Checkout</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight text-slate-950 sm:text-6xl">Delivery and payment.</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Add your delivery details, confirm the security check, then pay securely through Paystack.</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Checkout</p>
+            <h1 className="mt-2 max-w-3xl text-2xl font-black leading-tight text-slate-950 sm:text-4xl">Delivery and payment</h1>
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">Enter delivery details, confirm your order, then pay securely through Paystack.</p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
             <div className="grid gap-3">

@@ -58,7 +58,7 @@ export default function CartPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[72px]">
+    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[128px]">
       <CheckoutHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
@@ -68,13 +68,13 @@ export default function CartPage() {
         mode="cart"
       />
 
-      <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#f8fafc_0%,#e7f8ef_56%,#fff7ed_100%)]">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_430px] lg:items-center">
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[1fr_390px] lg:items-center">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-emerald-700">Shopping cart</p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight text-slate-950 sm:text-6xl">Your bag is ready.</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Review your products from {sellerName}, confirm quantity and delivery fee, then continue to secure Paystack checkout.</p>
-            <div className="mt-5 flex flex-wrap gap-2 text-xs font-black text-slate-700">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Shopping cart</p>
+            <h1 className="mt-2 max-w-3xl text-2xl font-black leading-tight text-slate-950 sm:text-4xl">Review your order</h1>
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">Confirm quantity, deal prices, and delivery fee before checkout.</p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-black text-slate-700">
               <span className="rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">Secure payment</span>
               <span className="rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">Seller confirms delivery</span>
               <span className="rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">WhatsApp receipt</span>
@@ -89,7 +89,7 @@ export default function CartPage() {
             </div>
           </div>
         </div>
-        <div className="border-t border-slate-200 bg-white/80">
+        <div className="border-t border-slate-200 bg-[#F8FAFC]">
           <div className="mx-auto grid max-w-7xl gap-3 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-600 sm:grid-cols-3 sm:px-6">
             <span>Paystack protected checkout</span>
             <span>Real stock from this seller</span>

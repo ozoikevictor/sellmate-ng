@@ -323,14 +323,14 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
         whatsappPhone={profile?.whatsapp_phone}
       />
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-5 sm:py-8">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-5 sm:py-5">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{profile?.city || "Customer store"}</p>
-          <h1 className="mt-2 text-3xl font-black capitalize text-slate-950 sm:text-4xl">{pageTitle(view, sellerName)}</h1>
-          <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">{pageDescription(view, sellerName)}</p>
+          <h1 className="mt-1 text-2xl font-black capitalize text-slate-950 sm:text-3xl">{pageTitle(view, sellerName)}</h1>
+          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">{pageDescription(view, sellerName)}</p>
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-5 sm:py-12">
+      <section className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-5 sm:py-8">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
         {view === "products" ? <ProductsView storeHref={storeHref} products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}
@@ -444,7 +444,7 @@ function ProductTile({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const rating = productRating(product);
   const badge = productBadge(product);
   return (
-    <article className="group min-w-0 overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="group min-w-0 overflow-hidden rounded-md border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="relative bg-[#F7F9FC]">
         <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-[1/0.82] w-full place-items-center p-2 sm:aspect-square">
           {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
@@ -488,7 +488,7 @@ function CategoriesView({ categories, products, storeHref }: { categories: strin
       {categories.map((category) => {
         const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
         return (
-        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[13rem] items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
+        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[13rem] items-center gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
           <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-[#F7F9FC]">
             {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" className="h-full w-full object-contain p-1" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
           </span>

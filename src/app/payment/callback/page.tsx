@@ -70,7 +70,7 @@ function PaymentCallbackContent() {
   }, [order, reference]);
 
   return (
-    <main className="min-h-screen bg-slate-100 pt-[72px]">
+    <main className="min-h-screen bg-[#f2f6fb] pt-[128px]">
       <CheckoutHeader
         sellerName={sellerName}
         sellerLogoUrl={sellerLogoUrl}
@@ -79,7 +79,7 @@ function PaymentCallbackContent() {
         cartCount={0}
         mode="success"
       />
-      <section className={`mx-auto mt-8 w-[calc(100%-2rem)] max-w-xl rounded-lg border bg-white p-6 shadow-sm ${status === "error" ? "border-rose-200" : "border-emerald-200"}`}>
+      <section className={`mx-auto mt-6 w-[calc(100%-2rem)] max-w-xl rounded-lg border bg-white p-6 shadow-sm ${status === "error" ? "border-rose-200" : "border-emerald-200"}`}>
         <p className={`text-xs font-black uppercase tracking-[0.18em] ${status === "error" ? "text-rose-700" : "text-emerald-700"}`}>
           {status === "checking" ? "Checking payment" : status === "success" ? "Payment successful" : "Payment issue"}
         </p>
