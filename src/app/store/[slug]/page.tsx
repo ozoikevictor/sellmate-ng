@@ -510,7 +510,7 @@ function ProductShelf({ title, actionLabel, actionHref, storeHref, products, fav
 
 function ProductGrid({ storeHref, products, favoriteIds, cartQtyById, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { storeHref: string; products: StoreProduct[]; favoriteIds: string[]; cartQtyById: Record<string, number>; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   return (
-    <div className="grid grid-cols-2 items-stretch gap-2 sm:grid-cols-3 sm:gap-2.5 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6">
+    <div className="grid grid-cols-2 items-start gap-x-3 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {products.map((product) => (
         <ProductCard key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
       ))}
@@ -523,39 +523,40 @@ function ProductCard({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const badge = productBadge(product);
 
   return (
-    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-md border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative shrink-0 bg-[#F7F9FC]">
-        <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center p-2">
+    <article className="group min-w-0">
+      <div className="relative overflow-hidden rounded-md bg-[#F7F9FC]">
+        <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center p-1.5">
           {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
         </button>
-        <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-white shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-500 hover:text-rose-600"}`}>
+        <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-white/95 shadow-sm ring-1 ring-[#E5E7EB] ${isFavorite ? "text-rose-600" : "text-slate-500 hover:text-rose-600"}`}>
           <IconGlyph name="heart" className="h-3.5 w-3.5" />
         </button>
-        <span className="absolute bottom-1.5 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-white/95 px-1.5 py-0.5 text-[9px] font-black uppercase text-[#16A34A] ring-1 ring-emerald-100">{product.category}</span>
+        {badge.label !== "In stock" ? <span className={`absolute bottom-1.5 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded px-1.5 py-0.5 text-[9px] font-black ring-1 ${badge.className}`}>{badge.label}</span> : null}
       </div>
-      <div className="flex flex-1 flex-col p-2">
+      <div className="pt-2">
         <button type="button" onClick={() => onViewDetails(product)} className="block text-left">
-          <h3 className="line-clamp-2 min-h-8 text-[12px] font-bold leading-4 text-[#0F172A] transition hover:text-[#16A34A]">{product.name}</h3>
+          <h3 className="line-clamp-2 min-h-9 text-[13px] font-medium leading-[1.15rem] text-[#1F2937] transition hover:text-[#16A34A]">{product.name}</h3>
         </button>
-        <p className="mt-1 truncate text-[13px] font-black text-[#16A34A] sm:text-sm">{formatNaira(product.price)}</p>
-        <div className="mt-1 flex items-center justify-between gap-2 text-[10px] font-bold text-[#64748B]">
-          <span className="truncate">★ {rating.stars}.0</span>
-          <span className="shrink-0">{product.stock} left</span>
-        </div>
-        <div className="mt-auto flex min-h-8 items-center justify-between gap-1.5 pt-2">
-          <span className={`truncate rounded px-1.5 py-0.5 text-[9px] font-black ring-1 ${badge.className}`}>{badge.label}</span>
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <p className="min-w-0 truncate text-lg font-black leading-none text-[#0F172A]">{formatNaira(product.price)}</p>
           {cartQty > 0 ? (
-            <div className="flex shrink-0 items-center overflow-hidden rounded-md border border-emerald-200 bg-emerald-50">
-              <button type="button" onClick={() => onChangeCartQty(product, cartQty - 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-emerald-800">-</button>
-              <span className="min-w-6 text-center text-xs font-black text-slate-950">{cartQty}</span>
-              <button type="button" onClick={() => onChangeCartQty(product, cartQty + 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-emerald-800">+</button>
+            <div className="flex shrink-0 items-center overflow-hidden rounded-full border border-slate-300 bg-white">
+              <button type="button" onClick={() => onChangeCartQty(product, cartQty - 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-[#16A34A]">-</button>
+              <span className="min-w-5 text-center text-xs font-black text-slate-950">{cartQty}</span>
+              <button type="button" onClick={() => onChangeCartQty(product, cartQty + 1)} className="grid h-7 w-7 place-items-center text-sm font-black text-[#16A34A]">+</button>
             </div>
           ) : (
-            <button type="button" onClick={() => onAddToCart(product)} aria-label={`Add ${product.name} to cart`} className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[#16A34A] text-white transition hover:bg-[#15803D]">
-              <IconGlyph name="cart" className="h-3.5 w-3.5" />
+            <button type="button" onClick={() => onAddToCart(product)} aria-label={`Add ${product.name} to cart`} className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-950 bg-white text-slate-950 transition hover:border-[#16A34A] hover:text-[#16A34A]">
+              <IconGlyph name="cart" className="h-4 w-4" />
             </button>
           )}
         </div>
+        <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] font-semibold text-[#64748B]">
+          <span className="shrink-0 text-black">★ ★ ★ ★ ★</span>
+          <span className="truncate">{rating.stars}.0</span>
+          <span className="shrink-0">{product.stock} sold</span>
+        </div>
+        <p className="mt-1 truncate text-[11px] font-semibold text-[#64748B]">{product.category}</p>
       </div>
     </article>
   );
