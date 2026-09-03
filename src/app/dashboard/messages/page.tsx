@@ -271,14 +271,17 @@ export default function MessagesPage() {
                 </button>
               ) : null}
             </div>
-            <div className="mb-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-2">
+            <div className="mb-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-3">
               <div className="mb-2 flex items-center justify-between gap-2 px-1">
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-800">Send deal price</p>
-                <p className="text-[11px] font-bold text-emerald-700">Optional</p>
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-800">Close the bargain</p>
+                  <p className="mt-1 text-xs font-bold text-emerald-700">Add the agreed item price and delivery when the customer accepts your last price.</p>
+                </div>
+                <p className="shrink-0 rounded-full bg-white px-2 py-1 text-[11px] font-bold text-emerald-700">Optional</p>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
               <label className="grid gap-1 text-[11px] font-black uppercase tracking-[0.12em] text-emerald-800">
-                Item price
+                Agreed item price
                 <input
                   type="number"
                   min="0"
@@ -300,6 +303,11 @@ export default function MessagesPage() {
                 />
               </label>
               </div>
+              {(Number(offerDraft.price || 0) > 0 || Number(offerDraft.delivery || 0) > 0) ? (
+                <div className="mt-2 rounded-xl bg-white px-3 py-2 text-xs font-black text-slate-700">
+                  Customer checkout total: {formatNaira(Number(offerDraft.price || 0) + Number(offerDraft.delivery || 0))}
+                </div>
+              ) : null}
             </div>
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
               <textarea
@@ -515,13 +523,33 @@ function buildConversations(messages: CustomerMessage[]) {
 }
 
 function OfferBubble({ offer }: { offer: NonNullable<ReturnType<typeof parseChatOffer>> }) {
+  const offerTotal = Number(offer.agreed_price ?? 0) + Number(offer.delivery_fee ?? 0);
+
   return (
     <span className="block rounded-xl bg-white/15 p-3">
-      <span className="block text-xs font-black uppercase tracking-[0.14em] text-white/80">Deal price sent</span>
+      <span className="block text-xs font-black uppercase tracking-[0.14em] text-white/80">Deal sent to customer</span>
       <span className="mt-2 block text-sm font-black">{offer.product_name}</span>
-      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold">Item price: {formatNaira(offer.agreed_price)}</span> : null}
-      {offer.delivery_fee !== undefined ? <span className="mt-1 block text-sm font-bold">Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
-      {offer.note ? <span className="mt-2 block whitespace-pre-wrap text-sm font-semibold">{offer.note}</span> : null}
+      <span className="mt-3 grid gap-1.5 text-sm font-bold">
+        {offer.agreed_price ? (
+          <span className="flex items-center justify-between gap-3">
+            <span>Agreed price</span>
+            <strong>{formatNaira(offer.agreed_price)}</strong>
+          </span>
+        ) : null}
+        {offer.delivery_fee !== undefined ? (
+          <span className="flex items-center justify-between gap-3">
+            <span>Delivery</span>
+            <strong>{formatNaira(offer.delivery_fee)}</strong>
+          </span>
+        ) : null}
+        {offerTotal > 0 ? (
+          <span className="flex items-center justify-between gap-3 border-t border-white/20 pt-2">
+            <span>Total</span>
+            <strong>{formatNaira(offerTotal)}</strong>
+          </span>
+        ) : null}
+      </span>
+      {offer.note ? <span className="mt-2 block whitespace-pre-wrap rounded-lg bg-white/10 px-2 py-1.5 text-sm font-semibold">{offer.note}</span> : null}
     </span>
   );
 }

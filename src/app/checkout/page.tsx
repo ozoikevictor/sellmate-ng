@@ -264,9 +264,17 @@ export default function CheckoutPage() {
           <div className="mt-5 grid gap-3 text-sm text-slate-600">
             {mounted && items.length === 0 ? <p>No item to checkout yet. Go back to the store and add products first.</p> : null}
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between gap-4">
-                <span>{item.name} x {item.qty}</span>
-                <strong className="text-slate-950">{formatNaira(cartItemPrice(item) * item.qty)}</strong>
+              <div key={item.id} className="grid gap-1 rounded-lg bg-slate-50 px-3 py-2">
+                <div className="flex justify-between gap-4">
+                  <span className="font-semibold text-slate-700">{item.name} x {item.qty}</span>
+                  <strong className="text-slate-950">{formatNaira(cartItemPrice(item) * item.qty)}</strong>
+                </div>
+                {item.agreed_price ? (
+                  <div className="flex items-center justify-between gap-3 text-xs font-black text-emerald-700">
+                    <span>Chat agreed price applied</span>
+                    <span className="text-slate-400 line-through">{formatNaira(item.price * item.qty)}</span>
+                  </div>
+                ) : null}
               </div>
             ))}
             {items.length > 0 ? (

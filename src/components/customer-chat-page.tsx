@@ -284,8 +284,10 @@ export default function CustomerChatPage() {
     );
     setAcceptedOfferIds(readAcceptedOffers(slug).map((item) => item.message_id));
     setCartCount(nextCart.filter((item) => item.store_slug === slug).reduce((sum, item) => sum + item.qty, 0));
-    setNotice("Deal price added. Your cart and checkout now use this price.");
-    window.setTimeout(() => setNotice(""), 3000);
+    setNotice("Deal accepted. Opening checkout with your agreed price...");
+    window.setTimeout(() => {
+      window.location.href = `/checkout?store=${encodeURIComponent(slug)}`;
+    }, 450);
   }
 
   function handleReplySwipeEnd(clientX: number, reply: SellerReply) {
@@ -851,24 +853,46 @@ function SellerAvatar({ name, imageUrl }: { name: string; imageUrl?: string | nu
 }
 
 function CustomerOfferCard({ offer, accepted, onAccept }: { offer: NonNullable<ReturnType<typeof parseChatOffer>>; accepted: boolean; onAccept: () => void }) {
+  const offerTotal = Number(offer.agreed_price ?? 0) + Number(offer.delivery_fee ?? 0);
+
   return (
-    <span className="mt-2 block rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-      <span className="block text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Deal price from seller</span>
-      <span className="mt-2 block text-sm font-black text-slate-950">{offer.product_name}</span>
-      {offer.agreed_price ? <span className="mt-1 block text-sm font-bold text-slate-700">Item price: {formatNaira(offer.agreed_price)}</span> : null}
-      {offer.delivery_fee !== undefined ? <span className="mt-1 block text-sm font-bold text-slate-700">Delivery: {formatNaira(offer.delivery_fee)}</span> : null}
-      {offer.note ? <span className="mt-2 block whitespace-pre-wrap text-sm font-semibold leading-6 text-slate-700">{offer.note}</span> : null}
-      <span className="mt-3 block rounded-lg bg-white px-3 py-2 text-xs font-bold leading-5 text-slate-600">
-        Use this bargain price when you are ready to pay.
+    <span className="mt-2 block overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
+      <span className="block bg-emerald-50 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">Seller deal</span>
+      <span className="block p-3">
+        <span className="block text-sm font-black text-slate-950">{offer.product_name}</span>
+        <span className="mt-3 grid gap-2 text-sm font-bold text-slate-700">
+          {offer.agreed_price ? (
+            <span className="flex items-center justify-between gap-3">
+              <span>Agreed item price</span>
+              <strong className="text-slate-950">{formatNaira(offer.agreed_price)}</strong>
+            </span>
+          ) : null}
+          {offer.delivery_fee !== undefined ? (
+            <span className="flex items-center justify-between gap-3">
+              <span>Delivery fee</span>
+              <strong className="text-slate-950">{formatNaira(offer.delivery_fee)}</strong>
+            </span>
+          ) : null}
+          {offerTotal > 0 ? (
+            <span className="flex items-center justify-between gap-3 border-t border-slate-100 pt-2 text-base">
+              <span>Total to pay</span>
+              <strong className="text-emerald-700">{formatNaira(offerTotal)}</strong>
+            </span>
+          ) : null}
+        </span>
+        {offer.note ? <span className="mt-3 block whitespace-pre-wrap rounded-xl bg-slate-50 px-3 py-2 text-sm font-semibold leading-6 text-slate-700">{offer.note}</span> : null}
+        <span className="mt-3 block rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold leading-5 text-emerald-800">
+          Accepting this only changes your own checkout. The seller's public product price stays the same.
+        </span>
+        <button
+          type="button"
+          onClick={onAccept}
+          disabled={accepted}
+          className="mt-3 w-full rounded-full bg-[#16A34A] px-4 py-3 text-xs font-black text-white transition hover:bg-[#15803D] disabled:bg-slate-400"
+        >
+          {accepted ? "Deal added to checkout" : "Accept deal and checkout"}
+        </button>
       </span>
-      <button
-        type="button"
-        onClick={onAccept}
-        disabled={accepted}
-        className="mt-3 w-full rounded-md bg-[#16A34A] px-4 py-2.5 text-xs font-black text-white transition hover:bg-[#15803D] disabled:bg-slate-400"
-      >
-        {accepted ? "Deal price added" : "Checkout with deal price"}
-      </button>
     </span>
   );
 }
