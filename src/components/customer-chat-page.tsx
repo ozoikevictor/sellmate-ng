@@ -151,9 +151,6 @@ export default function CustomerChatPage() {
     if (!selectedProductId) return;
     setSelectedId(selectedProductId);
     setSelectedProductIds([selectedProductId]);
-    window.setTimeout(() => {
-      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
   }, [selectedProductId]);
 
   useEffect(() => {
@@ -211,7 +208,6 @@ export default function CustomerChatPage() {
       if (nextProductId) {
         setSelectedId(nextProductId);
       }
-      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 120);
   }, [selectedMessageId, selectedProductId, sellerReplies, slug]);
 

@@ -615,6 +615,13 @@ export function StoreHeader({
     window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
   }
 
+  useEffect(() => {
+    if (!isRepliesOpen || !storeSlug || replyMessages.length === 0) return;
+    replyMessages.forEach((message) => markCustomerReplyRead(storeSlug, message.id));
+    setReadReplyIds(readCustomerReadReplyIds(storeSlug));
+    window.dispatchEvent(new Event("sellmate-customer-messages-updated"));
+  }, [isRepliesOpen, replyMessages, storeSlug]);
+
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = searchTerm.trim();
