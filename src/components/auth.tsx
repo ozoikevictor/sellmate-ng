@@ -48,6 +48,12 @@ function toDemoUser(sessionUser: { id?: string; email?: string; user_metadata?: 
 
 function formatAuthError(message: string) {
   const normalized = message.toLowerCase();
+  if (normalized.includes("already registered") || normalized.includes("already been registered") || normalized.includes("already exists")) {
+    return "This email already has a seller account. Please use Login instead, or reset the password if you do not remember it.";
+  }
+  if (normalized.includes("magic link") || normalized.includes("error sending") || normalized.includes("email")) {
+    return "Your password is okay, but Supabase could not send the login code email. Please check Supabase Auth email settings, then try signing in again.";
+  }
   if (normalized.includes("failed to fetch")) {
     return "Could not reach Supabase. Refresh the page and try again. If it continues, confirm the Supabase project URL and publishable key.";
   }
@@ -184,26 +190,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     clearLoginCodeVerified();
     const normalizedEmail = email.trim().toLowerCase();
-    const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
     if (error) {
       return { ok: false, message: formatAuthError(error.message) };
     }
-    savePendingLoginEmail(normalizedEmail);
-    await supabase.auth.signOut();
-    setUser(null);
-
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: {
-        emailRedirectTo: getRedirectUrl(`/login?code_email=${encodeURIComponent(normalizedEmail)}`),
-        shouldCreateUser: false,
-      },
-    });
-    if (otpError) {
-      return { ok: false, message: formatAuthError(otpError.message) };
+    if (data.user?.id) {
+      markLoginCodeVerified(data.user.id);
     }
-
-    return { ok: true, message: "Password accepted. We sent a login code to your email." };
+    clearPendingLoginEmail();
+    setUser(toDemoUser(data.user));
+    return { ok: true };
   }, []);
 
   const verifyLoginCode = useCallback(async (email: string, code: string) => {
@@ -551,9 +547,8 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       setLoading(false);
       return;
     }
-    setPendingEmail(email);
-    setNotice(result.message ?? "We sent a login code to your email.");
     setLoading(false);
+    router.push("/dashboard/account");
   }
 
   return (
