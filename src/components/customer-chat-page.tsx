@@ -116,7 +116,7 @@ export default function CustomerChatPage() {
       if (!active) return;
       setProfile(profileData);
       setProducts(productData ?? []);
-      setSelectedId((current) => current || selectedProductId || productData?.[0]?.id || "");
+      setSelectedId((current) => current || selectedProductId || "");
       setNotice(productError?.message ?? "");
       setLoading(false);
     }
@@ -215,7 +215,7 @@ export default function CustomerChatPage() {
     }, 120);
   }, [selectedMessageId, selectedProductId, sellerReplies, slug]);
 
-  const selectedProduct = products.find((product) => product.id === selectedId) ?? products[0];
+  const selectedProduct = products.find((product) => product.id === selectedId);
   const selectedChatProducts = products.filter((product) => selectedProductIds.includes(product.id));
   const isFocusedProductChat = Boolean(selectedProductId);
   const isGeneralSellerChat = !selectedProductId && !selectedMessageId;
@@ -228,9 +228,6 @@ export default function CustomerChatPage() {
   function chooseProduct(productId: string) {
     setSelectedId(productId);
     setSelectedProductIds((current) => (current.includes(productId) ? current : [...current, productId]));
-    window.setTimeout(() => {
-      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
   }
 
   function toggleChatProduct(productId: string) {
@@ -339,16 +336,13 @@ export default function CustomerChatPage() {
     saveCustomerChatIdentity(slug, nextIdentity);
     setCustomerIdentity(nextIdentity);
     setNotice("");
-    window.setTimeout(() => {
-      chatPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
   }
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     if (!profile?.user_id || !selectedProduct?.id) {
-      setNotice("This store is still loading. Wait a moment, then send your message again.");
+      setNotice(products.length > 0 ? "Choose the product you want to ask about first." : "This store is still loading. Wait a moment, then send your message again.");
       return;
     }
 
@@ -426,7 +420,7 @@ export default function CustomerChatPage() {
   if (customerIdentity) {
     return (
       <main className="flex h-[100dvh] overflow-hidden bg-[#EEF2F7]">
-        {!isFocusedProductChat && !isGeneralSellerChat ? (
+        {!isFocusedProductChat ? (
           <aside className="hidden w-72 shrink-0 border-r border-slate-200 bg-white md:flex md:flex-col">
             <div className="border-b border-slate-100 p-4">
               <Link href={storeHref} className="inline-flex items-center gap-2 text-sm font-black text-slate-600 hover:text-emerald-700">
@@ -442,7 +436,7 @@ export default function CustomerChatPage() {
                   key={product.id}
                   type="button"
                   onClick={() => chooseProduct(product.id)}
-                  className={`mb-2 flex w-full min-w-0 items-center gap-3 rounded-lg border p-2 text-left transition ${selectedProduct?.id === product.id ? "border-emerald-300 bg-emerald-50" : "border-slate-100 bg-white hover:border-emerald-200"}`}
+                  className={`mb-2 flex w-full min-w-0 items-center gap-3 rounded-lg border p-2 text-left transition ${selectedProductIds.includes(product.id) ? "border-emerald-300 bg-emerald-50" : "border-slate-100 bg-white hover:border-emerald-200"}`}
                 >
                   <span className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-slate-100">
                     {product.image_url ? <img src={product.image_url} alt="" className="h-full w-full object-cover" /> : null}
@@ -475,7 +469,13 @@ export default function CustomerChatPage() {
             </Link>
           </header>
 
-          {!isGeneralSellerChat ? <div className="shrink-0 border-b border-slate-100 bg-white px-3 py-2 sm:px-5">
+          <div className="shrink-0 border-b border-slate-100 bg-white px-3 py-2 sm:px-5">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="min-w-0 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
+                {selectedProduct ? `${selectedProductIds.length} product${selectedProductIds.length === 1 ? "" : "s"} selected` : "Choose a product to start chatting"}
+              </p>
+              {selectedProductIds.length > 0 ? <p className="shrink-0 text-[11px] font-bold text-slate-500">Tap products to add/remove</p> : null}
+            </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {visibleProducts.map((product) => {
                 const isSelected = selectedProductIds.includes(product.id);
@@ -497,7 +497,7 @@ export default function CustomerChatPage() {
                 );
               })}
             </div>
-          </div> : null}
+          </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto bg-[#F5F7FB] px-3 py-4 sm:px-5">
             {selectedProduct ? (
@@ -622,8 +622,8 @@ export default function CustomerChatPage() {
         whatsappPhone={profile?.whatsapp_phone}
       />
 
-      <section className={`mx-auto grid h-[calc(100dvh-10rem)] w-full max-w-6xl gap-3 px-3 pb-3 sm:px-5 ${isFocusedProductChat || isGeneralSellerChat ? "" : "md:grid-cols-[17rem_minmax(0,1fr)]"}`}>
-        {!isFocusedProductChat && !isGeneralSellerChat ? <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
+      <section className={`mx-auto grid h-[calc(100dvh-10rem)] w-full max-w-6xl gap-3 overflow-hidden px-3 pb-3 sm:px-5 ${isFocusedProductChat ? "" : "md:grid-cols-[17rem_minmax(0,1fr)]"}`}>
+        {!isFocusedProductChat ? <aside className="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 p-3">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Choose product</p>
             <h1 className="mt-1 text-lg font-black text-slate-950">Chat with {profile?.business_name ?? "seller"}</h1>
@@ -641,7 +641,7 @@ export default function CustomerChatPage() {
                 key={product.id}
                 type="button"
                 onClick={() => chooseProduct(product.id)}
-                className={`flex min-w-0 flex-col gap-2 rounded-lg border p-2 text-left transition md:mb-2 md:flex-row md:items-center md:gap-2.5 ${selectedProduct?.id === product.id ? "border-emerald-300 bg-emerald-50" : "border-slate-100 bg-white hover:border-emerald-200"}`}
+                className={`flex min-w-0 flex-col gap-2 rounded-lg border p-2 text-left transition md:mb-2 md:flex-row md:items-center md:gap-2.5 ${selectedProductIds.includes(product.id) ? "border-emerald-300 bg-emerald-50" : "border-slate-100 bg-white hover:border-emerald-200"}`}
               >
                 <span className="aspect-square w-full shrink-0 overflow-hidden rounded-md bg-slate-100 md:h-12 md:w-12">
                   {product.image_url ? <img src={product.image_url} alt="" className="h-full w-full object-cover" /> : null}
@@ -670,13 +670,13 @@ export default function CustomerChatPage() {
             </div>
           </div>
 
-          {!isGeneralSellerChat ? <div className="border-b border-slate-100 bg-white p-3">
+          <div className="border-b border-slate-100 bg-white p-3">
             <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-emerald-100 bg-emerald-50 p-2.5">
               <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-white ring-1 ring-emerald-100">
                 {selectedProduct?.image_url ? <img src={selectedProduct.image_url} alt="" className="h-full w-full object-contain p-1" /> : null}
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">Current product</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">{selectedProduct ? "Current product" : "Choose product"}</p>
                 <p className="truncate text-sm font-black text-slate-950">{selectedProduct?.name ?? "Select a product"}</p>
                 <p className="mt-1 text-base font-black text-emerald-700">{selectedProduct ? formatNaira(selectedProduct.price) : ""}</p>
                 {selectedProduct ? (
@@ -688,6 +688,15 @@ export default function CustomerChatPage() {
                 ) : null}
               </div>
             </div>
+            {selectedChatProducts.length > 1 ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {selectedChatProducts.map((product) => (
+                  <span key={product.id} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-700">
+                    {product.name}
+                  </span>
+                ))}
+              </div>
+            ) : null}
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
               {visibleProducts.map((product) => {
                 const isSelected = selectedProductIds.includes(product.id);
@@ -709,7 +718,7 @@ export default function CustomerChatPage() {
                 );
               })}
             </div>
-          </div> : null}
+          </div>
 
           {!customerIdentity ? (
             <div className="grid min-h-0 flex-1 place-items-center overflow-y-auto bg-slate-50 p-4">
