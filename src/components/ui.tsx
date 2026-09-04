@@ -88,9 +88,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [storeSlug, setStoreSlug] = useState("store");
+  const [dashboardSellerName, setDashboardSellerName] = useState("");
   const [storeReady, setStoreReady] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const canOpenStore = Boolean(user?.id && storeReady);
+  const sellerDisplayName = dashboardSellerName || user?.business || "Seller workspace";
   const storeHref = `/store/${storeSlug}`;
   const links = [
     { key: "overview", label: "Overview", href: "/dashboard", icon: "dashboard" },
@@ -113,14 +115,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     }
     const timer = window.setTimeout(async () => {
       setStoreReady(false);
-      const { data } = await supabase.from("seller_profiles").select("store_slug").eq("user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("seller_profiles").select("business_name,logo_text,store_slug").eq("user_id", user.id).maybeSingle();
       if (data?.store_slug) {
+        setDashboardSellerName(data.logo_text || data.business_name || user.business || "Seller workspace");
         setStoreSlug(data.store_slug);
         setStoreReady(true);
         return;
       }
 
       const fallbackSlug = makeStoreSlug(user.business, user.id);
+      setDashboardSellerName(user.business || "Seller workspace");
       setStoreSlug(fallbackSlug);
       await supabase.from("seller_profiles").upsert(
         {
@@ -138,7 +142,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [user?.business, user?.id, user?.name, user?.whatsapp]);
 
-  const sellerInitial = (user?.business || user?.name || "V").trim().charAt(0).toUpperCase();
+  const sellerInitial = (sellerDisplayName || user?.name || "V").trim().charAt(0).toUpperCase();
 
   if (isDashboardChatOpen) {
     return <main className="fixed inset-0 overflow-hidden bg-slate-50">{children}</main>;
@@ -166,7 +170,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#22C55E] text-lg font-black text-[#07111F] shadow-sm">{sellerInitial}</span>
               <div className={`min-w-0 ${sidebarCollapsed ? "hidden" : "block"}`}>
-                <p className="truncate text-sm font-black text-white">{user?.business ?? "Seller workspace"}</p>
+                <p className="truncate text-sm font-black text-white">{sellerDisplayName}</p>
                 <p className="text-xs font-bold text-slate-300">Vendor control center</p>
               </div>
             </div>
@@ -225,7 +229,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div className="hidden min-w-0 flex-1 lg:block">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Vendor dashboard</p>
               <p className="truncate text-lg font-black text-[#0F172A]">{activeLink.label}</p>
-              <p className="truncate text-sm font-bold text-slate-500">{user?.business ?? "Seller workspace"} · Manage products, orders, payments and delivery</p>
+              <p className="truncate text-sm font-bold text-slate-500">{sellerDisplayName} · Manage products, orders, payments and delivery</p>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <span className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-[#166534] sm:inline-flex">
