@@ -88,11 +88,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [storeSlug, setStoreSlug] = useState("store");
-  const [dashboardSellerName, setDashboardSellerName] = useState("");
+  const [dashboardSellerName, setDashboardSellerName] = useState<string | null>(null);
   const [storeReady, setStoreReady] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const canOpenStore = Boolean(user?.id && storeReady);
-  const sellerDisplayName = dashboardSellerName || user?.business || "Seller workspace";
+  const sellerDisplayName = dashboardSellerName ?? "Seller workspace";
   const storeHref = `/store/${storeSlug}`;
   const links = [
     { key: "overview", label: "Overview", href: "/dashboard", icon: "dashboard" },
@@ -115,6 +115,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     }
     const timer = window.setTimeout(async () => {
       setStoreReady(false);
+      setDashboardSellerName(null);
       const { data } = await supabase.from("seller_profiles").select("business_name,logo_text,store_slug").eq("user_id", user.id).maybeSingle();
       if (data?.store_slug) {
         setDashboardSellerName(data.logo_text || data.business_name || user.business || "Seller workspace");
