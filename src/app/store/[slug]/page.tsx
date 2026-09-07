@@ -350,7 +350,8 @@ export default function DynamicStorefrontPage() {
                 ))}
               </div>
             </div>
-            <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+            <div className="-mx-3 overflow-hidden bg-[#064E3B] p-[3px] sm:mx-0 sm:rounded-xl">
+              <div className="flex gap-[3px] overflow-x-auto bg-[#064E3B] pb-0">
               {(heroProducts.length ? heroProducts : products.slice(0, 8)).slice(0, 8).map((product, index) => (
                 <button
                   key={product.id}
@@ -359,7 +360,7 @@ export default function DynamicStorefrontPage() {
                     setHeroIndex(index);
                     setSelectedProduct(product);
                   }}
-                  className="flex min-w-[8.5rem] items-center gap-2 rounded-full border border-emerald-100 bg-white p-2 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                  className="flex min-w-[8.5rem] items-center gap-2 bg-white p-2 text-left transition hover:bg-emerald-50"
                 >
                   <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-slate-100">
                     {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover" /> : <IconGlyph name="cart" className="h-4 w-4 text-slate-400" />}
@@ -370,6 +371,7 @@ export default function DynamicStorefrontPage() {
                   </span>
                 </button>
               ))}
+              </div>
             </div>
           </div>
         </div>
@@ -503,11 +505,12 @@ function CategoryShelf({ categories, products, storeHref }: { categories: string
   }
 
   return (
-    <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+    <div className="-mx-4 overflow-hidden bg-[#064E3B] p-[3px] sm:mx-0 sm:rounded-xl">
+      <div className="flex gap-[3px] overflow-x-auto bg-[#064E3B]">
       {categories.map((category) => {
         const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
         return (
-          <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[10rem] items-center gap-3 rounded-md border border-[#E5E7EB] bg-white p-3 shadow-sm transition hover:border-emerald-300 hover:shadow-md">
+          <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[10rem] items-center gap-3 bg-white p-3 transition hover:bg-emerald-50">
             <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
               {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
             </span>
@@ -518,6 +521,7 @@ function CategoryShelf({ categories, products, storeHref }: { categories: string
           </Link>
         );
       })}
+      </div>
     </div>
   );
 }
