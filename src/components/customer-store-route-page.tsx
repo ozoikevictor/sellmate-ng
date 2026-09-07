@@ -63,7 +63,7 @@ function readStoreCache(slug: string): StoreCache | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoreCache;
     if (Date.now() - parsed.savedAt > STORE_CACHE_TTL) return null;
-    return parsed;
+    return { ...parsed, products: stripProductGalleries(parsed.products) };
   } catch {
     return null;
   }
@@ -71,10 +71,14 @@ function readStoreCache(slug: string): StoreCache | null {
 
 function writeStoreCache(slug: string, profile: StoreProfile, products: StoreProduct[]) {
   try {
-    sessionStorage.setItem(`${STORE_CACHE_PREFIX}${slug}`, JSON.stringify({ profile, products, savedAt: Date.now() }));
+    sessionStorage.setItem(`${STORE_CACHE_PREFIX}${slug}`, JSON.stringify({ profile, products: stripProductGalleries(products), savedAt: Date.now() }));
   } catch {
     // Ignore storage limits; the live Supabase fetch still works.
   }
+}
+
+function stripProductGalleries(products: StoreProduct[]) {
+  return products.map(({ image_urls, ...product }) => product);
 }
 
 function productRating(product: StoreProduct) {
@@ -164,7 +168,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
 
       const { data: productData, error: productError } = await supabase
         .from("products")
-        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url,image_urls")
+        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url")
         .eq("user_id", profileData.user_id)
         .eq("status", "Live")
         .order("created_at", { ascending: false });
@@ -275,6 +279,16 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
     setFavoriteIds(nextWishlist.filter((item) => item.store_slug === activeStoreSlug).map((item) => item.id));
   }
 
+  async function openProductDetails(product: StoreProduct) {
+    setSelectedProduct(product);
+    const { data } = await supabase.from("products").select("image_urls").eq("id", product.id).maybeSingle();
+    const gallery = Array.isArray(data?.image_urls) ? (data.image_urls as string[]) : null;
+    if (!gallery?.length) {
+      return;
+    }
+    setSelectedProduct((current) => (current?.id === product.id ? { ...current, image_urls: gallery } : current));
+  }
+
   async function cancelOrder(order: CustomerOrder) {
     if (order.status === "Cancelled" || order.status === "Delivered") {
       return;
@@ -345,9 +359,9 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-5 sm:py-8">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
-        {view === "products" ? <ProductsView loading={loading} storeHref={storeHref} products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
+        {view === "products" ? <ProductsView loading={loading} storeHref={storeHref} products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={openProductDetails} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}
-        {view === "wishlist" ? <WishlistView storeHref={storeHref} products={sortProducts(products.filter((product) => favoriteIds.includes(product.id)), sortBy)} totalProducts={favoriteIds.length} searchTerm="" selectedCategory="" sortBy={sortBy} onSortChange={setSortBy} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
+        {view === "wishlist" ? <WishlistView storeHref={storeHref} products={sortProducts(products.filter((product) => favoriteIds.includes(product.id)), sortBy)} totalProducts={favoriteIds.length} searchTerm="" selectedCategory="" sortBy={sortBy} onSortChange={setSortBy} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={openProductDetails} /> : null}
         {view === "orders" ? <OrdersView orders={customerOrders} cancelingOrderId={cancelingOrderId} onCancelOrder={cancelOrder} /> : null}
         {view === "support" ? <SupportView sellerName={sellerName} whatsappPhone={profile?.whatsapp_phone} storeHref={storeHref} /> : null}
       </section>

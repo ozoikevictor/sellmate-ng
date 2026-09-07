@@ -127,6 +127,9 @@ const categoryTemplates: Array<{ name: string; aliases: string[]; fields: Detail
 ];
 
 const categorySuggestions = categoryTemplates.map((template) => template.name);
+const MAX_UPLOAD_IMAGE_SIZE = 5_000_000;
+const MAX_SAVED_IMAGE_EDGE = 1200;
+const MAX_SAVED_IMAGE_DATA_LENGTH = 520_000;
 
 function getCategoryTemplate(category: string) {
   const normalized = category.toLowerCase().trim();
@@ -146,6 +149,45 @@ function labelFromKey(key: string) {
   return key
     .replace(/_/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function loadImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not prepare this image. Please choose another picture."));
+    };
+    image.src = url;
+  });
+}
+
+async function prepareProductImage(file: File) {
+  const image = await loadImage(file);
+  const largestEdge = Math.max(image.naturalWidth, image.naturalHeight);
+  const scale = Math.min(1, MAX_SAVED_IMAGE_EDGE / Math.max(largestEdge, 1));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Could not prepare this image. Please choose another picture.");
+  }
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  for (const quality of [0.78, 0.68, 0.58, 0.48]) {
+    const compressed = canvas.toDataURL("image/webp", quality);
+    if (compressed.length <= MAX_SAVED_IMAGE_DATA_LENGTH) {
+      return compressed;
+    }
+  }
+
+  return canvas.toDataURL("image/jpeg", 0.55);
 }
 
 export default function ProductsPage() {
@@ -225,22 +267,13 @@ export default function ProductsPage() {
       return;
     }
 
-    if (files.some((file) => file.size > 1_500_000)) {
-      setMessage("Each image must be smaller than 1.5MB for this demo.");
+    if (files.some((file) => file.size > MAX_UPLOAD_IMAGE_SIZE)) {
+      setMessage("Each image must be smaller than 5MB. The app will clean and compress it before saving.");
       return;
     }
 
-    Promise.all(
-      files.map(
-        (file) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result ?? ""));
-            reader.onerror = () => reject(new Error("Could not read this image. Please choose another picture."));
-            reader.readAsDataURL(file);
-          }),
-      ),
-    )
+    setMessage("Preparing clean product images...");
+    Promise.all(files.map((file) => prepareProductImage(file)))
       .then((uploadedImages) => {
         const nextImages = [...form.image_urls, ...uploadedImages].slice(0, 6);
         setForm((current) => ({ ...current, image_url: nextImages[0] ?? "", image_urls: nextImages }));

@@ -50,7 +50,7 @@ function readStoreCache(slug: string): StoreCache | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoreCache;
     if (Date.now() - parsed.savedAt > STORE_CACHE_TTL) return null;
-    return parsed;
+    return { ...parsed, products: stripProductGalleries(parsed.products) };
   } catch {
     return null;
   }
@@ -58,10 +58,14 @@ function readStoreCache(slug: string): StoreCache | null {
 
 function writeStoreCache(slug: string, profile: StoreProfile, products: StoreProduct[]) {
   try {
-    sessionStorage.setItem(`${STORE_CACHE_PREFIX}${slug}`, JSON.stringify({ profile, products, savedAt: Date.now() }));
+    sessionStorage.setItem(`${STORE_CACHE_PREFIX}${slug}`, JSON.stringify({ profile, products: stripProductGalleries(products), savedAt: Date.now() }));
   } catch {
     // Ignore storage limits; the live Supabase fetch still works.
   }
+}
+
+function stripProductGalleries(products: StoreProduct[]) {
+  return products.map(({ image_urls, ...product }) => product);
 }
 
 function getProductRating(product: StoreProduct) {
@@ -145,7 +149,7 @@ export default function DynamicStorefrontPage() {
 
       const { data: productData, error: productError } = await supabase
         .from("products")
-        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url,image_urls")
+        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url")
         .eq("user_id", profileData.user_id)
         .eq("status", "Live")
         .order("created_at", { ascending: false });
@@ -226,6 +230,16 @@ export default function DynamicStorefrontPage() {
     setFavoriteIds(nextWishlist.filter((item) => item.store_slug === (profile?.store_slug || slug)).map((item) => item.id));
   }
 
+  async function openProductDetails(product: StoreProduct) {
+    setSelectedProduct(product);
+    const { data } = await supabase.from("products").select("image_urls").eq("id", product.id).maybeSingle();
+    const gallery = Array.isArray(data?.image_urls) ? (data.image_urls as string[]) : null;
+    if (!gallery?.length) {
+      return;
+    }
+    setSelectedProduct((current) => (current?.id === product.id ? { ...current, image_urls: gallery } : current));
+  }
+
   const businessName = profile?.business_name || "Store";
   const brandName = profile?.logo_text || businessName;
   const logoUrl = profile?.logo_url || "";
@@ -299,7 +313,7 @@ export default function DynamicStorefrontPage() {
                   <button
                     key={product.id}
                     type="button"
-                    onClick={() => setSelectedProduct(product)}
+                    onClick={() => openProductDetails(product)}
                     className="grid min-h-[190px] min-w-full snap-center grid-cols-[minmax(0,1fr)_46%] items-stretch text-left sm:min-h-[260px] lg:min-h-[330px] lg:grid-cols-[minmax(0,1fr)_52%]"
                   >
                     <span className="flex min-w-0 flex-col justify-between px-4 py-5 sm:px-8 sm:py-8 lg:pr-4">
@@ -358,7 +372,7 @@ export default function DynamicStorefrontPage() {
                   type="button"
                   onClick={() => {
                     setHeroIndex(index);
-                    setSelectedProduct(product);
+                    openProductDetails(product);
                   }}
                   className="flex min-w-[8.5rem] items-center gap-2 bg-white p-2 text-left transition hover:bg-emerald-50"
                 >
@@ -384,8 +398,8 @@ export default function DynamicStorefrontPage() {
         </div>
         <CategoryShelf categories={categories} products={products} storeHref={storeHomeHref} />
       </section>
-      <ProductShelf title="Featured Products" actionLabel="View all products" actionHref={`${storeHomeHref}/products`} storeHref={storeHomeHref} products={featuredProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
-      <ProductShelf title="New Arrivals" storeHref={storeHomeHref} products={newArrivalProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+      <ProductShelf title="Featured Products" actionLabel="View all products" actionHref={`${storeHomeHref}/products`} storeHref={storeHomeHref} products={featuredProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={openProductDetails} />
+      <ProductShelf title="New Arrivals" storeHref={storeHomeHref} products={newArrivalProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={openProductDetails} />
       <section id="products" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-5 sm:py-12">
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-white">Shop</span>
@@ -414,7 +428,7 @@ export default function DynamicStorefrontPage() {
         {!loading && !message && products.length > 0 && displayProducts.length === 0 ? (
           <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">No products match your search.</p>
         ) : null}
-        <ProductGrid storeHref={storeHomeHref} products={displayProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} />
+        <ProductGrid storeHref={storeHomeHref} products={displayProducts} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={openProductDetails} />
       </section>
       {cartNotice || cartCount > 0 ? (
         <div className="fixed bottom-5 left-4 right-4 z-50 sellmate-card rounded-lg p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
