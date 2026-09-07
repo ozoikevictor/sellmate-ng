@@ -102,6 +102,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     { key: "customers", label: "Customers", href: "/dashboard/customers", icon: "customers" },
     { key: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
     { key: "billing", label: "Billing & Payments", href: "/dashboard/billing", icon: "billing" },
+    { key: "account", label: "Account", href: "/dashboard/account", icon: "user" },
     { key: "store", label: "Store", href: storeHref, icon: "store" },
     { key: "delivery", label: "Delivery / Tracking", href: "/dashboard/settings", icon: "delivery" },
     { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
@@ -233,9 +234,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <p className="truncate text-sm font-bold text-slate-500">{sellerDisplayName} · Manage products, orders, payments and delivery</p>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-              <span className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-[#166534] sm:inline-flex">
-                Logged in
-              </span>
+              <Link href="/dashboard/account" className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-[#166534] transition hover:border-emerald-300 hover:bg-emerald-100 sm:inline-flex">
+                Account
+              </Link>
               {canOpenStore ? (
                 <Link href={storeHref} className="rounded-full bg-[#16A34A] px-4 py-2.5 text-xs font-black text-white shadow-[0_10px_24px_rgba(22,163,74,0.22)] transition hover:bg-[#15803D]">
                   View store
@@ -1020,10 +1021,7 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
             <button type="button" onClick={onClose} aria-label="Back to products" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm transition hover:bg-slate-100">
               <IconGlyph name="home" className="h-5 w-5" />
             </button>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-black text-slate-950 sm:text-base">{product.name}</p>
-              <p className="truncate text-xs font-bold text-slate-500">{product.category}</p>
-            </div>
+            <div className="flex-1" />
             <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border shadow-sm transition ${isFavorite ? "border-rose-200 bg-rose-50 text-rose-700" : "border-slate-200 bg-white text-slate-700 hover:text-rose-700"}`}>
               <IconGlyph name="heart" className="h-5 w-5" />
             </button>
