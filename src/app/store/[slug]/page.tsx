@@ -297,38 +297,60 @@ export default function DynamicStorefrontPage() {
               ))}
             </nav>
           </aside>
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <div className="grid min-h-[168px] grid-cols-[minmax(0,1fr)_42%] items-stretch overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm sm:min-h-[210px] lg:min-h-[232px]">
-              <div className="flex min-w-0 flex-col justify-between bg-[#EAFBF1] px-4 py-4 sm:px-6 sm:py-5">
-                <div>
-                  <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">{brandName}</p>
-                  <h1 className="mt-2 max-w-lg text-[1.45rem] font-black leading-tight text-[#0F172A] sm:text-3xl lg:text-[2.35rem]">Shop this seller’s best picks.</h1>
-                  <p className="mt-2 line-clamp-2 max-w-md text-xs font-semibold leading-5 text-[#475569] sm:text-sm sm:leading-6">Browse real products, ask the seller questions, bargain your price, and checkout fast.</p>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2 sm:gap-3">
-                  <a href="#products" className="rounded-md bg-[#16A34A] px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:px-5 sm:py-3 sm:text-sm">Shop Now</a>
-                  <Link href={`${storeHomeHref}/chat`} className="rounded-md border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-slate-800 transition hover:border-emerald-300 hover:text-emerald-700 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</Link>
-                </div>
+          <div className="grid gap-3">
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-[#EAFBF1] shadow-sm">
+              <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${heroIndex % Math.max(heroProducts.length || products.slice(0, 8).length, 1) * 100}%)` }}>
+                {(heroProducts.length ? heroProducts : products.slice(0, 8)).map((product, index) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => setSelectedProduct(product)}
+                    className="grid min-h-[190px] min-w-full snap-center grid-cols-[minmax(0,1fr)_46%] items-stretch text-left sm:min-h-[260px] lg:min-h-[310px]"
+                  >
+                    <span className="flex min-w-0 flex-col justify-between px-4 py-5 sm:px-8 sm:py-8">
+                      <span>
+                        <span className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">{brandName}</span>
+                        <span className="mt-2 line-clamp-3 max-w-xl text-[1.5rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-5xl">{product.name}</span>
+                        <span className="mt-2 block text-xl font-black text-[#16A34A] sm:text-3xl">{formatNaira(product.price)}</span>
+                        <span className="mt-2 line-clamp-2 max-w-md text-xs font-semibold leading-5 text-[#475569] sm:text-sm sm:leading-6">{product.category}{product.variant_options ? ` • ${product.variant_options}` : ""}</span>
+                      </span>
+                      <span className="mt-3 flex flex-wrap gap-2 sm:gap-3">
+                        <span className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm sm:px-5 sm:py-3 sm:text-sm">Shop Now</span>
+                        <span className="rounded-full border border-emerald-200 bg-white/90 px-4 py-2 text-xs font-black text-slate-800 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</span>
+                      </span>
+                    </span>
+                    <span className="grid min-w-0 place-items-center bg-white/35 p-2 sm:p-5">
+                      <span className="grid h-[86%] w-full max-w-[22rem] place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100">
+                        {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="h-full w-full object-contain p-2" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
+                      </span>
+                    </span>
+                  </button>
+                ))}
               </div>
-              <button type="button" onClick={() => heroFeature ? setSelectedProduct(heroFeature) : undefined} className="group relative min-w-0 overflow-hidden bg-white text-left" disabled={!heroFeature}>
-                {heroFeature?.image_url ? <img src={heroFeature.image_url} alt={heroFeature.name} decoding="async" className="h-full w-full bg-white object-cover transition duration-300 group-hover:scale-[1.03]" /> : <div className="h-full w-full bg-slate-100" />}
-                {heroFeature ? (
-                  <span className="absolute inset-x-2 bottom-2 rounded-md bg-white/95 p-2 shadow-sm">
-                    <span className="block truncate text-xs font-black text-slate-950">{heroFeature.name}</span>
-                    <span className="mt-0.5 block text-sm font-black text-[#16A34A]">{formatNaira(heroFeature.price)}</span>
-                  </span>
-                ) : null}
-              </button>
+              <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-white/80 px-2 py-1 shadow-sm">
+                {(heroProducts.length ? heroProducts : products.slice(0, 8)).slice(0, 8).map((product, index) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => setHeroIndex(index)}
+                    aria-label={`Show banner ${index + 1}`}
+                    className={`h-2 rounded-full transition ${index === heroIndex % Math.max(heroProducts.length || products.slice(0, 8).length, 1) ? "w-6 bg-[#16A34A]" : "w-2 bg-slate-400"}`}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 lg:mx-0 lg:grid lg:grid-cols-1 lg:overflow-visible lg:px-0 lg:pb-0">
-              {(heroProducts.length ? heroProducts : products.slice(0, 6)).slice(0, 6).map((product) => (
+            <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+              {(heroProducts.length ? heroProducts : products.slice(0, 8)).slice(0, 8).map((product, index) => (
                 <button
                   key={product.id}
                   type="button"
-                  onClick={() => setSelectedProduct(product)}
-                  className="flex min-w-[8.5rem] items-center gap-2 rounded-md border border-slate-200 bg-white p-2 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md lg:min-w-0"
+                  onClick={() => {
+                    setHeroIndex(index);
+                    setSelectedProduct(product);
+                  }}
+                  className="flex min-w-[8.5rem] items-center gap-2 rounded-full border border-emerald-100 bg-white p-2 text-left shadow-sm transition hover:border-emerald-300 hover:shadow-md"
                 >
-                  <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-slate-100">
                     {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover" /> : <IconGlyph name="cart" className="h-4 w-4 text-slate-400" />}
                   </span>
                   <span className="min-w-0">
