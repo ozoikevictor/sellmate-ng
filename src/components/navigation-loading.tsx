@@ -7,7 +7,9 @@ import { LoadingScreen } from "@/components/loading-screen";
 export function NavigationLoading({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const loadingTimer = useRef<number | null>(null);
+  const exitTimer = useRef<number | null>(null);
 
   function clearLoadingTimer() {
     if (loadingTimer.current !== null) {
@@ -16,14 +18,29 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
     }
   }
 
+  function clearExitTimer() {
+    if (exitTimer.current !== null) {
+      window.clearTimeout(exitTimer.current);
+      exitTimer.current = null;
+    }
+  }
+
   useEffect(() => {
     clearLoadingTimer();
-    loadingTimer.current = window.setTimeout(() => {
-      setLoading(false);
-    }, 0);
+    clearExitTimer();
+    if (!loading) return;
 
-    return clearLoadingTimer;
-  }, [pathname]);
+    setExiting(true);
+    exitTimer.current = window.setTimeout(() => {
+      setLoading(false);
+      setExiting(false);
+      exitTimer.current = null;
+    }, 220);
+
+    return () => {
+      clearExitTimer();
+    };
+  }, [pathname, loading]);
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -53,14 +70,18 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
       }
 
       clearLoadingTimer();
+      clearExitTimer();
+      setExiting(false);
       loadingTimer.current = window.setTimeout(() => {
         setLoading(true);
+        loadingTimer.current = null;
       }, 140);
     }
 
     document.addEventListener("click", handleClick, true);
     return () => {
       clearLoadingTimer();
+      clearExitTimer();
       document.removeEventListener("click", handleClick, true);
     };
   }, []);
@@ -68,7 +89,7 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
   return (
     <>
       {children}
-      {loading ? <LoadingScreen /> : null}
+      {loading ? <LoadingScreen exiting={exiting} /> : null}
     </>
   );
 }

@@ -504,7 +504,7 @@ function ProductShelf({ title, actionLabel, actionHref, storeHref, products, fav
 
 function ProductGrid({ storeHref, products, favoriteIds, cartQtyById, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { storeHref: string; products: StoreProduct[]; favoriteIds: string[]; cartQtyById: Record<string, number>; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   return (
-    <div className="grid grid-cols-2 items-start gap-x-3 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-md bg-[#16A34A] p-[3px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {products.map((product) => (
         <ProductCard key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
       ))}
@@ -517,7 +517,7 @@ function ProductCard({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const badge = productBadge(product);
 
   return (
-    <article className="group min-w-0 rounded-lg p-1 transition hover:bg-white hover:shadow-[0_10px_24px_rgba(15,23,42,0.10)] active:bg-white active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
+    <article className="group min-w-0 bg-white p-2 transition hover:z-10 hover:shadow-[0_10px_24px_rgba(15,23,42,0.12)] active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
       <div className="relative overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
         <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center">
           {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}

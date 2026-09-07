@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { LoadingScreen } from "@/components/loading-screen";
+import { LoadingScreen, ProductGridSkeleton } from "@/components/loading-screen";
 import { IconGlyph, ProductDetailsModal, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, CustomerOrder, readCart, readCustomerOrders, readWishlist, toggleWishlistItem, updateCartQty, updateCustomerOrder, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -332,7 +332,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-5 sm:py-8">
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
-        {view === "products" ? <ProductsView storeHref={storeHref} products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
+        {view === "products" ? <ProductsView loading={loading} storeHref={storeHref} products={displayProducts} totalProducts={products.length} searchTerm={searchTerm} selectedCategory={selectedCategory} sortBy={sortBy} onSortChange={setSortBy} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "categories" ? <CategoriesView categories={categories} products={products} storeHref={storeHref} /> : null}
         {view === "wishlist" ? <WishlistView storeHref={storeHref} products={sortProducts(products.filter((product) => favoriteIds.includes(product.id)), sortBy)} totalProducts={favoriteIds.length} searchTerm="" selectedCategory="" sortBy={sortBy} onSortChange={setSortBy} cartQtyById={cartQtyById} onAddToCart={handleAddToCart} onChangeCartQty={handleChangeCartQty} onToggleFavorite={toggleFavorite} onViewDetails={setSelectedProduct} /> : null}
         {view === "orders" ? <OrdersView orders={customerOrders} cancelingOrderId={cancelingOrderId} onCancelOrder={cancelOrder} /> : null}
@@ -388,6 +388,7 @@ function pageDescription(view: CustomerStoreView, sellerName: string) {
 }
 
 function ProductsView({
+  loading,
   products,
   storeHref,
   totalProducts,
@@ -402,6 +403,7 @@ function ProductsView({
   onToggleFavorite,
   onViewDetails,
 }: {
+  loading?: boolean;
   products: StoreProduct[];
   totalProducts: number;
   searchTerm: string;
@@ -430,12 +432,13 @@ function ProductsView({
           </select>
         </div>
       </div>
-      {products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
-      <div className="grid grid-cols-2 items-start gap-x-3 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      {loading ? <ProductGridSkeleton /> : null}
+      {!loading && products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
+      {!loading ? <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-md bg-[#16A34A] p-[3px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {products.map((product) => (
           <ProductTile key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
         ))}
-      </div>
+      </div> : null}
     </>
   );
 }
@@ -444,7 +447,7 @@ function ProductTile({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const rating = productRating(product);
   const badge = productBadge(product);
   return (
-    <article className="group min-w-0 rounded-lg p-1 transition hover:bg-white hover:shadow-[0_10px_24px_rgba(15,23,42,0.10)] active:bg-white active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
+    <article className="group min-w-0 bg-white p-2 transition hover:z-10 hover:shadow-[0_10px_24px_rgba(15,23,42,0.12)] active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
       <div className="relative overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
         <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center">
           {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}

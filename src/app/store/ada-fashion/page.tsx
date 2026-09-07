@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ProductGridSkeleton } from "@/components/loading-screen";
 import { CartIconLink, IconGlyph, PublicFooter, SectionTitle, StoreHeader } from "@/components/ui";
 import { addToCart, readCart, writeCurrentStoreHref } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -147,7 +148,7 @@ export default function StorefrontPage() {
           action={<CartIconLink href="/cart?store=ada-fashion" count={cartCount} />}
         />
         {message ? <p className="rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
-        {loading ? <p className="rounded-md bg-slate-200 p-4 text-sm font-semibold text-slate-600">Loading products...</p> : null}
+        {loading ? <ProductGridSkeleton count={4} /> : null}
         {!loading && products.length === 0 ? (
           <p className="rounded-md bg-amber-50 p-4 text-sm font-semibold text-amber-800">No demo products are connected here. Sellers can log in, add products, then share their own store link.</p>
         ) : null}
