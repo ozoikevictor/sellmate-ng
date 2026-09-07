@@ -305,27 +305,29 @@ export default function DynamicStorefrontPage() {
                     key={product.id}
                     type="button"
                     onClick={() => setSelectedProduct(product)}
-                    className="grid min-h-[190px] min-w-full snap-center grid-cols-[minmax(0,1fr)_46%] items-stretch text-left sm:min-h-[260px] lg:min-h-[310px]"
+                    className="grid min-h-[190px] min-w-full snap-center grid-cols-[minmax(0,1fr)_46%] items-stretch text-left sm:min-h-[260px] lg:min-h-[330px] lg:grid-cols-[minmax(0,1fr)_52%]"
                   >
-                    <span className="flex min-w-0 flex-col justify-between px-4 py-5 sm:px-8 sm:py-8">
+                    <span className="flex min-w-0 flex-col justify-between px-4 py-5 sm:px-8 sm:py-8 lg:pr-4">
                       <span>
                         <span className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">{brandName}</span>
-                        <span className="mt-2 line-clamp-3 max-w-xl text-[1.5rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-5xl">{product.name}</span>
+                        <span className="mt-2 line-clamp-3 max-w-xl text-[1.5rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-[3.35rem]">{product.name}</span>
                         <span className="mt-2 block text-xl font-black text-[#16A34A] sm:text-3xl">{formatNaira(product.price)}</span>
                         <span className="mt-2 line-clamp-2 max-w-md text-xs font-semibold leading-5 text-[#475569] sm:text-sm sm:leading-6">{product.category}{product.variant_options ? ` • ${product.variant_options}` : ""}</span>
-                        <span className="mt-4 hidden grid-cols-3 gap-2 lg:grid">
-                          <span className="rounded-xl bg-white/80 px-3 py-2 shadow-sm ring-1 ring-emerald-100">
-                            <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Stock</span>
-                            <span className="mt-1 block text-sm font-black text-slate-950">{product.stock} available</span>
-                          </span>
-                          <span className="rounded-xl bg-white/80 px-3 py-2 shadow-sm ring-1 ring-emerald-100">
-                            <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Buy</span>
-                            <span className="mt-1 block text-sm font-black text-slate-950">Cart checkout</span>
-                          </span>
-                          <span className="rounded-xl bg-white/80 px-3 py-2 shadow-sm ring-1 ring-emerald-100">
-                            <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Bargain</span>
-                            <span className="mt-1 block text-sm font-black text-slate-950">Chat seller</span>
-                          </span>
+                        <span className="mt-4 hidden grid-cols-2 gap-2 lg:grid">
+                          {(heroProducts.length ? heroProducts : products)
+                            .filter((item) => item.id !== product.id)
+                            .slice(0, 4)
+                            .map((item) => (
+                              <span key={item.id} className="flex min-w-0 items-center gap-2 rounded-xl bg-white/80 px-2.5 py-2 shadow-sm ring-1 ring-emerald-100">
+                                <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-100">
+                                  {item.image_url ? <img src={item.image_url} alt="" className="h-full w-full object-cover" /> : null}
+                                </span>
+                                <span className="min-w-0">
+                                  <span className="block truncate text-[11px] font-black text-slate-950">{item.name}</span>
+                                  <span className="block text-[10px] font-black text-[#16A34A]">{formatNaira(item.price)}</span>
+                                </span>
+                              </span>
+                            ))}
                         </span>
                       </span>
                       <span className="mt-3 flex flex-wrap gap-2 sm:gap-3">
@@ -333,8 +335,8 @@ export default function DynamicStorefrontPage() {
                         <span className="rounded-full border border-emerald-200 bg-white/90 px-4 py-2 text-xs font-black text-slate-800 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</span>
                       </span>
                     </span>
-                    <span className="grid min-w-0 place-items-center bg-white/35 p-2 sm:p-5">
-                      <span className="grid h-[86%] w-full max-w-[22rem] place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100">
+                    <span className="grid min-w-0 place-items-center bg-white/35 p-2 sm:p-5 lg:p-6">
+                      <span className="grid h-[86%] w-full max-w-[22rem] place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100 lg:h-full lg:max-w-[28rem]">
                         {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="h-full w-full object-contain p-2" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
                       </span>
                     </span>

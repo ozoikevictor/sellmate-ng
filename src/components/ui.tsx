@@ -648,7 +648,7 @@ export function StoreHeader({
             onClick={() => setIsMenuOpen(true)}
             aria-label="Open store menu"
             aria-expanded={isMenuOpen}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-white text-[#1F2937] transition hover:bg-[#F3F4F6] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-white text-[#1F2937] transition hover:bg-[#F3F4F6] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#16A34A]/20 lg:hidden"
           >
             <IconGlyph name="menu" className="h-5 w-5" />
           </button>
@@ -656,6 +656,24 @@ export function StoreHeader({
             <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
             <span className="truncate capitalize">{sellerName}</span>
           </Link>
+        </div>
+        <div className="hidden min-w-0 flex-1 items-center justify-center gap-1 px-3 lg:flex">
+          {[
+            { label: "Products", href: productPageHref },
+            { label: "Categories", href: categoriesHref },
+            { label: "Chat Seller", href: chatHref },
+            { label: "Wishlist", href: wishlistHref },
+            { label: "My Orders", href: ordersHref },
+            { label: "Support", href: supportHref },
+          ].map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="rounded-full px-3 py-2 text-sm font-black text-[#1F2937] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]"
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
           <button type="button" onClick={() => setIsRepliesOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]" aria-label="View seller messages">
