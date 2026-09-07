@@ -35,7 +35,7 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
       setLoading(false);
       setExiting(false);
       exitTimer.current = null;
-    }, 220);
+    }, 120);
 
     return () => {
       clearExitTimer();
@@ -75,7 +75,7 @@ export function NavigationLoading({ children }: { children: React.ReactNode }) {
       loadingTimer.current = window.setTimeout(() => {
         setLoading(true);
         loadingTimer.current = null;
-      }, 140);
+      }, 450);
     }
 
     document.addEventListener("click", handleClick, true);

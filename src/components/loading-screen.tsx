@@ -7,7 +7,7 @@ export function LoadingScreen({ label = "Loading...", exiting = false }: { label
       aria-label={label}
     >
       <div className="flex w-full max-w-xs flex-col items-center">
-        <div className="page-loader-brand text-center text-2xl font-black tracking-[-0.03em] text-[#0F172A] sm:text-3xl">
+        <div className="page-loader-brand text-center text-2xl font-black text-[#0F172A] sm:text-3xl">
           VENDOR<span className="text-[#16A34A]">AQ</span>
         </div>
         <div className="mt-7 h-px w-full overflow-hidden bg-[#DDE8E5]" aria-hidden="true">

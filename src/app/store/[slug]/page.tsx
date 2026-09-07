@@ -313,6 +313,20 @@ export default function DynamicStorefrontPage() {
                         <span className="mt-2 line-clamp-3 max-w-xl text-[1.5rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-5xl">{product.name}</span>
                         <span className="mt-2 block text-xl font-black text-[#16A34A] sm:text-3xl">{formatNaira(product.price)}</span>
                         <span className="mt-2 line-clamp-2 max-w-md text-xs font-semibold leading-5 text-[#475569] sm:text-sm sm:leading-6">{product.category}{product.variant_options ? ` • ${product.variant_options}` : ""}</span>
+                        <span className="mt-4 hidden grid-cols-3 gap-2 lg:grid">
+                          <span className="rounded-xl bg-white/80 px-3 py-2 shadow-sm ring-1 ring-emerald-100">
+                            <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Stock</span>
+                            <span className="mt-1 block text-sm font-black text-slate-950">{product.stock} available</span>
+                          </span>
+                          <span className="rounded-xl bg-white/80 px-3 py-2 shadow-sm ring-1 ring-emerald-100">
+                            <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Buy</span>
+                            <span className="mt-1 block text-sm font-black text-slate-950">Cart checkout</span>
+                          </span>
+                          <span className="rounded-xl bg-white/80 px-3 py-2 shadow-sm ring-1 ring-emerald-100">
+                            <span className="block text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">Bargain</span>
+                            <span className="mt-1 block text-sm font-black text-slate-950">Chat seller</span>
+                          </span>
+                        </span>
                       </span>
                       <span className="mt-3 flex flex-wrap gap-2 sm:gap-3">
                         <span className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm sm:px-5 sm:py-3 sm:text-sm">Shop Now</span>
