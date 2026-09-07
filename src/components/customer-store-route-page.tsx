@@ -121,13 +121,10 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
     const cachedStore = isDemoStore ? null : readStoreCache(slug);
     const savedWishlist = readWishlist(slug);
     const shouldLoadProducts = view === "products" || view === "categories" || (view === "wishlist" && savedWishlist.length > 0);
-    let hydrateTimer: number | null = null;
     if (cachedStore) {
-      hydrateTimer = window.setTimeout(() => {
-        setProfile(cachedStore.profile);
-        setProducts(cachedStore.products);
-        setLoading(false);
-      }, 0);
+      setProfile(cachedStore.profile);
+      setProducts(cachedStore.products);
+      setLoading(false);
     }
 
     async function loadStore() {
@@ -207,9 +204,6 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
     window.addEventListener("storage", syncCustomerOrders);
 
     return () => {
-      if (hydrateTimer !== null) {
-        window.clearTimeout(hydrateTimer);
-      }
       window.removeEventListener("sellmate-cart-updated", syncCartCount);
       window.removeEventListener("sellmate-wishlist-updated", syncWishlist);
       window.removeEventListener("sellmate-customer-orders-updated", syncCustomerOrders);
@@ -227,6 +221,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   const activeStoreSlug = profile?.store_slug || slug;
   const storeHref = `/store/${activeStoreSlug}`;
   const cartHref = `/cart?store=${encodeURIComponent(activeStoreSlug)}`;
+  const checkoutHref = `/checkout?store=${encodeURIComponent(activeStoreSlug)}`;
   const sellerName = profile?.logo_text || profile?.business_name || "Store";
   const categories = useMemo(() => Array.from(new Set(products.map((product) => product.category).filter(Boolean))).sort(), [products]);
   const selectedCategory = searchParams.get("category") ?? "";
@@ -360,7 +355,10 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
         <div className="fixed bottom-5 left-4 right-4 z-50 sellmate-card rounded-lg p-3 shadow-2xl sm:left-auto sm:right-5 sm:w-80">
           <div className="flex items-center justify-between gap-3">
             <p className="truncate text-sm font-black text-slate-950">{cartNotice}</p>
-            <Link href={cartHref} className="shrink-0 rounded-md bg-[#16A34A] px-4 py-2 text-xs font-black text-white">View cart</Link>
+            <div className="flex shrink-0 gap-2">
+              <Link href={cartHref} className="rounded-md bg-[#16A34A] px-3 py-2 text-xs font-black text-white">Cart</Link>
+              <Link href={checkoutHref} className="rounded-md bg-slate-950 px-3 py-2 text-xs font-black text-white">Checkout</Link>
+            </div>
           </div>
         </div>
       ) : null}

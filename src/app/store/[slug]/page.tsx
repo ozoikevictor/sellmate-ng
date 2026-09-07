@@ -116,13 +116,10 @@ export default function DynamicStorefrontPage() {
 
   useEffect(() => {
     const cachedStore = readStoreCache(slug);
-    let hydrateTimer: number | null = null;
     if (cachedStore) {
-      hydrateTimer = window.setTimeout(() => {
-        setProfile(cachedStore.profile);
-        setProducts(cachedStore.products);
-        setLoading(false);
-      }, 0);
+      setProfile(cachedStore.profile);
+      setProducts(cachedStore.products);
+      setLoading(false);
     }
 
     async function loadStore() {
@@ -181,9 +178,6 @@ export default function DynamicStorefrontPage() {
     window.addEventListener("storage", syncWishlist);
 
     return () => {
-      if (hydrateTimer !== null) {
-        window.clearTimeout(hydrateTimer);
-      }
       window.removeEventListener("sellmate-cart-updated", syncCartCount);
       window.removeEventListener("sellmate-wishlist-updated", syncWishlist);
       window.removeEventListener("storage", syncCartCount);
@@ -432,6 +426,9 @@ export default function DynamicStorefrontPage() {
             </div>
             <Link href={storeCartHref} className="shrink-0 rounded-md bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D]">
               View cart
+            </Link>
+            <Link href={`/checkout?store=${encodeURIComponent(activeStoreSlug)}`} className="shrink-0 rounded-md bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm transition hover:bg-slate-800">
+              Checkout
             </Link>
           </div>
         </div>

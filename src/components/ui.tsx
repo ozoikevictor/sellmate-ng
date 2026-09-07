@@ -535,6 +535,7 @@ export function StoreHeader({
   whatsappPhone?: string | null;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [replyMessages, setReplyMessages] = useState<Array<{ id: string; product_id?: string | null; product_name: string; seller_reply: string; replied_at?: string | null }>>([]);
   const [readReplyIds, setReadReplyIds] = useState<string[]>([]);
@@ -546,6 +547,8 @@ export function StoreHeader({
   const supportHref = `${storeHref}/support`;
   const chatHref = `${storeHref}/chat`;
   const storeSlug = storeHref.split("/store/")[1]?.split(/[?#/]/)[0] ?? "";
+  const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
+  const showDesktopHomeLink = pathname !== storeHref;
   const unreadReplyMessages = replyMessages.filter((message) => !readReplyIds.includes(message.id));
   const drawerLinks: Array<{ label: string; href?: string; icon: "home" | "search" | "menu" | "heart" | "cart" | "user" | "messages"; disabled?: boolean }> = [
     { label: "Home", href: storeHref, icon: "home" },
@@ -554,6 +557,7 @@ export function StoreHeader({
     { label: "Chat Seller", href: chatHref, icon: "messages" },
     { label: "Wishlist", href: wishlistHref, icon: "heart" },
     { label: "My Cart", href: cartHref, icon: "cart" },
+    ...(cartCount > 0 ? [{ label: "Checkout", href: checkoutHref, icon: "cart" as const }] : []),
     { label: "My Orders", href: ordersHref, icon: "user" },
     { label: "Login / Account", href: "/login", icon: "user" },
     { label: "Contact / Support", href: supportHref, icon: "user" },
@@ -658,6 +662,16 @@ export function StoreHeader({
           </Link>
         </div>
         <div className="hidden min-w-0 flex-1 items-center justify-center gap-1 px-3 lg:flex">
+          {showDesktopHomeLink ? (
+            <Link
+              href={storeHref}
+              aria-label="Back to store home"
+              title="Back to store home"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#1F2937] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]"
+            >
+              <IconGlyph name="home" className="h-5 w-5" />
+            </Link>
+          ) : null}
           {[
             { label: "Products", href: productPageHref },
             { label: "Categories", href: categoriesHref },
@@ -676,6 +690,11 @@ export function StoreHeader({
           ))}
         </div>
         <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-2">
+          {cartCount > 0 ? (
+            <Link href={checkoutHref} className="hidden rounded-full bg-[#16A34A] px-4 py-2.5 text-xs font-black text-white shadow-sm transition hover:bg-[#15803D] sm:inline-flex">
+              Checkout
+            </Link>
+          ) : null}
           <button type="button" onClick={() => setIsRepliesOpen(true)} className="relative grid h-10 w-10 place-items-center rounded-full text-[#0F172A] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]" aria-label="View seller messages">
             <IconGlyph name="messages" className="h-5 w-5" />
             {unreadReplyMessages.length > 0 ? (
@@ -978,6 +997,9 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   sellerName?: string;
   cartQty?: number;
 }) {
+  const productStatus = product.stock > 0 ? (product.stock <= 3 ? "Almost sold out" : "Available now") : "Out of stock";
+  const canBuy = product.stock > 0;
+
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -989,66 +1011,128 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   return (
     <div className="fixed inset-0 z-[1100] bg-white">
       <button type="button" className="absolute inset-0 h-full w-full" aria-label="Close product details" onClick={onClose} />
-      <section className="relative h-[100dvh] w-full overflow-y-auto bg-white">
-        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur sm:px-6 lg:px-10">
-          <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Product details</p>
-            <p className="truncate text-sm font-black text-slate-950 sm:text-base">{product.name}</p>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close product details" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100">
-            <IconGlyph name="x" className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="mx-auto grid w-full max-w-7xl items-start gap-0 lg:min-h-[calc(100dvh-4.5rem)] lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
-          <div className="relative min-w-0 bg-slate-100 lg:sticky lg:top-[4.5rem] lg:min-h-[calc(100dvh-4.5rem)]">
-            <div className="grid aspect-[4/3] w-full place-items-center bg-[linear-gradient(135deg,#ffffff,#f1f5f9)] sm:aspect-[16/10] lg:h-[calc(100dvh-4.5rem)] lg:aspect-auto">
-              {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" className="max-h-full max-w-full object-contain" /> : null}
+      <section className="relative h-[100dvh] w-full overflow-y-auto bg-[#F3F6F8] pb-28 lg:pb-0">
+        <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+            <button type="button" onClick={onClose} aria-label="Back to products" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm transition hover:bg-slate-100">
+              <IconGlyph name="home" className="h-5 w-5" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-black text-slate-950 sm:text-base">{product.name}</p>
+              <p className="truncate text-xs font-bold text-slate-500">{product.category}</p>
             </div>
-            <span className="absolute left-4 top-4 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#166534]">{product.category}</span>
+            <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border shadow-sm transition ${isFavorite ? "border-rose-200 bg-rose-50 text-rose-700" : "border-slate-200 bg-white text-slate-700 hover:text-rose-700"}`}>
+              <IconGlyph name="heart" className="h-5 w-5" />
+            </button>
+            <button type="button" onClick={onClose} aria-label="Close product details" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100">
+            <IconGlyph name="x" className="h-5 w-5" />
+            </button>
           </div>
-          <div className="flex min-w-0 flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-10">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Product details</p>
-                <h2 className="mt-2 break-words text-2xl font-black leading-tight text-slate-950 sm:text-4xl">{product.name}</h2>
+        </div>
+
+        <div className="mx-auto grid w-full max-w-7xl gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-start lg:p-8">
+          <div className="min-w-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-24">
+            <div className="relative grid h-[20rem] w-full place-items-center overflow-hidden bg-[radial-gradient(circle_at_top_left,#ECFDF5,#FFFFFF_44%,#EEF2F7)] p-4 sm:h-[25rem] sm:p-6 lg:h-[27rem] xl:h-[30rem]">
+              <span className="absolute left-4 top-4 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#166534]">{productStatus}</span>
+              {product.image_url ? (
+                <img src={product.image_url} alt={product.name} decoding="async" className="h-full max-h-full w-full max-w-full object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.12)]" />
+              ) : (
+                <div className="grid h-36 w-36 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+                  <IconGlyph name="cart" className="h-12 w-12" />
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-4 gap-[3px] bg-[#16A34A] p-[3px]">
+              {[0, 1, 2, 3].map((item) => (
+                <button key={item} type="button" className="grid h-16 place-items-center overflow-hidden bg-white p-1 sm:h-20">
+                  {product.image_url ? <img src={product.image_url} alt="" className="h-full w-full object-cover" /> : <IconGlyph name="cart" className="h-5 w-5 text-slate-300" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#ECFDF5] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#16A34A]">{product.category}</span>
+                {product.sku ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-500">SKU {product.sku}</span> : null}
+              </div>
+              <h2 className="mt-4 break-words text-2xl font-black leading-tight text-slate-950 sm:text-4xl">{product.name}</h2>
+              <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-b border-slate-100 pb-5">
+                <p className="text-3xl font-black text-[#16A34A] sm:text-4xl">{formatNaira(product.price)}</p>
+                <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${canBuy ? "bg-emerald-50 text-emerald-700 ring-emerald-100" : "bg-rose-50 text-rose-700 ring-rose-100"}`}>{productStatus}</span>
+              </div>
+              <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-600 sm:grid-cols-2">
+                <div className="rounded-xl bg-[#F8FAFC] p-4">
+                  <span className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400">Stock</span>
+                  <strong className="mt-1 block text-lg text-slate-950">{product.stock} available</strong>
+                </div>
+                <div className="rounded-xl bg-[#F8FAFC] p-4">
+                  <span className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400">Category</span>
+                  <strong className="mt-1 block truncate text-lg text-slate-950">{product.category}</strong>
+                </div>
               </div>
             </div>
-            <p className="mt-5 text-3xl font-black text-[#16A34A]">{formatNaira(product.price)}</p>
-            <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-600">
-              <div className="flex justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3"><span>Stock available</span><strong className="text-slate-950">{product.stock}</strong></div>
-              <div className="flex justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3"><span>Category</span><strong className="text-right text-slate-950">{product.category}</strong></div>
-              {product.sku ? <div className="flex justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3"><span>SKU</span><strong className="text-right text-slate-950">{product.sku}</strong></div> : null}
-            </div>
+
             {product.variant_options ? (
-              <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Options / description</p>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">{product.variant_options}</p>
+              <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Product information</p>
+                <p className="mt-3 whitespace-pre-wrap text-sm font-semibold leading-7 text-slate-700">{product.variant_options}</p>
               </div>
             ) : null}
-            <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+
+            <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Order options</p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">Add this product to cart or chat with the seller to bargain price, delivery, size, color, or availability.</p>
+              <div className="mt-5 hidden gap-3 sm:grid sm:grid-cols-[1fr_auto]">
               {cartQty > 0 && onChangeCartQty ? (
-                <div className="flex items-center justify-between overflow-hidden rounded-lg border border-emerald-200 bg-emerald-50">
+                <div className="flex items-center justify-between overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50">
                   <button type="button" onClick={() => onChangeCartQty(product, cartQty - 1)} className="grid h-12 w-14 place-items-center text-xl font-black text-emerald-800">-</button>
                   <span className="text-base font-black text-slate-950">{cartQty} in cart</span>
                   <button type="button" onClick={() => onChangeCartQty(product, cartQty + 1)} className="grid h-12 w-14 place-items-center text-xl font-black text-emerald-800">+</button>
                 </div>
               ) : (
-                <button type="button" onClick={() => onAddToCart(product)} className="flex items-center justify-center gap-2 rounded-lg bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]">
+                <button type="button" onClick={() => onAddToCart(product)} disabled={!canBuy} className="flex items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D] disabled:cursor-not-allowed disabled:bg-slate-300">
                   <IconGlyph name="cart" className="h-4 w-4" />
                   Add to Cart
                 </button>
               )}
-              <button type="button" onClick={() => onToggleFavorite(product)} className={`flex items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-black transition ${isFavorite ? "border-rose-200 bg-rose-50 text-rose-700" : "border-slate-200 bg-white text-slate-700 hover:border-rose-200 hover:text-rose-700"}`}>
-                <IconGlyph name="heart" className="h-4 w-4" />
-                {isFavorite ? "Saved" : "Save"}
-              </button>
+                {storeSlug ? (
+                  <Link href={`/store/${storeSlug}/chat?product=${encodeURIComponent(product.id)}`} onClick={onClose} className="flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
+                    <IconGlyph name="messages" className="h-4 w-4" />
+                    Chat seller
+                  </Link>
+                ) : null}
+              </div>
             </div>
+          </div>
+        </div>
+
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-12px_30px_rgba(15,23,42,0.12)] backdrop-blur sm:hidden">
+          <div className="grid grid-cols-[1fr_1fr] gap-2">
+            {cartQty > 0 && onChangeCartQty ? (
+              <div className="flex items-center justify-between overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50">
+                <button type="button" onClick={() => onChangeCartQty(product, cartQty - 1)} className="grid h-12 w-12 place-items-center text-xl font-black text-emerald-800">-</button>
+                <span className="text-sm font-black text-slate-950">{cartQty}</span>
+                <button type="button" onClick={() => onChangeCartQty(product, cartQty + 1)} className="grid h-12 w-12 place-items-center text-xl font-black text-emerald-800">+</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => onAddToCart(product)} disabled={!canBuy} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-4 text-sm font-black text-white disabled:bg-slate-300">
+                <IconGlyph name="cart" className="h-4 w-4" />
+                Cart
+              </button>
+            )}
             {storeSlug ? (
-              <Link href={`/store/${storeSlug}/chat?product=${encodeURIComponent(product.id)}`} onClick={onClose} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-[#16A34A]">
+              <Link href={`/store/${storeSlug}/chat?product=${encodeURIComponent(product.id)}`} onClick={onClose} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-black text-white">
                 <IconGlyph name="messages" className="h-4 w-4" />
-                Chat with seller
+                Chat
               </Link>
-            ) : null}
+            ) : (
+              <button type="button" onClick={() => onToggleFavorite(product)} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-black text-white">
+                <IconGlyph name="heart" className="h-4 w-4" />
+                Save
+              </button>
+            )}
           </div>
         </div>
       </section>

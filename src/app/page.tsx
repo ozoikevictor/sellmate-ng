@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { LoadingScreen } from "@/components/loading-screen";
 import { IconGlyph, VendoraqLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
@@ -54,7 +53,7 @@ function makeStoreSlug(businessName: string, userId: string) {
 export default function LandingPage() {
   const { ready, user } = useAuth();
   const [sellerSummary, setSellerSummary] = useState<SellerSummary | null>(null);
-  const [accountChecked, setAccountChecked] = useState(false);
+  const [accountChecked, setAccountChecked] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [demoCartOpen, setDemoCartOpen] = useState(false);
@@ -74,13 +73,9 @@ export default function LandingPage() {
       setAccountChecked(true);
     }
 
-    const timer = window.setTimeout(() => {
-      setAccountChecked(false);
-      loadSellerSummary();
-    }, 0);
+    loadSellerSummary();
 
     return () => {
-      window.clearTimeout(timer);
     };
   }, [ready, user]);
 
@@ -97,10 +92,6 @@ export default function LandingPage() {
     ],
     [],
   );
-
-  if (!accountChecked) {
-    return <LoadingScreen label="Opening VENDORAQ..." />;
-  }
 
   return (
     <main className="flex min-h-screen flex-col overflow-x-hidden bg-[#F8FAFC] text-[#111827]">
