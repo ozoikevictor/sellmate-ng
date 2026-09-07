@@ -323,10 +323,27 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
         whatsappPhone={profile?.whatsapp_phone}
       />
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-5 sm:py-5">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{profile?.city || "Customer store"}</p>
-          <h1 className="mt-1 text-2xl font-black capitalize text-slate-950 sm:text-3xl">{pageTitle(view, sellerName)}</h1>
-          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">{pageDescription(view, sellerName)}</p>
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{sellerName}</p>
+            <h1 className="mt-1 text-xl font-black capitalize text-slate-950 sm:text-2xl">{pageTitle(view)}</h1>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: "Products", active: view === "products", href: `${storeHref}/products` },
+              { label: "Categories", active: view === "categories", href: `${storeHref}/categories` },
+              { label: "Wishlist", active: view === "wishlist", href: `${storeHref}/wishlist` },
+              { label: "Orders", active: view === "orders", href: `${storeHref}/orders` },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`rounded-full border px-3 py-1.5 text-xs font-black transition ${item.active ? "border-[#16A34A] bg-[#16A34A] text-white" : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:text-emerald-700"}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -365,26 +382,15 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   );
 }
 
-function pageTitle(view: CustomerStoreView, sellerName: string) {
+function pageTitle(view: CustomerStoreView) {
   const titles = {
-    products: `${sellerName} products`,
-    categories: `${sellerName} categories`,
+    products: "All products",
+    categories: "Categories",
     wishlist: "Wishlist",
     orders: "My orders",
     support: "Contact / Support",
   };
   return titles[view];
-}
-
-function pageDescription(view: CustomerStoreView, sellerName: string) {
-  const descriptions = {
-    products: `Browse live products from ${sellerName}.`,
-    categories: `Choose a category and continue shopping inside ${sellerName}.`,
-    wishlist: `Saved products for this ${sellerName} shopping session appear here.`,
-    orders: `Check customer order details for ${sellerName}.`,
-    support: `Contact ${sellerName} for product, delivery, or payment help.`,
-  };
-  return descriptions[view];
 }
 
 function ProductsView({
