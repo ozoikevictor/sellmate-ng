@@ -330,9 +330,9 @@ export default function DynamicStorefrontPage() {
                         <span className="rounded-full border border-emerald-200 bg-white/90 px-4 py-2 text-xs font-black text-slate-800 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</span>
                       </span>
                     </span>
-                    <span className="grid min-w-0 place-items-center bg-white/35 p-2 sm:p-5 lg:p-6">
-                      <span className="grid h-[86%] w-full max-w-[22rem] place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100 lg:h-full lg:max-w-[28rem]">
-                        {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="h-full w-full object-contain p-2" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
+                    <span className="grid min-w-0 place-items-stretch bg-white/35 p-2 sm:p-4 lg:p-5">
+                      <span className="grid h-full min-h-0 w-full place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100">
+                        {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="h-full w-full object-contain" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
                       </span>
                     </span>
                   </button>
