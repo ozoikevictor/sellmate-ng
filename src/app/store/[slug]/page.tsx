@@ -30,6 +30,7 @@ type StoreProduct = {
   stock: number;
   status: string;
   image_url: string | null;
+  image_urls?: string[] | null;
 };
 
 type SortOption = "newest" | "price-low" | "price-high" | "low-stock";
@@ -144,7 +145,7 @@ export default function DynamicStorefrontPage() {
 
       const { data: productData, error: productError } = await supabase
         .from("products")
-        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url")
+        .select("id,user_id,name,sku,category,variant_options,price,stock,status,image_url,image_urls")
         .eq("user_id", profileData.user_id)
         .eq("status", "Live")
         .order("created_at", { ascending: false });

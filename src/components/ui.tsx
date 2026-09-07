@@ -975,6 +975,7 @@ export type CustomerProductDetails = {
   price: number;
   stock: number;
   image_url?: string | null;
+  image_urls?: string[] | null;
 };
 
 export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
@@ -999,6 +1000,8 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
 }) {
   const productStatus = product.stock > 0 ? (product.stock <= 3 ? "Almost sold out" : "Available now") : "Out of stock";
   const canBuy = product.stock > 0;
+  const galleryImages = Array.from(new Set([...(product.image_urls ?? []), product.image_url].filter(Boolean) as string[]));
+  const [activeImage, setActiveImage] = useState(galleryImages[0] ?? "");
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -1032,10 +1035,10 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
 
         <div className="mx-auto grid w-full max-w-7xl gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-start lg:p-8">
           <div className="min-w-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-24">
-            <div className="relative grid h-[20rem] w-full place-items-center overflow-hidden bg-[radial-gradient(circle_at_top_left,#ECFDF5,#FFFFFF_44%,#EEF2F7)] p-4 sm:h-[25rem] sm:p-6 lg:h-[27rem] xl:h-[30rem]">
+            <div className="relative grid h-[18rem] w-full place-items-center overflow-hidden bg-[radial-gradient(circle_at_top_left,#ECFDF5,#FFFFFF_44%,#EEF2F7)] p-4 sm:h-[22rem] sm:p-6 lg:h-[24rem] xl:h-[26rem]">
               <span className="absolute left-4 top-4 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#166534]">{productStatus}</span>
-              {product.image_url ? (
-                <img src={product.image_url} alt={product.name} decoding="async" className="h-full max-h-full w-full max-w-full object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.12)]" />
+              {activeImage ? (
+                <img src={activeImage} alt={product.name} decoding="async" className="h-full max-h-full w-full max-w-full object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.12)]" />
               ) : (
                 <div className="grid h-36 w-36 place-items-center rounded-2xl bg-slate-100 text-slate-400">
                   <IconGlyph name="cart" className="h-12 w-12" />
@@ -1043,9 +1046,9 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
               )}
             </div>
             <div className="grid grid-cols-4 gap-[3px] bg-[#16A34A] p-[3px]">
-              {[0, 1, 2, 3].map((item) => (
-                <button key={item} type="button" className="grid h-16 place-items-center overflow-hidden bg-white p-1 sm:h-20">
-                  {product.image_url ? <img src={product.image_url} alt="" className="h-full w-full object-cover" /> : <IconGlyph name="cart" className="h-5 w-5 text-slate-300" />}
+              {(galleryImages.length ? galleryImages : [""]).slice(0, 4).map((imageUrl, index) => (
+                <button key={`${imageUrl}-${index}`} type="button" onClick={() => setActiveImage(imageUrl)} className={`grid h-16 place-items-center overflow-hidden bg-white p-1 sm:h-20 ${imageUrl && imageUrl === activeImage ? "ring-2 ring-inset ring-slate-950" : ""}`}>
+                  {imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-cover" /> : <IconGlyph name="cart" className="h-5 w-5 text-slate-300" />}
                 </button>
               ))}
             </div>

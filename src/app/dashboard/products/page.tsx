@@ -19,6 +19,7 @@ type Product = {
   stock: number;
   status: string;
   image_url: string | null;
+  image_urls?: string[] | null;
   created_at: string;
 };
 
@@ -30,6 +31,7 @@ const emptyForm = {
   price: "",
   stock: "",
   image_url: "",
+  image_urls: [] as string[],
   status: "Live",
 };
 
@@ -213,28 +215,38 @@ export default function ProductsPage() {
   }
 
   function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) {
+    const files = Array.from(event.target.files ?? []);
+    if (files.length === 0) {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
+    if (files.some((file) => !file.type.startsWith("image/"))) {
       setMessage("Please choose a valid image file.");
       return;
     }
 
-    if (file.size > 1_500_000) {
-      setMessage("Please choose an image smaller than 1.5MB for this demo.");
+    if (files.some((file) => file.size > 1_500_000)) {
+      setMessage("Each image must be smaller than 1.5MB for this demo.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      updateForm("image_url", String(reader.result ?? ""));
-      setMessage("");
-    };
-    reader.onerror = () => setMessage("Could not read this image. Please choose another picture.");
-    reader.readAsDataURL(file);
+    Promise.all(
+      files.map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result ?? ""));
+            reader.onerror = () => reject(new Error("Could not read this image. Please choose another picture."));
+            reader.readAsDataURL(file);
+          }),
+      ),
+    )
+      .then((uploadedImages) => {
+        const nextImages = [...form.image_urls, ...uploadedImages].slice(0, 6);
+        setForm((current) => ({ ...current, image_url: nextImages[0] ?? "", image_urls: nextImages }));
+        setMessage("");
+      })
+      .catch((error) => setMessage(error instanceof Error ? error.message : "Could not read this image. Please choose another picture."));
   }
 
   function startEdit(product: Product) {
@@ -247,6 +259,7 @@ export default function ProductsPage() {
       price: String(product.price),
       stock: String(product.stock),
       image_url: product.image_url ?? "",
+      image_urls: product.image_urls?.length ? product.image_urls : product.image_url ? [product.image_url] : [],
       status: product.status,
     });
     setSmartDetails({});
@@ -282,6 +295,7 @@ export default function ProductsPage() {
       price: Number(formData.get("price") ?? 0),
       stock: Number(formData.get("stock") ?? 0),
       image_url: String(formData.get("image_url") ?? "").trim() || null,
+      image_urls: form.image_urls.length > 0 ? form.image_urls : String(formData.get("image_url") ?? "").trim() ? [String(formData.get("image_url") ?? "").trim()] : null,
       status: String(formData.get("status") ?? "Live"),
     };
     try {
@@ -375,11 +389,6 @@ export default function ProductsPage() {
           <Field label="Price" name="price" value={form.price} onChange={updateForm} placeholder="38500" type="number" />
           <Field label="Stock" name="stock" value={form.stock} onChange={updateForm} placeholder="18" type="number" />
           <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
-            Product image
-            <input name="image_upload" type="file" accept="image/*" onChange={handleImageUpload} className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-3 text-sm font-normal outline-none file:mr-3 file:rounded-md file:border-0 file:bg-slate-950 file:px-3 file:py-2 file:text-xs file:font-bold file:text-white focus:border-emerald-600 sm:file:px-4 sm:file:text-sm" />
-            <input type="hidden" name="image_url" value={form.image_url} />
-          </label>
-          <label className="grid min-w-0 gap-2 text-sm font-bold text-slate-700">
             Status
             <select name="status" value={form.status} onChange={(event) => updateForm("status", event.target.value)} className="w-full min-w-0 rounded-md border border-slate-300 px-3 py-3 font-normal outline-none focus:border-emerald-600">
               <option>Live</option>
@@ -389,6 +398,42 @@ export default function ProductsPage() {
             </select>
           </label>
         </div>
+        <section className="mt-5 rounded-lg border border-emerald-200 bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Product gallery</p>
+              <h3 className="mt-1 text-lg font-black text-slate-950">Add more photos for this same product</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-500">First image becomes the main picture.</p>
+          </div>
+          <label className="mt-4 grid cursor-pointer place-items-center rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 px-4 py-8 text-center transition hover:border-emerald-500 hover:bg-emerald-100">
+            <span className="text-base font-black text-emerald-800">Click here to add product images</span>
+            <span className="mt-1 text-sm font-semibold text-slate-600">Select up to 6 photos, like front, side, back, or different colors.</span>
+            <input name="image_upload" type="file" accept="image/*" multiple onChange={handleImageUpload} className="sr-only" />
+            <input type="hidden" name="image_url" value={form.image_url} />
+          </label>
+          {form.image_urls.length > 0 ? (
+            <div className="mt-4">
+              <p className="mb-3 text-sm font-bold text-slate-700">Gallery preview</p>
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+                {form.image_urls.map((imageUrl, index) => (
+                  <div key={`${imageUrl.slice(0, 32)}-${index}`} className={`relative overflow-hidden rounded-md border bg-white ${index === 0 ? "border-emerald-500 ring-2 ring-emerald-100" : "border-slate-200"}`}>
+                    <button type="button" onClick={() => setForm((current) => ({ ...current, image_url: imageUrl, image_urls: [imageUrl, ...current.image_urls.filter((item) => item !== imageUrl)] }))} className="grid aspect-square w-full place-items-center">
+                      <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+                    </button>
+                    <button type="button" onClick={() => setForm((current) => {
+                      const nextImages = current.image_urls.filter((_, imageIndex) => imageIndex !== index);
+                      return { ...current, image_urls: nextImages, image_url: nextImages[0] ?? "" };
+                    })} aria-label="Remove image" className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-xs font-black text-slate-700 shadow">
+                      ×
+                    </button>
+                    {index === 0 ? <span className="absolute bottom-1 left-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-black text-white">Main</span> : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </section>
         <section className="mt-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -422,15 +467,6 @@ export default function ProductsPage() {
             />
           </label>
         </section>
-        {form.image_url ? (
-          <div className="mt-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="mb-3 text-sm font-bold text-slate-700">Image preview</p>
-            <div className="h-48 max-w-sm rounded-md border border-slate-200 bg-slate-200 bg-cover bg-center" style={{ backgroundImage: `url(${form.image_url})` }} />
-            <button type="button" onClick={() => updateForm("image_url", "")} className="mt-3 rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700">
-              Remove image
-            </button>
-          </div>
-        ) : null}
         <div className="mt-5 flex flex-wrap gap-3">
           <button disabled={saving || limitReached} className="rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white disabled:bg-slate-400">
             {saving ? "Saving..." : editingId ? "Update product" : limitReached ? "Product limit reached" : "Add product"}
