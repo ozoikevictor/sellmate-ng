@@ -1034,9 +1034,8 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
         </div>
 
         <div className="mx-auto grid w-full max-w-7xl gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-start lg:p-8">
-          <div className="min-w-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-24">
+          <div className="order-2 min-w-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-24 lg:order-1">
             <div className="relative grid h-[18rem] w-full place-items-center overflow-hidden bg-[radial-gradient(circle_at_top_left,#ECFDF5,#FFFFFF_44%,#EEF2F7)] p-4 sm:h-[22rem] sm:p-6 lg:h-[24rem] xl:h-[26rem]">
-              <span className="absolute left-4 top-4 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-black uppercase tracking-wide text-[#166534]">{productStatus}</span>
               {activeImage ? (
                 <img src={activeImage} alt={product.name} decoding="async" className="h-full max-h-full w-full max-w-full object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.12)]" />
               ) : (
@@ -1054,7 +1053,7 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
             </div>
           </div>
 
-          <div className="min-w-0">
+          <div className="order-1 min-w-0 lg:order-2">
             <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-[#ECFDF5] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#16A34A]">{product.category}</span>
