@@ -1003,6 +1003,8 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   const canBuy = product.stock > 0;
   const galleryImages = Array.from(new Set([...(product.image_urls ?? []), product.image_url].filter(Boolean) as string[]));
   const [activeImage, setActiveImage] = useState(galleryImages[0] ?? "");
+  const cartHref = storeSlug ? `/cart?store=${encodeURIComponent(storeSlug)}` : "/cart";
+  const checkoutHref = storeSlug ? `/checkout?store=${encodeURIComponent(storeSlug)}` : "/checkout";
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -1084,6 +1086,16 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
             <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Order options</p>
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">Add this product to cart or chat with the seller to bargain price, delivery, size, color, or availability.</p>
+              {cartQty > 0 ? (
+                <div className="mt-4 grid gap-2 rounded-xl border border-emerald-100 bg-emerald-50 p-3 sm:grid-cols-2">
+                  <Link href={cartHref} onClick={onClose} className="flex min-h-11 items-center justify-center rounded-lg bg-white px-4 py-2 text-xs font-black text-emerald-800 shadow-sm ring-1 ring-emerald-100">
+                    View cart
+                  </Link>
+                  <Link href={checkoutHref} onClick={onClose} className="flex min-h-11 items-center justify-center rounded-lg bg-slate-950 px-4 py-2 text-xs font-black text-white shadow-sm">
+                    Checkout
+                  </Link>
+                </div>
+              ) : null}
               <div className="mt-5 hidden gap-3 sm:grid sm:grid-cols-[1fr_auto]">
               {cartQty > 0 && onChangeCartQty ? (
                 <div className="flex items-center justify-between overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50">
@@ -1109,6 +1121,16 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
         </div>
 
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-12px_30px_rgba(15,23,42,0.12)] backdrop-blur sm:hidden">
+          {cartQty > 0 ? (
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <Link href={cartHref} onClick={onClose} className="flex h-10 items-center justify-center rounded-lg bg-emerald-50 px-3 text-xs font-black text-emerald-800 ring-1 ring-emerald-100">
+                View cart
+              </Link>
+              <Link href={checkoutHref} onClick={onClose} className="flex h-10 items-center justify-center rounded-lg bg-slate-950 px-3 text-xs font-black text-white">
+                Checkout
+              </Link>
+            </div>
+          ) : null}
           <div className="grid grid-cols-[1fr_1fr] gap-2">
             {cartQty > 0 && onChangeCartQty ? (
               <div className="flex items-center justify-between overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50">
