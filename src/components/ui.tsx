@@ -90,7 +90,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [storeSlug, setStoreSlug] = useState("store");
   const [dashboardSellerName, setDashboardSellerName] = useState<string | null>(null);
   const [storeReady, setStoreReady] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const canOpenStore = Boolean(user?.id && storeReady);
   const sellerDisplayName = dashboardSellerName ?? "Seller workspace";
   const storeHref = `/store/${storeSlug}`;
@@ -166,7 +166,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <aside className={`fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-slate-200/80 bg-[#07111F] text-white shadow-[18px_0_60px_rgba(15,23,42,0.12)] transition-[width] duration-300 lg:block ${sidebarCollapsed ? "w-20 p-3" : "w-72 p-5"}`}>
         <div className="flex h-full min-h-0 flex-col">
           <div className={`flex items-center ${sidebarCollapsed ? "justify-center" : "gap-3"}`}>
-            <Link href="/dashboard" className={`min-w-0 rounded-2xl border border-slate-100 bg-white shadow-sm ${sidebarCollapsed ? "p-2" : "flex-1 p-3"}`} title="Dashboard home">
+            <Link href="/dashboard" onClick={() => setSidebarCollapsed(true)} className={`min-w-0 rounded-2xl border border-slate-100 bg-white shadow-sm ${sidebarCollapsed ? "p-2" : "flex-1 p-3"}`} title="Dashboard home">
               <VendoraqLogo compact iconOnly={sidebarCollapsed} />
             </Link>
             <button
@@ -199,6 +199,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={link.key}
                   href={link.href}
+                  onClick={() => setSidebarCollapsed(true)}
                   title={link.label}
                   className={`flex items-center rounded-2xl py-3 text-sm font-black transition ${sidebarCollapsed ? "justify-center px-2" : "gap-3 px-3.5"} ${
                     active ? "bg-white text-[#07111F] shadow-[0_12px_30px_rgba(0,0,0,0.22)]" : "text-slate-300 hover:bg-white/10 hover:text-white"
@@ -215,7 +216,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <div className={`mt-4 rounded-2xl border border-white/10 bg-white/10 p-3 ${sidebarCollapsed ? "hidden" : "block"}`}>
             <p className="text-xs font-bold leading-5 text-slate-300">Share your store link with customers when your products are ready.</p>
             {canOpenStore ? (
-              <Link href={storeHref} className="mt-3 flex min-h-10 items-center justify-center rounded-xl bg-[#22C55E] px-3 py-2 text-xs font-black text-[#07111F] transition hover:bg-[#4ADE80]">
+              <Link href={storeHref} onClick={() => setSidebarCollapsed(true)} className="mt-3 flex min-h-10 items-center justify-center rounded-xl bg-[#22C55E] px-3 py-2 text-xs font-black text-[#07111F] transition hover:bg-[#4ADE80]">
                 Open storefront
               </Link>
             ) : null}
