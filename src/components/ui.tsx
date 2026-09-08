@@ -1332,10 +1332,10 @@ export function PublicFooter({
   ];
 
   return (
-    <footer id="help" className="border-t-4 border-[#16A34A] bg-[#102033] text-white">
+    <footer id="help" className="border-t-4 border-[#16A34A] bg-[#F8FAFC] text-[#0F172A]">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_0.75fr_0.75fr_0.75fr_0.75fr]">
         <div className="max-w-xl">
-          <Link href={isSellerFooter ? storeHref : "/"} className="flex w-fit items-center gap-3 text-xl font-black text-white">
+          <Link href={isSellerFooter ? storeHref : "/"} className="flex w-fit items-center gap-3 text-xl font-black text-[#0F172A]">
             {isSellerFooter ? (
               <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
             ) : (
@@ -1343,17 +1343,17 @@ export function PublicFooter({
             )}
             {isSellerFooter ? <span>{footerName}</span> : null}
           </Link>
-          <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-emerald-300">
+          <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-[#047857]">
             {isSellerFooter ? "Powered by VENDORAQ" : "Sell. Connect. Grow."}
           </p>
-          <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-slate-200">
+          <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-slate-600">
             {isSellerFooter
               ? "Secure product browsing, cart checkout, payment follow-up, and customer support for this seller."
               : "A modern commerce platform for Nigerian sellers to launch online stores, manage orders, receive payments, and grow with confidence."}
           </p>
-          <div className="mt-6 rounded-lg border border-white/15 bg-white/10 p-4 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Newsletter</p>
-            <div className="mt-3 flex overflow-hidden rounded-full bg-white p-1 shadow-sm">
+          <div className="mt-6 rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#047857]">Newsletter</p>
+            <div className="mt-3 flex overflow-hidden rounded-full bg-[#F1F5F9] p-1 shadow-sm ring-1 ring-slate-200">
               <span className="min-w-0 flex-1 px-4 py-2 text-sm font-semibold text-slate-500">Business growth updates</span>
               <Link href="/register" className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white transition hover:bg-[#15803D]">
                 Join
@@ -1364,21 +1364,21 @@ export function PublicFooter({
 
         {footerColumns.map((column) => (
           <div key={column.title}>
-            <h2 className="text-xs font-black uppercase tracking-[0.22em] text-emerald-200">{column.title}</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.22em] text-[#047857]">{column.title}</h2>
             <div className="mt-2 h-0.5 w-8 rounded-full bg-[#16A34A]" />
-            <nav className="mt-5 grid gap-3 text-sm font-black text-white">
+            <nav className="mt-5 grid gap-3 text-sm font-black text-slate-700">
               {column.links.map((link) =>
                 "modal" in link ? (
                   <button
                     key={`${column.title}-${link.label}`}
                     type="button"
                     onClick={() => setActiveFooterModal(link.modal ?? null)}
-                    className="w-fit text-left transition hover:text-emerald-300"
+                    className="w-fit text-left transition hover:text-[#16A34A]"
                   >
                     {link.label}
                   </button>
                 ) : (
-                  <Link key={`${column.title}-${link.label}`} href={link.href} className="transition hover:text-emerald-300">
+                  <Link key={`${column.title}-${link.label}`} href={link.href} className="transition hover:text-[#16A34A]">
                     {link.label}
                   </Link>
                 ),
@@ -1393,13 +1393,13 @@ export function PublicFooter({
           onClose={() => setActiveFooterModal(null)}
         />
       ) : null}
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-bold text-slate-200 sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-t border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {isSellerFooter ? footerName : "VENDORAQ"}. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-white">Secure payments</span>
-            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-white">Paystack ready</span>
-            <span className="text-emerald-300">Built for Nigerian sellers.</span>
+            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-emerald-800">Secure payments</span>
+            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-emerald-800">Paystack ready</span>
+            <span className="text-[#047857]">Built for Nigerian sellers.</span>
           </div>
         </div>
       </div>

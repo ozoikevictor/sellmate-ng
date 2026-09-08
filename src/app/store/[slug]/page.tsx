@@ -353,8 +353,8 @@ export default function DynamicStorefrontPage() {
                       </span>
                     </span>
                     <span className="grid min-w-0 place-items-stretch bg-[#DDF7EA] p-2 sm:p-4 lg:p-5">
-                      <span className="grid h-full min-h-0 w-full place-items-center overflow-hidden rounded-2xl bg-white p-3 shadow-lg ring-1 ring-emerald-100 sm:p-5 lg:p-6">
-                        {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="max-h-full max-w-full object-contain" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
+                      <span className="grid h-full min-h-0 w-full place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100">
+                        {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="h-full w-full object-cover object-center" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
                       </span>
                     </span>
                   </button>
