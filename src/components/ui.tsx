@@ -97,14 +97,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const links = [
     { key: "overview", label: "Overview", href: "/dashboard", icon: "dashboard" },
     { key: "products", label: "Products", href: "/dashboard/products", icon: "products" },
+    { key: "inventory", label: "Inventory", href: "/dashboard/inventory", icon: "inventory" },
     { key: "orders", label: "Orders", href: "/dashboard/orders", icon: "orders" },
     { key: "messages", label: "Messages", href: "/dashboard/messages", icon: "messages" },
     { key: "customers", label: "Customers", href: "/dashboard/customers", icon: "customers" },
     { key: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
     { key: "billing", label: "Billing & Payments", href: "/dashboard/billing", icon: "billing" },
-    { key: "account", label: "Account", href: "/dashboard/account", icon: "user" },
+    { key: "receipts", label: "Receipts", href: "/dashboard/receipts", icon: "receipts" },
+    { key: "account", label: "Account", href: "/dashboard/account", icon: "account" },
     { key: "store", label: "Store", href: storeHref, icon: "store" },
-    { key: "delivery", label: "Delivery / Tracking", href: "/dashboard/settings", icon: "delivery" },
     { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
   ];
   const activeLink = links.find((link) => (link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href))) ?? links[0];
@@ -112,13 +113,25 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     ? "Monitor your store performance and actions."
     : activeLink.key === "products"
       ? "Add, edit, and publish products."
+      : activeLink.key === "inventory"
+        ? "Watch stock levels and product status."
       : activeLink.key === "orders"
         ? "Manage payment and delivery progress."
         : activeLink.key === "messages"
           ? "Reply to customers and bargain offers."
-          : activeLink.key === "settings"
-            ? "Control store identity and payout details."
-            : "Manage this part of your seller workspace.";
+          : activeLink.key === "customers"
+            ? "Review buyers and repeat customers."
+            : activeLink.key === "analytics"
+              ? "Review sales and performance."
+              : activeLink.key === "billing"
+                ? "Manage plan and payment setup."
+                : activeLink.key === "receipts"
+                  ? "Check payment and order records."
+                  : activeLink.key === "account"
+                    ? "Manage login and account access."
+                    : activeLink.key === "settings"
+                      ? "Control store identity and payout details."
+                      : "Manage this part of your seller workspace.";
   const isDashboardChatOpen = pathname === "/dashboard/messages" && Boolean(searchParams.get("chat"));
 
   useEffect(() => {
@@ -377,15 +390,8 @@ export function MenuIcon({ name }: { name: string }) {
     ),
     settings: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={common} aria-hidden="true">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 2v3" />
-        <path d="M12 19v3" />
-        <path d="M2 12h3" />
-        <path d="M19 12h3" />
-        <path d="M4.9 4.9l2.1 2.1" />
-        <path d="M17 17l2.1 2.1" />
-        <path d="M19.1 4.9 17 7" />
-        <path d="M7 17l-2.1 2.1" />
+        <path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2.1 2.1 0 1 1-2.97 2.97l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2.1 2.1 0 1 1-4.2 0v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06a2.1 2.1 0 1 1-2.97-2.97l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2.1 2.1 0 1 1 0-4.2h.09A1.7 1.7 0 0 0 4.65 8.7a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2.1 2.1 0 1 1 2.97-2.97l.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10.19 2.6V2.5a2.1 2.1 0 1 1 4.2 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06a2.1 2.1 0 1 1 2.97 2.97l-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.03H21a2.1 2.1 0 1 1 0 4.2h-.09A1.7 1.7 0 0 0 19.4 15Z" />
       </svg>
     ),
   };
