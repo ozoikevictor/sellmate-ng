@@ -1017,13 +1017,16 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
   return (
     <div className="fixed inset-0 z-[1100] bg-white">
       <button type="button" className="absolute inset-0 h-full w-full" aria-label="Close product details" onClick={onClose} />
-      <section className="relative h-[100dvh] w-full overflow-y-auto bg-[#F3F6F8] pb-28 lg:pb-0">
+      <section className="relative h-[100dvh] w-full overflow-y-auto bg-[linear-gradient(180deg,#ECFDF5_0%,#F3F6F8_26%,#F8FAFC_100%)] pb-28 lg:pb-0">
         <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <button type="button" onClick={onClose} aria-label="Back to products" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-800 shadow-sm transition hover:bg-slate-100">
               <IconGlyph name="home" className="h-5 w-5" />
             </button>
-            <div className="flex-1" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-black text-slate-950">{product.name}</p>
+              <p className="truncate text-xs font-bold text-slate-500">{product.category}</p>
+            </div>
             <button type="button" onClick={() => onToggleFavorite(product)} aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"} className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border shadow-sm transition ${isFavorite ? "border-rose-200 bg-rose-50 text-rose-700" : "border-slate-200 bg-white text-slate-700 hover:text-rose-700"}`}>
               <IconGlyph name="heart" className="h-5 w-5" />
             </button>
@@ -1034,10 +1037,10 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
         </div>
 
         <div className="mx-auto grid w-full max-w-7xl gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-start lg:p-8">
-          <div className="order-2 min-w-0 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 lg:sticky lg:top-24 lg:order-1">
-            <div className="relative grid h-[18rem] w-full place-items-center overflow-hidden bg-[radial-gradient(circle_at_top_left,#ECFDF5,#FFFFFF_44%,#EEF2F7)] p-4 sm:h-[22rem] sm:p-6 lg:h-[24rem] xl:h-[26rem]">
+          <div className="order-2 min-w-0 overflow-hidden rounded-2xl bg-white shadow-[0_18px_60px_rgba(15,23,42,0.10)] ring-1 ring-emerald-100 lg:sticky lg:top-24 lg:order-1">
+            <div className="relative grid h-[18rem] w-full place-items-center overflow-hidden bg-white p-4 sm:h-[22rem] sm:p-6 lg:h-[27rem] xl:h-[31rem]">
               {activeImage ? (
-                <img src={activeImage} alt={product.name} decoding="async" className="h-full max-h-full w-full max-w-full object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.12)]" />
+                <img src={activeImage} alt={product.name} decoding="async" className="h-full max-h-full w-full max-w-full object-contain" />
               ) : (
                 <div className="grid h-36 w-36 place-items-center rounded-2xl bg-slate-100 text-slate-400">
                   <IconGlyph name="cart" className="h-12 w-12" />
@@ -1054,7 +1057,7 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
           </div>
 
           <div className="order-1 min-w-0 lg:order-2">
-            <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+            <div className="rounded-2xl bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] ring-1 ring-emerald-100 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-[#ECFDF5] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#16A34A]">{product.category}</span>
                 {product.sku ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-500">SKU {product.sku}</span> : null}
@@ -1065,11 +1068,11 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
                 <span className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${canBuy ? "bg-emerald-50 text-emerald-700 ring-emerald-100" : "bg-rose-50 text-rose-700 ring-rose-100"}`}>{productStatus}</span>
               </div>
               <div className="mt-5 grid gap-3 text-sm font-semibold text-slate-600 sm:grid-cols-2">
-                <div className="rounded-xl bg-[#F8FAFC] p-4">
+                <div className="rounded-xl bg-[#F8FAFC] p-4 ring-1 ring-slate-100">
                   <span className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400">Stock</span>
                   <strong className="mt-1 block text-lg text-slate-950">{product.stock} available</strong>
                 </div>
-                <div className="rounded-xl bg-[#F8FAFC] p-4">
+                <div className="rounded-xl bg-[#F8FAFC] p-4 ring-1 ring-slate-100">
                   <span className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400">Category</span>
                   <strong className="mt-1 block truncate text-lg text-slate-950">{product.category}</strong>
                 </div>
@@ -1077,13 +1080,13 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
             </div>
 
             {product.variant_options ? (
-              <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+              <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-100 sm:p-6">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Product information</p>
                 <p className="mt-3 whitespace-pre-wrap text-sm font-semibold leading-7 text-slate-700">{product.variant_options}</p>
               </div>
             ) : null}
 
-            <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6">
+            <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-100 sm:p-6">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Order options</p>
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">Add this product to cart or chat with the seller to bargain price, delivery, size, color, or availability.</p>
               {cartQty > 0 ? (

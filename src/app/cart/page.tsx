@@ -68,19 +68,19 @@ export default function CartPage() {
         mode="cart"
       />
 
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[1fr_390px] lg:items-center">
+      <section className="border-b border-emerald-900/10 bg-[linear-gradient(135deg,#064E3B_0%,#0EA65A_54%,#DFFBF0_100%)] text-white">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_390px] lg:items-center lg:py-8">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Shopping cart</p>
-            <h1 className="mt-2 max-w-3xl text-2xl font-black leading-tight text-slate-950 sm:text-4xl">Review your order</h1>
-            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">Confirm quantity, deal prices, and delivery fee before checkout.</p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs font-black text-slate-700">
-              <span className="rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">Secure payment</span>
-              <span className="rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">Seller confirms delivery</span>
-              <span className="rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">WhatsApp receipt</span>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">Shopping cart</p>
+            <h1 className="mt-2 max-w-3xl text-2xl font-black leading-tight text-white sm:text-4xl">Review your order</h1>
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-50">Confirm quantity, bargain prices, and delivery fee before checkout.</p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-black text-emerald-950">
+              <span className="rounded-full bg-white/95 px-3 py-2 shadow-sm ring-1 ring-white/50">Secure payment</span>
+              <span className="rounded-full bg-white/95 px-3 py-2 shadow-sm ring-1 ring-white/50">Seller confirms delivery</span>
+              <span className="rounded-full bg-white/95 px-3 py-2 shadow-sm ring-1 ring-white/50">WhatsApp receipt</span>
             </div>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
+          <div className="rounded-lg border border-white/25 bg-white/95 p-4 text-slate-950 shadow-xl">
             <div className="grid grid-cols-2 gap-3">
               <CartStat label="Items" value={`${itemCount}`} tone="slate" />
               <CartStat label="Subtotal" value={formatNaira(subtotal)} tone="green" />
@@ -89,8 +89,8 @@ export default function CartPage() {
             </div>
           </div>
         </div>
-        <div className="border-t border-slate-200 bg-[#F8FAFC]">
-          <div className="mx-auto grid max-w-7xl gap-3 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-600 sm:grid-cols-3 sm:px-6">
+        <div className="border-t border-white/15 bg-[#063F31]/90">
+          <div className="mx-auto grid max-w-7xl gap-3 px-4 py-3 text-xs font-black uppercase tracking-wide text-emerald-50 sm:grid-cols-3 sm:px-6">
             <span>Paystack protected checkout</span>
             <span>Real stock from this seller</span>
             <span>Order saved after checkout</span>

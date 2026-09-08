@@ -207,14 +207,14 @@ export default function CheckoutPage() {
         mode="checkout"
       />
 
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 lg:grid-cols-[1fr_390px] lg:items-center">
+      <section className="border-b border-emerald-900/10 bg-[linear-gradient(135deg,#064E3B_0%,#0EA65A_54%,#DFFBF0_100%)] text-white">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_390px] lg:items-center lg:py-8">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Checkout</p>
-            <h1 className="mt-2 max-w-3xl text-2xl font-black leading-tight text-slate-950 sm:text-4xl">Delivery and payment</h1>
-            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-slate-600">Enter delivery details, confirm your order, then pay securely through Paystack.</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">Checkout</p>
+            <h1 className="mt-2 max-w-3xl text-2xl font-black leading-tight text-white sm:text-4xl">Delivery and payment</h1>
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-50">Enter delivery details, confirm your order, then pay securely through Paystack.</p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
+          <div className="rounded-lg border border-white/25 bg-white/95 p-4 text-slate-950 shadow-xl">
             <div className="grid gap-3">
               <CheckoutStep number="1" title="Delivery details" text="Name, phone, city, and address." />
               <CheckoutStep number="2" title="Security check" text="Confirm details before payment." />

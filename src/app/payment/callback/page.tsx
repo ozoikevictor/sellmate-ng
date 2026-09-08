@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { LoadingScreen } from "@/components/loading-screen";
-import { CheckoutHeader } from "@/components/ui";
+import { CheckoutHeader, PublicFooter } from "@/components/ui";
 import { clearCart, readCurrentStoreHref, updateCustomerOrder, writeCurrentStoreHref } from "@/lib/cart";
 
 type PendingWhatsAppOrder = {
@@ -79,38 +79,51 @@ function PaymentCallbackContent() {
         cartCount={0}
         mode="success"
       />
-      <section className={`mx-auto mt-6 w-[calc(100%-2rem)] max-w-xl rounded-lg border bg-white p-6 shadow-sm ${status === "error" ? "border-rose-200" : "border-emerald-200"}`}>
-        <p className={`text-xs font-black uppercase tracking-[0.18em] ${status === "error" ? "text-rose-700" : "text-emerald-700"}`}>
-          {status === "checking" ? "Checking payment" : status === "success" ? "Payment successful" : "Payment issue"}
-        </p>
-        <h1 className="mt-3 text-3xl font-black text-slate-950">{status === "success" ? "Thank you for your order" : "Payment status"}</h1>
-        <p className="mt-3 leading-7 text-slate-600">{message}</p>
-        {status === "success" ? (
-          <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm font-bold text-emerald-900">Next step</p>
-            <p className="mt-1 text-sm leading-6 text-emerald-800">
-              Send your paid order to the seller on WhatsApp so they can confirm delivery.
-            </p>
-            {whatsappUrl ? (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 inline-flex items-center gap-2 rounded-md bg-emerald-700 px-5 py-3 text-sm font-black text-white hover:bg-emerald-800"
-              >
-                <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-white text-emerald-700">☎</span>
-                Send order on WhatsApp
-              </a>
-            ) : (
-              <p className="mt-3 text-sm font-semibold text-amber-800">The seller has not added a WhatsApp number yet.</p>
-            )}
-          </div>
-        ) : null}
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link href={storeHref} className="rounded-md bg-slate-950 px-5 py-3 text-sm font-black text-white">Continue shopping</Link>
-          <Link href={storeHref} className="rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700">Store home</Link>
+      <section className="border-b border-emerald-900/10 bg-[linear-gradient(135deg,#064E3B_0%,#0EA65A_54%,#DFFBF0_100%)] px-4 py-8 text-white sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">
+            {status === "checking" ? "Checking payment" : status === "success" ? "Payment successful" : "Payment issue"}
+          </p>
+          <h1 className="mt-2 max-w-3xl text-3xl font-black leading-tight text-white sm:text-5xl">{status === "success" ? "Thank you for your order" : "Payment status"}</h1>
+          <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-emerald-50">{message}</p>
         </div>
       </section>
+
+      <section className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
+        <div className={`rounded-2xl border bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.10)] sm:p-7 ${status === "error" ? "border-rose-200" : "border-emerald-200"}`}>
+          {status === "success" ? (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-emerald-700">Next step</p>
+              <h2 className="mt-2 text-2xl font-black text-slate-950">Send receipt to seller</h2>
+              <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-900">
+                Send your paid order to the seller on WhatsApp so they can confirm delivery and prepare your package.
+              </p>
+              {whatsappUrl ? (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#16A34A] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#15803D]"
+                >
+                  <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-white text-[#16A34A]">☎</span>
+                  Send order on WhatsApp
+                </a>
+              ) : (
+                <p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm font-semibold text-amber-800">The seller has not added a WhatsApp number yet.</p>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-sm font-semibold leading-6 text-slate-600">{message}</p>
+            </div>
+          )}
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href={storeHref} className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-black text-white">Continue shopping</Link>
+            <Link href={storeHref} className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-700">Store home</Link>
+          </div>
+        </div>
+      </section>
+      <PublicFooter sellerName={sellerName} sellerLogoUrl={sellerLogoUrl} storeHref={storeHref} />
     </main>
   );
 }
