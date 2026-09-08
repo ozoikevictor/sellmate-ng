@@ -657,8 +657,8 @@ export function StoreHeader({
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-emerald-900/10 bg-white shadow-sm">
-      <div className="w-full bg-[#0EA65A] text-white">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-emerald-900/10 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+      <div className="w-full bg-[#0B5F47] text-white">
         <div className="mx-auto flex h-8 w-full max-w-7xl items-center justify-between gap-2 px-3 text-[10px] font-black uppercase tracking-[0.1em] sm:px-5 sm:text-[11px] sm:tracking-[0.12em]">
           <span className="min-w-0 truncate">VENDORAQ Store</span>
           <span className="shrink-0">Browse / Bargain / Checkout</span>
@@ -675,7 +675,7 @@ export function StoreHeader({
           >
             <IconGlyph name="menu" className="h-5 w-5" />
           </button>
-          <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-[#1F2937] sm:gap-3 sm:text-lg">
+          <Link href={storeHref} className="flex min-w-0 items-center gap-2 text-base font-black leading-tight text-[#0F172A] sm:gap-3 sm:text-lg">
             <SellerLogo name={sellerName} logoUrl={sellerLogoUrl} size="sm" />
             <span className="truncate capitalize">{sellerName}</span>
           </Link>
@@ -686,7 +686,7 @@ export function StoreHeader({
               href={storeHref}
               aria-label="Back to store home"
               title="Back to store home"
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#1F2937] transition hover:bg-[#F3F4F6] hover:text-[#16A34A]"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-50 text-[#047857] ring-1 ring-emerald-100 transition hover:bg-emerald-100"
             >
               <IconGlyph name="home" className="h-5 w-5" />
             </Link>
@@ -737,7 +737,7 @@ export function StoreHeader({
               value={searchTerm}
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search products, brands and categories"
-              className="h-11 w-full rounded-full border border-[#E5E7EB] bg-[#F5F5F5] pl-9 pr-12 text-sm font-semibold text-[#1F2937] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10"
+              className="h-11 w-full rounded-full border border-slate-200 bg-[#F3F6F8] pl-9 pr-12 text-sm font-semibold text-[#1F2937] outline-none transition focus:border-[#16A34A] focus:bg-white focus:ring-4 focus:ring-[#16A34A]/10"
             />
             <button type="submit" aria-label="Search products" className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-[#16A34A] text-white transition hover:bg-[#15803D]">
               <IconGlyph name="search" className="h-4 w-4" />
@@ -1332,7 +1332,7 @@ export function PublicFooter({
   ];
 
   return (
-    <footer id="help" className="bg-[#0F172A] text-white">
+    <footer id="help" className="border-t-4 border-[#16A34A] bg-[#102033] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_0.75fr_0.75fr_0.75fr_0.75fr]">
         <div className="max-w-xl">
           <Link href={isSellerFooter ? storeHref : "/"} className="flex w-fit items-center gap-3 text-xl font-black text-white">
@@ -1343,17 +1343,17 @@ export function PublicFooter({
             )}
             {isSellerFooter ? <span>{footerName}</span> : null}
           </Link>
-          <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-[#16A34A]">
+          <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-emerald-300">
             {isSellerFooter ? "Powered by VENDORAQ" : "Sell. Connect. Grow."}
           </p>
-          <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">
+          <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-slate-200">
             {isSellerFooter
               ? "Secure product browsing, cart checkout, payment follow-up, and customer support for this seller."
               : "A modern commerce platform for Nigerian sellers to launch online stores, manage orders, receive payments, and grow with confidence."}
           </p>
-          <div className="mt-6 rounded-lg border border-white/10 bg-white/5 p-4">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Newsletter</p>
-            <div className="mt-3 flex overflow-hidden rounded-full bg-white p-1">
+          <div className="mt-6 rounded-lg border border-white/15 bg-white/10 p-4 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-200">Newsletter</p>
+            <div className="mt-3 flex overflow-hidden rounded-full bg-white p-1 shadow-sm">
               <span className="min-w-0 flex-1 px-4 py-2 text-sm font-semibold text-slate-500">Business growth updates</span>
               <Link href="/register" className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white transition hover:bg-[#15803D]">
                 Join
@@ -1364,21 +1364,21 @@ export function PublicFooter({
 
         {footerColumns.map((column) => (
           <div key={column.title}>
-            <h2 className="text-xs font-black uppercase tracking-[0.22em] text-white">{column.title}</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.22em] text-emerald-200">{column.title}</h2>
             <div className="mt-2 h-0.5 w-8 rounded-full bg-[#16A34A]" />
-            <nav className="mt-5 grid gap-3 text-sm font-bold text-slate-300">
+            <nav className="mt-5 grid gap-3 text-sm font-black text-white">
               {column.links.map((link) =>
                 "modal" in link ? (
                   <button
                     key={`${column.title}-${link.label}`}
                     type="button"
                     onClick={() => setActiveFooterModal(link.modal ?? null)}
-                    className="w-fit text-left transition hover:text-[#16A34A]"
+                    className="w-fit text-left transition hover:text-emerald-300"
                   >
                     {link.label}
                   </button>
                 ) : (
-                  <Link key={`${column.title}-${link.label}`} href={link.href} className="transition hover:text-[#16A34A]">
+                  <Link key={`${column.title}-${link.label}`} href={link.href} className="transition hover:text-emerald-300">
                     {link.label}
                   </Link>
                 ),
@@ -1394,12 +1394,12 @@ export function PublicFooter({
         />
       ) : null}
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-semibold text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-bold text-slate-200 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 {isSellerFooter ? footerName : "VENDORAQ"}. All rights reserved.</p>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">Secure payments</span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">Paystack ready</span>
-            <span className="text-[#16A34A]">Built for Nigerian sellers.</span>
+            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-white">Secure payments</span>
+            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-white">Paystack ready</span>
+            <span className="text-emerald-300">Built for Nigerian sellers.</span>
           </div>
         </div>
       </div>

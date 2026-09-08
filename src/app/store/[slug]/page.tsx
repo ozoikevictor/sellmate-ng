@@ -277,7 +277,7 @@ export default function DynamicStorefrontPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[160px]">
+    <main className="flex min-h-screen flex-col bg-[#F3F6F8] pt-[160px]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}
@@ -288,16 +288,16 @@ export default function DynamicStorefrontPage() {
         onSearchChange={setSearchTerm}
         whatsappPhone={profile?.whatsapp_phone}
       />
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[12rem_minmax(0,1fr)] lg:py-4">
-          <aside className="hidden min-w-0 overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm lg:block">
-            <p className="border-b border-slate-100 px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Categories</p>
+      <section className="border-b border-slate-200 bg-[#F3F6F8]">
+        <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:py-5">
+          <aside className="hidden min-w-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200 lg:block">
+            <p className="border-b border-slate-100 bg-slate-50 px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Shop categories</p>
             <nav className="grid min-w-0 gap-1">
               {(categories.length ? categories.slice(0, 8) : ["Products"]).map((category) => (
                 <Link
                   key={category}
                   href={`${storeHomeHref}/products${category === "Products" ? "" : `?category=${encodeURIComponent(category)}`}`}
-                  className="flex min-w-0 items-center justify-between gap-2 overflow-hidden px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
+                  className="flex min-w-0 items-center justify-between gap-2 overflow-hidden px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
                   title={category}
                 >
                   <span className="min-w-0 flex-1 truncate">{category}</span>
@@ -307,29 +307,37 @@ export default function DynamicStorefrontPage() {
             </nav>
           </aside>
           <div className="grid gap-3">
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-[#EAFBF1] shadow-sm">
+            <div className="relative overflow-hidden rounded-[1.35rem] border border-emerald-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
               <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${heroIndex % Math.max(heroProducts.length || products.slice(0, 8).length, 1) * 100}%)` }}>
                 {(heroProducts.length ? heroProducts : products.slice(0, 8)).map((product, index) => (
                   <button
                     key={product.id}
                     type="button"
                     onClick={() => openProductDetails(product)}
-                    className="grid min-h-[190px] min-w-full snap-center grid-cols-[minmax(0,1fr)_46%] items-stretch text-left sm:min-h-[260px] lg:min-h-[330px] lg:grid-cols-[minmax(0,1fr)_52%]"
+                    className="grid min-h-[205px] min-w-full snap-center grid-cols-[minmax(0,1fr)_46%] items-stretch text-left sm:min-h-[280px] lg:min-h-[370px] lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]"
                   >
-                    <span className="flex min-w-0 flex-col justify-between px-4 py-5 sm:px-8 sm:py-8 lg:pr-4">
+                    <span className="flex min-w-0 flex-col justify-between bg-[linear-gradient(135deg,#ECFDF5_0%,#FFFFFF_58%,#F8FAFC_100%)] px-4 py-5 sm:px-8 sm:py-8 lg:pr-6">
                       <span>
-                        <span className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#16A34A] sm:text-xs sm:tracking-[0.18em]">{brandName}</span>
-                        <span className="mt-2 line-clamp-3 max-w-xl text-[1.5rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-[3.35rem]">{product.name}</span>
-                        <span className="mt-2 block text-xl font-black text-[#16A34A] sm:text-3xl">{formatNaira(product.price)}</span>
-                        <span className="mt-2 line-clamp-2 max-w-md text-xs font-semibold leading-5 text-[#475569] sm:text-sm sm:leading-6">{product.category}{product.variant_options ? ` • ${product.variant_options}` : ""}</span>
-                        <span className="mt-4 hidden grid-cols-2 gap-2 lg:grid">
+                        <span className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#047857] sm:text-xs sm:tracking-[0.18em]">{brandName}</span>
+                        <span className="mt-2 line-clamp-3 max-w-xl text-[1.45rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-[3.15rem]">{product.name}</span>
+                        <span className="mt-3 flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-[#16A34A] px-4 py-2 text-lg font-black leading-none text-white shadow-sm sm:text-2xl">{formatNaira(product.price)}</span>
+                          <span className="rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-[11px] font-black text-emerald-800">{product.stock} available</span>
+                        </span>
+                        <span className="mt-3 line-clamp-2 max-w-md text-xs font-semibold leading-5 text-[#475569] sm:text-sm sm:leading-6">{product.category}{product.variant_options ? ` / ${product.variant_options}` : ""}</span>
+                        <span className="mt-4 hidden flex-wrap gap-2 lg:flex">
+                          <span className="rounded-full bg-slate-950 px-3 py-1.5 text-[11px] font-black text-white">{products.length} live products</span>
+                          <span className="rounded-full bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 ring-1 ring-slate-200">Fast cart checkout</span>
+                          <span className="rounded-full bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 ring-1 ring-slate-200">Chat to bargain</span>
+                        </span>
+                        <span className="mt-4 hidden grid-cols-2 gap-2 xl:grid">
                           {(heroProducts.length ? heroProducts : products)
                             .filter((item) => item.id !== product.id)
                             .slice(0, 4)
                             .map((item) => (
-                              <span key={item.id} className="flex min-w-0 items-center gap-2 rounded-xl bg-white/80 px-2.5 py-2 shadow-sm ring-1 ring-emerald-100">
+                              <span key={item.id} className="flex min-w-0 items-center gap-2 rounded-xl bg-white px-2.5 py-2 shadow-sm ring-1 ring-emerald-100">
                                 <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-slate-100">
-                                  {item.image_url ? <img src={item.image_url} alt="" className="h-full w-full object-cover" /> : null}
+                                  {item.image_url ? <img src={item.image_url} alt="" className="h-full w-full object-contain" /> : null}
                                 </span>
                                 <span className="min-w-0">
                                   <span className="block truncate text-[11px] font-black text-slate-950">{item.name}</span>
@@ -340,13 +348,13 @@ export default function DynamicStorefrontPage() {
                         </span>
                       </span>
                       <span className="mt-3 flex flex-wrap gap-2 sm:gap-3">
-                        <span className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm sm:px-5 sm:py-3 sm:text-sm">Shop Now</span>
-                        <span className="rounded-full border border-emerald-200 bg-white/90 px-4 py-2 text-xs font-black text-slate-800 sm:px-5 sm:py-3 sm:text-sm">Chat Seller</span>
+                        <span className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white shadow-sm sm:px-5 sm:py-3 sm:text-sm">Shop now</span>
+                        <span className="rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-xs font-black text-slate-800 sm:px-5 sm:py-3 sm:text-sm">Chat seller</span>
                       </span>
                     </span>
-                    <span className="grid min-w-0 place-items-stretch bg-white/35 p-2 sm:p-4 lg:p-5">
-                      <span className="grid h-full min-h-0 w-full place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100">
-                        {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="h-full w-full object-cover" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
+                    <span className="grid min-w-0 place-items-stretch bg-[#DDF7EA] p-2 sm:p-4 lg:p-5">
+                      <span className="grid h-full min-h-0 w-full place-items-center overflow-hidden rounded-2xl bg-white p-3 shadow-lg ring-1 ring-emerald-100 sm:p-5 lg:p-6">
+                        {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="max-h-full max-w-full object-contain" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
                       </span>
                     </span>
                   </button>
@@ -364,7 +372,7 @@ export default function DynamicStorefrontPage() {
                 ))}
               </div>
             </div>
-            <div className="-mx-3 overflow-hidden bg-[#064E3B] p-[3px] sm:mx-0 sm:rounded-xl">
+            <div className="-mx-3 overflow-hidden bg-[#064E3B] p-[3px] shadow-sm sm:mx-0 sm:rounded-xl">
               <div className="flex gap-[3px] overflow-x-auto bg-[#064E3B] pb-0">
               {(heroProducts.length ? heroProducts : products.slice(0, 8)).slice(0, 8).map((product, index) => (
                 <button
@@ -374,10 +382,10 @@ export default function DynamicStorefrontPage() {
                     setHeroIndex(index);
                     openProductDetails(product);
                   }}
-                  className="flex min-w-[8.5rem] items-center gap-2 bg-white p-2 text-left transition hover:bg-emerald-50"
+                  className="flex min-w-[9.5rem] items-center gap-2 bg-white p-2 text-left transition hover:bg-emerald-50"
                 >
                   <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-slate-100">
-                    {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover" /> : <IconGlyph name="cart" className="h-4 w-4 text-slate-400" />}
+                    {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-contain" /> : <IconGlyph name="cart" className="h-4 w-4 text-slate-400" />}
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-xs font-black text-slate-950">{product.name}</span>
@@ -506,7 +514,7 @@ function TrustBar() {
     <section className="border-y border-slate-200 bg-white">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-3 text-xs font-black text-[#0F172A] sm:grid-cols-4 sm:px-5">
         {["Bargain in chat", "Secure payment", "Seller delivery", "Order record"].map((item) => (
-          <div key={item} className="rounded-md bg-[#F7F9FC] px-3 py-2 text-center">{item}</div>
+          <div key={item} className="rounded-lg border border-emerald-100 bg-[#F7FBF9] px-3 py-2 text-center text-slate-700">{item}</div>
         ))}
       </div>
     </section>
@@ -519,14 +527,14 @@ function CategoryShelf({ categories, products, storeHref }: { categories: string
   }
 
   return (
-    <div className="-mx-4 overflow-hidden bg-[#064E3B] p-[3px] sm:mx-0 sm:rounded-xl">
+    <div className="-mx-4 overflow-hidden bg-[#064E3B] p-[3px] shadow-sm sm:mx-0 sm:rounded-xl">
       <div className="flex gap-[3px] overflow-x-auto bg-[#064E3B]">
       {categories.map((category) => {
         const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
         return (
-          <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[10rem] items-center gap-3 bg-white p-3 transition hover:bg-emerald-50">
+          <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[11rem] items-center gap-3 bg-white p-3 transition hover:bg-emerald-50">
             <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
-              {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
+              {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" decoding="async" className="h-full w-full bg-white object-contain" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
             </span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-black text-[#0F172A]">{category}</span>
@@ -547,9 +555,9 @@ function ProductShelf({ title, actionLabel, actionHref, storeHref, products, fav
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-5">
-      <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
         <SectionTitle eyebrow="Shop" title={title} />
-        {actionHref ? <Link href={actionHref} className="text-sm font-black text-[#16A34A]">{actionLabel ?? "View all"}</Link> : null}
+        {actionHref ? <Link href={actionHref} className="rounded-full bg-emerald-50 px-3 py-2 text-xs font-black text-[#047857] ring-1 ring-emerald-100">{actionLabel ?? "View all"}</Link> : null}
       </div>
       <ProductGrid storeHref={storeHref} products={products} favoriteIds={favoriteIds} cartQtyById={cartQtyById} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
     </section>
@@ -558,7 +566,7 @@ function ProductShelf({ title, actionLabel, actionHref, storeHref, products, fav
 
 function ProductGrid({ storeHref, products, favoriteIds, cartQtyById, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { storeHref: string; products: StoreProduct[]; favoriteIds: string[]; cartQtyById: Record<string, number>; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   return (
-    <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-md bg-[#16A34A] p-[3px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-xl bg-[#047857] p-[3px] shadow-sm sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {products.map((product) => (
         <ProductCard key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
       ))}
@@ -571,8 +579,8 @@ function ProductCard({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const badge = productBadge(product);
 
   return (
-    <article className="group min-w-0 bg-white p-2 transition hover:z-10 hover:shadow-[0_10px_24px_rgba(15,23,42,0.12)] active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
-      <div className="relative overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
+    <article className="group min-w-0 bg-white p-2 transition hover:z-10 hover:bg-[#FBFFFD] hover:shadow-[0_12px_28px_rgba(15,23,42,0.14)] active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
+      <div className="relative overflow-hidden rounded-lg bg-[#F8FAFC] ring-1 ring-slate-100">
         <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center">
           {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
         </button>
@@ -583,7 +591,7 @@ function ProductCard({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
       </div>
       <div className="pt-2">
         <button type="button" onClick={() => onViewDetails(product)} className="block text-left">
-          <h3 className="truncate text-[13px] font-medium leading-[1.15rem] text-[#1F2937] transition hover:text-[#16A34A]">{product.name}</h3>
+          <h3 className="line-clamp-2 min-h-[2.3rem] text-[13px] font-semibold leading-[1.15rem] text-[#1F2937] transition hover:text-[#16A34A]">{product.name}</h3>
         </button>
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <p className="min-w-0 truncate text-lg font-black leading-none text-[#0F172A]">{formatNaira(product.price)}</p>
