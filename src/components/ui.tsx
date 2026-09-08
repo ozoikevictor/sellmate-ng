@@ -108,6 +108,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     { key: "settings", label: "Settings", href: "/dashboard/settings", icon: "settings" },
   ];
   const activeLink = links.find((link) => (link.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(link.href))) ?? links[0];
+  const pageDescription = activeLink.key === "overview"
+    ? "Monitor your store performance and actions."
+    : activeLink.key === "products"
+      ? "Add, edit, and publish products."
+      : activeLink.key === "orders"
+        ? "Manage payment and delivery progress."
+        : activeLink.key === "messages"
+          ? "Reply to customers and bargain offers."
+          : activeLink.key === "settings"
+            ? "Control store identity and payout details."
+            : "Manage this part of your seller workspace.";
   const isDashboardChatOpen = pathname === "/dashboard/messages" && Boolean(searchParams.get("chat"));
 
   useEffect(() => {
@@ -231,7 +242,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div className="hidden min-w-0 flex-1 lg:block">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">Vendor dashboard</p>
               <p className="truncate text-lg font-black text-[#0F172A]">{activeLink.label}</p>
-              <p className="truncate text-sm font-bold text-slate-500">{sellerDisplayName} · Manage products, orders, payments and delivery</p>
+              <p className="truncate text-sm font-bold text-slate-500">{sellerDisplayName} · {pageDescription}</p>
             </div>
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <Link href="/dashboard/account" className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-[#166534] transition hover:border-emerald-300 hover:bg-emerald-100 sm:inline-flex">
@@ -857,6 +868,31 @@ export function StoreHeader({
         </div>
       ) : null}
     </header>
+  );
+}
+
+export function DashboardPageHeader({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <section className="mb-6 overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white shadow-sm">
+      <div className="flex flex-col gap-4 border-l-4 border-[#16A34A] bg-[linear-gradient(135deg,#FFFFFF_0%,#F8FAFC_54%,#ECFDF5_100%)] p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-[#16A34A]">{eyebrow}</p>
+          <h1 className="mt-2 break-words text-2xl font-black leading-tight text-[#0F172A] sm:text-3xl">{title}</h1>
+          {description ? <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">{description}</p> : null}
+        </div>
+        {action ? <div className="flex shrink-0 flex-wrap gap-2">{action}</div> : null}
+      </div>
+    </section>
   );
 }
 

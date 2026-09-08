@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, DataTable, SectionTitle, StatCard } from "@/components/ui";
+import { Badge, DashboardPageHeader, DataTable, StatCard } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -98,7 +98,11 @@ export default function CustomersPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="CRM" title="Customers" />
+      <DashboardPageHeader
+        eyebrow="CRM"
+        title="Customers"
+        description="Understand buyers, repeat customers, order history, and follow-up opportunities."
+      />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
 
       <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">

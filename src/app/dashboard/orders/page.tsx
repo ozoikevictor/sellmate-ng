@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, SectionTitle, StatCard } from "@/components/ui";
+import { Badge, DashboardPageHeader, StatCard } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -96,7 +96,11 @@ export default function OrdersPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Fulfilment" title="Orders" />
+      <DashboardPageHeader
+        eyebrow="Fulfilment"
+        title="Orders"
+        description="Track customer orders, confirm payment, update delivery progress, and keep each order record clear."
+      />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
 
       <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">

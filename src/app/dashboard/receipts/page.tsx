@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Badge, DataTable, SectionTitle } from "@/components/ui";
+import { Badge, DashboardPageHeader, DataTable } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -65,7 +65,11 @@ export default function ReceiptsPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Records" title="Receipts" />
+      <DashboardPageHeader
+        eyebrow="Records"
+        title="Receipts"
+        description="Keep payment receipts and order records easy to check after customer checkout."
+      />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
       {latest ? <ReceiptPreview order={latest} /> : null}
       <DataTable

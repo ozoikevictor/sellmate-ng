@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { IconGlyph, SectionTitle, SellerLogo } from "@/components/ui";
+import { DashboardPageHeader, IconGlyph, SellerLogo } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -224,7 +224,11 @@ export default function SettingsPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Workspace" title="Settings" />
+      <DashboardPageHeader
+        eyebrow="Workspace"
+        title="Settings"
+        description="Set your public store identity, delivery fee, logo, store link, and payout details."
+      />
       <form onSubmit={saveProfile} className="grid gap-5">
         <section className="grid gap-3 sm:grid-cols-3">
           <SettingsStatusCard icon="home" label="Store profile" value={hasStoreDetails ? "Ready" : "Needs setup"} tone={hasStoreDetails ? "good" : "warn"} />

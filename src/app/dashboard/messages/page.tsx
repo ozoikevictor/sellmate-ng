@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, IconGlyph, SectionTitle } from "@/components/ui";
+import { Badge, DashboardPageHeader, IconGlyph } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { encodeChatOffer, parseChatOffer } from "@/lib/cart";
 import { formatNaira } from "@/lib/data";
@@ -329,7 +329,11 @@ export default function MessagesPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Inbox" title="Messages" />
+      <DashboardPageHeader
+        eyebrow="Inbox"
+        title="Messages"
+        description="Reply to customers, review product questions, and send bargain offers from one clean inbox."
+      />
       {notice ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{notice}</p> : null}
       {sessionNotice ? (
         <button type="button" onClick={loadMessages} className="mb-5 inline-flex rounded-md bg-[#16A34A] px-5 py-3 text-sm font-black text-white transition hover:bg-[#15803D]">

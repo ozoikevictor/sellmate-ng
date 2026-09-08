@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth";
-import { Badge, SectionTitle, StatCard } from "@/components/ui";
+import { Badge, DashboardPageHeader, StatCard } from "@/components/ui";
 import { formatNaira } from "@/lib/data";
 import { formatProductLimit, getProductLimit, isPlanExpired, productPlans } from "@/lib/plans";
 import { supabase } from "@/lib/supabase";
@@ -188,7 +188,11 @@ export default function BillingPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Subscription" title="Billing" />
+      <DashboardPageHeader
+        eyebrow="Subscription"
+        title="Billing"
+        description="Review your plan, product limit, renewal date, and seller payment setup."
+      />
 
       <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="grid gap-5 bg-[linear-gradient(135deg,#0F172A_0%,#14532D_58%,#16A34A_100%)] p-5 text-white lg:grid-cols-[1fr_340px] lg:items-center lg:p-7">

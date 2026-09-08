@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Badge, DataTable, SectionTitle } from "@/components/ui";
+import { Badge, DashboardPageHeader, DataTable } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -50,7 +50,11 @@ export default function InventoryPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Stockroom" title="Inventory" />
+      <DashboardPageHeader
+        eyebrow="Stockroom"
+        title="Inventory"
+        description="Monitor stock levels, live product status, and products that need attention."
+      />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
       <DataTable
         headers={["Item", "SKU", "Category", "Available", "Status", "Signal"]}

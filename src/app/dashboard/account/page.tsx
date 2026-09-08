@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { SectionTitle, StatCard } from "@/components/ui";
+import { DashboardPageHeader, StatCard } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -130,7 +130,11 @@ export default function AccountPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Seller account" title={businessName} />
+      <DashboardPageHeader
+        eyebrow="Seller account"
+        title={businessName}
+        description="Manage your seller profile, login email, password, and account access."
+      />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard label="Products" value={String(productCount)} change="Catalog" tone="blue" />

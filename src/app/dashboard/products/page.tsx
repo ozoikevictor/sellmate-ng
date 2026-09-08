@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Badge, SectionTitle } from "@/components/ui";
+import { Badge, DashboardPageHeader } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
 import { formatProductLimit, getProductLimit, isPlanExpired } from "@/lib/plans";
@@ -368,7 +368,11 @@ export default function ProductsPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Catalog" title="Products" />
+      <DashboardPageHeader
+        eyebrow="Catalog"
+        title="Products"
+        description="Add items, manage photos, update prices, and control what customers can buy from your store."
+      />
 
       <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="grid gap-5 bg-[linear-gradient(135deg,#F8FAFC_0%,#ECFDF5_58%,#FFF7ED_100%)] p-5 lg:grid-cols-[1fr_360px] lg:items-center lg:p-6">

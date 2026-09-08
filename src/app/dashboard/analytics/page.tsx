@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { SectionTitle, StatCard } from "@/components/ui";
+import { DashboardPageHeader, StatCard } from "@/components/ui";
 import { useAuth } from "@/components/auth";
 import { formatNaira } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
@@ -99,7 +99,11 @@ export default function AnalyticsPage() {
 
   return (
     <>
-      <SectionTitle eyebrow="Insights" title="Analytics" />
+      <DashboardPageHeader
+        eyebrow="Insights"
+        title="Analytics"
+        description="Review revenue, payment status, average order value, and product performance."
+      />
       {message ? <p className="mb-4 rounded-md bg-rose-50 p-4 text-sm font-semibold text-rose-700">{message}</p> : null}
 
       <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
