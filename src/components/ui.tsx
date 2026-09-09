@@ -1081,9 +1081,9 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
 
         <div className="mx-auto grid w-full max-w-7xl gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)] lg:items-start lg:p-8">
           <div className="order-2 min-w-0 overflow-hidden rounded-2xl bg-white shadow-[0_18px_60px_rgba(15,23,42,0.10)] ring-1 ring-emerald-100 lg:sticky lg:top-24 lg:order-1">
-            <div className="relative grid h-[18rem] w-full place-items-center overflow-hidden bg-white p-4 sm:h-[22rem] sm:p-6 lg:h-[27rem] xl:h-[31rem]">
+            <div className="relative grid aspect-square max-h-[min(72vh,34rem)] w-full place-items-center overflow-hidden bg-white p-4 sm:p-6 lg:aspect-[4/3]">
               {activeImage ? (
-                <img src={activeImage} alt={product.name} decoding="async" className="h-full max-h-full w-full max-w-full object-contain" />
+                <img src={activeImage} alt={product.name} decoding="async" className="h-full w-full object-contain object-center" />
               ) : (
                 <div className="grid h-36 w-36 place-items-center rounded-2xl bg-slate-100 text-slate-400">
                   <IconGlyph name="cart" className="h-12 w-12" />
@@ -1093,7 +1093,7 @@ export function ProductDetailsModal<TProduct extends CustomerProductDetails>({
             <div className="grid grid-cols-4 gap-[3px] bg-[#16A34A] p-[3px]">
               {(galleryImages.length ? galleryImages : [""]).slice(0, 4).map((imageUrl, index) => (
                 <button key={`${imageUrl}-${index}`} type="button" onClick={() => setActiveImage(imageUrl)} className={`grid h-16 place-items-center overflow-hidden bg-white p-1 sm:h-20 ${imageUrl && imageUrl === activeImage ? "ring-2 ring-inset ring-slate-950" : ""}`}>
-                  {imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-cover" /> : <IconGlyph name="cart" className="h-5 w-5 text-slate-300" />}
+                  {imageUrl ? <img src={imageUrl} alt="" className="h-full w-full object-contain object-center" /> : <IconGlyph name="cart" className="h-5 w-5 text-slate-300" />}
                 </button>
               ))}
             </div>
