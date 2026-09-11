@@ -1295,7 +1295,16 @@ export function PublicFooter({
 
   const footerColumns = [
     {
-      title: "SHOP",
+      title: "NEED HELP?",
+      links: [
+        { label: "Help Center", modal: "Help Center" },
+        { label: "Contact Us", modal: "Contact Us" },
+        { label: "Track Order", modal: "Track Order" },
+        { label: "Returns & Refunds", modal: "Returns" },
+      ],
+    },
+    {
+      title: "USEFUL LINKS",
       links: [
         { label: "Products", href: productHref },
         { label: "Categories", href: categoryHref },
@@ -1304,81 +1313,91 @@ export function PublicFooter({
       ],
     },
     {
-      title: "SELL",
+      title: "ABOUT VENDORAQ",
+      links: [
+        { label: "About us", modal: "About" },
+        { label: "Terms and Conditions", modal: "Terms" },
+        { label: "Privacy Notice", modal: "Privacy" },
+        { label: "Seller Guide", modal: "Seller Guide" },
+      ],
+    },
+    {
+      title: "MAKE MONEY WITH VENDORAQ",
       links: [
         { label: "Start Selling", href: "/register" },
         { label: "Seller Dashboard", href: "/login" },
-        { label: "Seller Guide", modal: "Seller Guide" },
         { label: "Pricing", modal: "Pricing" },
+        { label: "Open a Store", href: "/register" },
       ],
     },
     {
-      title: "SUPPORT",
+      title: "SELLER STORES",
       links: [
-        { label: "Help Center", modal: "Help Center" },
-        { label: "Track Order", modal: "Track Order" },
-        { label: "Contact Us", modal: "Contact Us" },
-        { label: "Returns", modal: "Returns" },
-      ],
-    },
-    {
-      title: "COMPANY",
-      links: [
-        { label: "About", modal: "About" },
-        { label: "Terms", modal: "Terms" },
-        { label: "Privacy", modal: "Privacy" },
+        { label: "Fashion Stores", href: productHref },
+        { label: "Beauty Stores", href: productHref },
+        { label: "Electronics Stores", href: productHref },
+        { label: "Grocery Stores", href: productHref },
       ],
     },
   ];
 
   return (
-    <footer id="help" className="border-t-4 border-[#16A34A] bg-[#F8FAFC] text-[#0F172A]">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_0.75fr_0.75fr_0.75fr_0.75fr]">
-        <div className="max-w-xl">
-          <Link href={isSellerFooter ? storeHref : "/"} className="flex w-fit items-center gap-3 text-xl font-black text-[#0F172A]">
+    <footer id="help" className="bg-[#313133] text-white">
+      <div className="bg-[#282828]">
+        <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[1fr_1.25fr_0.9fr] lg:items-center">
+          <Link href={isSellerFooter ? storeHref : "/"} className="flex min-w-0 items-center gap-3">
             {isSellerFooter ? (
               <SellerLogo name={footerName} logoUrl={sellerLogoUrl} />
             ) : (
-              <VendoraqLogo tone="light" />
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-white text-[#111827]"><VendoraqLogo compact iconOnly /></span>
             )}
-            {isSellerFooter ? <span>{footerName}</span> : null}
+            <span className="min-w-0">
+              <span className="block truncate text-lg font-black">{isSellerFooter ? footerName : "VENDORAQ"}</span>
+              <span className="block text-xs font-black uppercase tracking-[0.18em] text-[#f68b1e]">
+                {isSellerFooter ? "Powered by VENDORAQ" : "Sell. Connect. Grow."}
+              </span>
+            </span>
           </Link>
-          <p className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-[#047857]">
-            {isSellerFooter ? "Powered by VENDORAQ" : "Sell. Connect. Grow."}
-          </p>
-          <p className="mt-4 max-w-md text-sm font-semibold leading-6 text-slate-600">
-            {isSellerFooter
-              ? "Secure product browsing, cart checkout, payment follow-up, and customer support for this seller."
-              : "A modern commerce platform for Nigerian sellers to launch online stores, manage orders, receive payments, and grow with confidence."}
-          </p>
-          <div className="mt-6 rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#047857]">Newsletter</p>
-            <div className="mt-3 flex overflow-hidden rounded-full bg-[#F1F5F9] p-1 shadow-sm ring-1 ring-slate-200">
-              <span className="min-w-0 flex-1 px-4 py-2 text-sm font-semibold text-slate-500">Business growth updates</span>
-              <Link href="/register" className="rounded-full bg-[#16A34A] px-4 py-2 text-xs font-black text-white transition hover:bg-[#15803D]">
-                Join
+
+          <div>
+            <h2 className="text-xs font-black uppercase tracking-[0.18em] text-white">New to VENDORAQ?</h2>
+            <p className="mt-1 text-xs font-semibold leading-5 text-slate-300">Subscribe for store updates, seller tips, offers, and checkout improvements.</p>
+            <div className="mt-3 flex max-w-xl overflow-hidden rounded-md bg-white p-1">
+              <span className="min-w-0 flex-1 px-3 py-2 text-sm font-semibold text-slate-500">Enter E-mail Address</span>
+              <Link href="/register" className="rounded bg-[#f68b1e] px-4 py-2 text-xs font-black uppercase text-white transition hover:bg-[#e07b14]">
+                Subscribe
               </Link>
             </div>
           </div>
-        </div>
 
+          <div className="rounded-md border border-white/10 bg-white/5 p-4">
+            <h2 className="text-xs font-black uppercase tracking-[0.18em] text-white">Download VENDORAQ App</h2>
+            <p className="mt-1 text-xs font-semibold leading-5 text-slate-300">Get access to store tools and shopping updates.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-md border border-white/15 px-3 py-2 text-[11px] font-black uppercase text-white">App Store</span>
+              <span className="rounded-md border border-white/15 px-3 py-2 text-[11px] font-black uppercase text-white">Google Play</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:grid-cols-2 lg:grid-cols-5">
         {footerColumns.map((column) => (
           <div key={column.title}>
-            <h2 className="text-xs font-black uppercase tracking-[0.22em] text-[#047857]">{column.title}</h2>
-            <div className="mt-2 h-0.5 w-8 rounded-full bg-[#16A34A]" />
-            <nav className="mt-5 grid gap-3 text-sm font-black text-slate-700">
+            <h2 className="text-xs font-black uppercase tracking-[0.08em] text-white">{column.title}</h2>
+            <nav className="mt-3 grid gap-2 text-xs font-semibold text-slate-300">
               {column.links.map((link) =>
                 "modal" in link ? (
                   <button
                     key={`${column.title}-${link.label}`}
                     type="button"
                     onClick={() => setActiveFooterModal(link.modal ?? null)}
-                    className="w-fit text-left transition hover:text-[#16A34A]"
+                    className="w-fit text-left transition hover:text-[#f68b1e]"
                   >
                     {link.label}
                   </button>
                 ) : (
-                  <Link key={`${column.title}-${link.label}`} href={link.href} className="transition hover:text-[#16A34A]">
+                  <Link key={`${column.title}-${link.label}`} href={link.href} className="w-fit transition hover:text-[#f68b1e]">
                     {link.label}
                   </Link>
                 ),
@@ -1393,14 +1412,36 @@ export function PublicFooter({
           onClose={() => setActiveFooterModal(null)}
         />
       ) : null}
-      <div className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 {isSellerFooter ? footerName : "VENDORAQ"}. All rights reserved.</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-emerald-800">Secure payments</span>
-            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-emerald-800">Paystack ready</span>
-            <span className="text-[#047857]">Built for Nigerian sellers.</span>
+      <div className="border-t border-white/10">
+        <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 text-xs font-semibold text-slate-300 lg:grid-cols-[1fr_1fr_1fr]">
+          <div>
+            <h2 className="text-xs font-black uppercase text-white">Join us on</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["Facebook", "Instagram", "X", "TikTok"].map((item) => (
+                <span key={item} className="rounded-full border border-white/15 px-3 py-1 transition hover:border-[#f68b1e] hover:text-[#f68b1e]">{item}</span>
+              ))}
+            </div>
           </div>
+          <div>
+            <h2 className="text-xs font-black uppercase text-white">Payment methods</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["Paystack", "Card", "Transfer", "USSD"].map((item) => (
+                <span key={item} className="rounded bg-white px-3 py-1 font-black text-[#313133]">{item}</span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h2 className="text-xs font-black uppercase text-white">Store note</h2>
+            <p className="mt-3 leading-5">
+              {isSellerFooter
+                ? `${footerName} manages products, delivery, support, and returns for this store.`
+                : "VENDORAQ gives Nigerian sellers public stores, checkout, orders, receipts, and customer follow-up tools."}
+            </p>
+          </div>
+        </div>
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-white/10 px-5 py-4 text-[11px] font-semibold text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 {isSellerFooter ? footerName : "VENDORAQ"}. All rights reserved.</p>
+          <p className="text-[#f68b1e]">Built for Nigerian sellers.</p>
         </div>
       </div>
     </footer>
