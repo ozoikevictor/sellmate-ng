@@ -277,7 +277,7 @@ export default function DynamicStorefrontPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#F3F6F8] pt-[160px]">
+    <main className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#ECFDF5_0%,#F8FAFC_30%,#F3F6F8_100%)] pt-[160px]">
       <StoreHeader
         sellerName={brandName}
         sellerLogoUrl={logoUrl}
@@ -288,7 +288,7 @@ export default function DynamicStorefrontPage() {
         onSearchChange={setSearchTerm}
         whatsappPhone={profile?.whatsapp_phone}
       />
-      <section className="border-b border-slate-200 bg-[#F3F6F8]">
+      <section className="border-b border-emerald-100 bg-transparent">
         <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:py-5">
           <aside className="hidden min-w-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200 lg:block">
             <p className="border-b border-slate-100 bg-slate-50 px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Shop categories</p>
@@ -307,7 +307,7 @@ export default function DynamicStorefrontPage() {
             </nav>
           </aside>
           <div className="grid gap-3">
-            <div className="relative overflow-hidden rounded-[1.35rem] border border-emerald-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+            <div className="relative overflow-hidden rounded-[1.35rem] border border-emerald-200 bg-white shadow-[0_22px_55px_rgba(6,78,59,0.12)]">
               <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${heroIndex % Math.max(heroProducts.length || products.slice(0, 8).length, 1) * 100}%)` }}>
                 {(heroProducts.length ? heroProducts : products.slice(0, 8)).map((product, index) => (
                   <button
@@ -316,7 +316,7 @@ export default function DynamicStorefrontPage() {
                     onClick={() => openProductDetails(product)}
                     className="grid min-h-[205px] min-w-full snap-center grid-cols-[minmax(0,1fr)_46%] items-stretch text-left sm:min-h-[280px] lg:min-h-[370px] lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]"
                   >
-                    <span className="flex min-w-0 flex-col justify-between bg-[linear-gradient(135deg,#ECFDF5_0%,#FFFFFF_58%,#F8FAFC_100%)] px-4 py-5 sm:px-8 sm:py-8 lg:pr-6">
+                      <span className="flex min-w-0 flex-col justify-between bg-[linear-gradient(135deg,#ECFDF5_0%,#FFFFFF_50%,#FFF7ED_100%)] px-4 py-5 sm:px-8 sm:py-8 lg:pr-6">
                       <span>
                         <span className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[#047857] sm:text-xs sm:tracking-[0.18em]">{brandName}</span>
                         <span className="mt-2 line-clamp-3 max-w-xl text-[1.45rem] font-black leading-tight text-[#0F172A] sm:text-4xl lg:text-[3.15rem]">{product.name}</span>
@@ -352,7 +352,7 @@ export default function DynamicStorefrontPage() {
                         <span className="rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-xs font-black text-slate-800 sm:px-5 sm:py-3 sm:text-sm">Chat seller</span>
                       </span>
                     </span>
-                    <span className="grid min-w-0 place-items-stretch bg-[#DDF7EA] p-2 sm:p-4 lg:p-5">
+                    <span className="grid min-w-0 place-items-stretch bg-[linear-gradient(135deg,#DCFCE7,#FEF3C7)] p-2 sm:p-4 lg:p-5">
                       <span className="grid h-full min-h-0 w-full place-items-center overflow-hidden rounded-2xl bg-white shadow-lg ring-1 ring-emerald-100">
                         {product.image_url ? <img src={product.image_url} alt={product.name} decoding="async" loading={index > 0 ? "lazy" : "eager"} className="h-full w-full object-cover object-center" /> : <IconGlyph name="cart" className="h-10 w-10 text-slate-300" />}
                       </span>
@@ -372,8 +372,8 @@ export default function DynamicStorefrontPage() {
                 ))}
               </div>
             </div>
-            <div className="-mx-3 overflow-hidden bg-[#064E3B] p-[3px] shadow-sm sm:mx-0 sm:rounded-xl">
-              <div className="flex gap-[3px] overflow-x-auto bg-[#064E3B] pb-0">
+            <div className="-mx-3 overflow-hidden bg-[linear-gradient(135deg,#047857,#F59E0B)] p-[3px] shadow-sm sm:mx-0 sm:rounded-xl">
+              <div className="flex gap-[3px] overflow-x-auto bg-transparent pb-0">
               {(heroProducts.length ? heroProducts : products.slice(0, 8)).slice(0, 8).map((product, index) => (
                 <button
                   key={product.id}
@@ -511,10 +511,10 @@ function HeroCollage({ products, activeIndex }: { products: StoreProduct[]; acti
 
 function TrustBar() {
   return (
-    <section className="border-y border-slate-200 bg-white">
+    <section className="border-y border-emerald-100 bg-white">
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2 px-4 py-3 text-xs font-black text-[#0F172A] sm:grid-cols-4 sm:px-5">
         {["Bargain in chat", "Secure payment", "Seller delivery", "Order record"].map((item) => (
-          <div key={item} className="rounded-lg border border-emerald-100 bg-[#F7FBF9] px-3 py-2 text-center text-slate-700">{item}</div>
+          <div key={item} className="rounded-lg border border-emerald-100 bg-[linear-gradient(180deg,#F7FBF9,#FFFBEB)] px-3 py-2 text-center text-slate-700">{item}</div>
         ))}
       </div>
     </section>
@@ -527,8 +527,8 @@ function CategoryShelf({ categories, products, storeHref }: { categories: string
   }
 
   return (
-    <div className="-mx-4 overflow-hidden bg-[#064E3B] p-[3px] shadow-sm sm:mx-0 sm:rounded-xl">
-      <div className="flex gap-[3px] overflow-x-auto bg-[#064E3B]">
+    <div className="-mx-4 overflow-hidden bg-[linear-gradient(135deg,#047857,#F59E0B)] p-[3px] shadow-sm sm:mx-0 sm:rounded-xl">
+      <div className="flex gap-[3px] overflow-x-auto bg-transparent">
       {categories.map((category) => {
         const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
         return (
@@ -566,7 +566,7 @@ function ProductShelf({ title, actionLabel, actionHref, storeHref, products, fav
 
 function ProductGrid({ storeHref, products, favoriteIds, cartQtyById, onAddToCart, onChangeCartQty, onToggleFavorite, onViewDetails }: { storeHref: string; products: StoreProduct[]; favoriteIds: string[]; cartQtyById: Record<string, number>; onAddToCart: (product: StoreProduct) => void; onChangeCartQty: (product: StoreProduct, qty: number) => void; onToggleFavorite: (product: StoreProduct) => void; onViewDetails: (product: StoreProduct) => void }) {
   return (
-    <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-xl bg-[#047857] p-[3px] shadow-sm sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-xl bg-[linear-gradient(135deg,#047857,#F59E0B)] p-[3px] shadow-sm sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {products.map((product) => (
         <ProductCard key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
       ))}

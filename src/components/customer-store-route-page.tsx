@@ -321,7 +321,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
   if (loading && !profile) return <LoadingScreen />;
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#f2f6fb] pt-[160px]">
+    <main className="flex min-h-screen flex-col bg-[linear-gradient(180deg,#F0FDF4_0%,#F8FAFC_28%,#F3F6F8_100%)] pt-[160px]">
       <StoreHeader
         sellerName={sellerName}
         sellerLogoUrl={profile?.logo_url}
@@ -332,7 +332,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
         onSearchChange={setSearchTerm}
         whatsappPhone={profile?.whatsapp_phone}
       />
-      <section className="border-b border-slate-200 bg-white">
+      <section className="border-b border-emerald-100 bg-white/95 shadow-sm">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">{sellerName}</p>
@@ -348,7 +348,7 @@ export function CustomerStoreRoutePage({ view }: { view: CustomerStoreView }) {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`rounded-full border px-3 py-1.5 text-xs font-black transition ${item.active ? "border-[#16A34A] bg-[#16A34A] text-white" : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:text-emerald-700"}`}
+                className={`rounded-full border px-3 py-1.5 text-xs font-black transition ${item.active ? "border-[#16A34A] bg-[#16A34A] text-white shadow-[0_8px_20px_rgba(22,163,74,0.18)]" : "border-emerald-100 bg-emerald-50/70 text-slate-700 hover:border-emerald-300 hover:bg-white hover:text-emerald-700"}`}
               >
                 {item.label}
               </Link>
@@ -453,7 +453,7 @@ function ProductsView({
       </div>
       {loading ? <ProductGridSkeleton /> : null}
       {!loading && products.length === 0 ? <EmptyPanel title="No products found" text="No live products match this view for the current store." /> : null}
-      {!loading ? <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-md bg-[#16A34A] p-[3px] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+      {!loading ? <div className="grid grid-cols-2 items-stretch gap-[3px] overflow-hidden rounded-xl bg-[linear-gradient(135deg,#047857,#F59E0B)] p-[3px] shadow-sm sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
         {products.map((product) => (
           <ProductTile key={product.id} storeHref={storeHref} product={product} isFavorite={favoriteIds.includes(product.id)} cartQty={cartQtyById[product.id] ?? 0} onAddToCart={onAddToCart} onChangeCartQty={onChangeCartQty} onToggleFavorite={onToggleFavorite} onViewDetails={onViewDetails} />
         ))}
@@ -466,7 +466,7 @@ function ProductTile({ product, isFavorite, cartQty, onAddToCart, onChangeCartQt
   const rating = productRating(product);
   const badge = productBadge(product);
   return (
-    <article className="group min-w-0 bg-white p-2 transition hover:z-10 hover:shadow-[0_10px_24px_rgba(15,23,42,0.12)] active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
+    <article className="group min-w-0 bg-white p-2 transition hover:z-10 hover:bg-[#FBFFFD] hover:shadow-[0_10px_24px_rgba(15,23,42,0.12)] active:shadow-[0_8px_18px_rgba(15,23,42,0.10)]">
       <div className="relative overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
         <button type="button" onClick={() => onViewDetails(product)} aria-label={`View details for ${product.name}`} className="grid aspect-square w-full place-items-center">
           {product.image_url ? <img src={product.image_url} alt={product.name} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover transition duration-300 group-hover:scale-[1.03]" /> : <span className="text-xs font-bold text-[#64748B]">No image</span>}
@@ -512,7 +512,7 @@ function CategoriesView({ categories, products, storeHref }: { categories: strin
       {categories.map((category) => {
         const product = products.find((item) => item.category === category && item.image_url) ?? products.find((item) => item.category === category);
         return (
-        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[13rem] items-center gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700">
+        <Link key={category} href={`${storeHref}/products?category=${encodeURIComponent(category)}`} className="flex min-w-[13rem] items-center gap-3 rounded-xl border border-emerald-100 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700">
           <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-white ring-1 ring-slate-100">
             {product?.image_url ? <img src={product.image_url} alt={category} loading="lazy" decoding="async" className="h-full w-full bg-white object-cover" /> : <IconGlyph name="menu" className="h-5 w-5 text-[#16A34A]" />}
           </span>

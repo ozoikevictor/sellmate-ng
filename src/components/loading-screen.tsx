@@ -1,19 +1,14 @@
 export function LoadingScreen({ label = "Loading...", exiting = false }: { label?: string; exiting?: boolean }) {
   return (
     <div
-      className={`page-loader fixed inset-0 z-[9999] grid h-[100vh] w-[100vw] place-items-center bg-[#07111F] px-6 ${exiting ? "page-loader-exiting" : ""}`}
+      className={`page-loader fixed inset-0 z-[9999] grid h-[100vh] w-[100vw] place-items-center bg-white px-6 ${exiting ? "page-loader-exiting" : ""}`}
       role="status"
       aria-live="polite"
       aria-label={label}
     >
-      <div className="flex w-full max-w-xs flex-col items-center rounded-2xl border border-white/10 bg-white/5 px-6 py-7 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-        <div className="page-loader-brand text-center text-2xl font-black text-white sm:text-3xl">
-          VENDOR<span className="text-[#16A34A]">AQ</span>
-        </div>
-        <p className="mt-2 text-center text-xs font-black uppercase tracking-[0.2em] text-emerald-200">Opening store</p>
-        <div className="mt-7 h-1 w-full overflow-hidden rounded-full bg-white/10" aria-hidden="true">
-          <div className="page-loader-progress h-full w-2/5 bg-[#16A34A]" />
-        </div>
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-14 w-14 rounded-full border-4 border-slate-200 border-t-[#16A34A] page-loader-spinner" aria-hidden="true" />
+        <p className="text-sm font-black text-slate-700">{label}</p>
       </div>
     </div>
   );

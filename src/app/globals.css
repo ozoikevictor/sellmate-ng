@@ -174,13 +174,8 @@ button,
   animation: page-loader-out 220ms ease-in both;
 }
 
-.page-loader-brand {
-  animation: page-loader-brand-pulse 1.8s ease-in-out infinite;
-}
-
-.page-loader-progress {
-  animation: page-loader-progress 1.15s ease-in-out infinite;
-  transform-origin: left center;
+.page-loader-spinner {
+  animation: page-loader-spin 760ms linear infinite;
 }
 
 .skeleton-shimmer {
@@ -248,15 +243,8 @@ button,
   to { opacity: 0; visibility: hidden; }
 }
 
-@keyframes page-loader-brand-pulse {
-  0%, 100% { opacity: 0.72; }
-  50% { opacity: 1; }
-}
-
-@keyframes page-loader-progress {
-  0% { transform: translateX(-130%) scaleX(0.65); }
-  50% { transform: translateX(70%) scaleX(1); }
-  100% { transform: translateX(260%) scaleX(0.65); }
+@keyframes page-loader-spin {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes skeleton-shimmer {
@@ -274,8 +262,7 @@ button,
 
   .page-loader,
   .page-loader-exiting,
-  .page-loader-brand,
-  .page-loader-progress,
+  .page-loader-spinner,
   .skeleton-shimmer {
     animation: none;
   }
